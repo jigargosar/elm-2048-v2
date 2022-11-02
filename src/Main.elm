@@ -1,8 +1,15 @@
 module Main exposing (main)
 
-import Html exposing (Html)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (style)
 
 
 main : Html msg
 main =
-    Html.text "HI"
+    div
+        [ style "font" "22px monospace"
+        , style "padding" "20px"
+        ]
+        [ text "Hello World!"
+        ]
+        
