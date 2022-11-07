@@ -7,6 +7,18 @@ import String exposing (fromInt)
 import Tuple exposing (pair)
 
 
+
+{-
+   NEXT STEPS:
+   * model game data
+   * Board -> Dict Pos Int
+   * initial board
+   * move board
+   * generate new elements
+   * or declare game over
+-}
+
+
 main : Html msg
 main =
     div
@@ -74,27 +86,14 @@ initialBoard =
         |> boardFromLists
 
 
-listFromBoardPositions : (Pos -> a) -> List a
-listFromBoardPositions fn =
-    List.range 0 3
-        |> List.concatMap
-            (\x ->
-                List.range 0 3
-                    |> List.map
-                        (\y ->
-                            fn ( x, y )
-                        )
-            )
-
-
 viewBoard : Board -> Html msg
 viewBoard (Board d) =
-    listFromBoardPositions (\p -> viewCell p (Dict.get p d))
-        |> div
-            [ style "width" "fit-content"
-            , style "display" "grid"
-            , style "gap" "15px"
-            ]
+    div
+        [ style "width" "fit-content"
+        , style "display" "grid"
+        , style "gap" "15px"
+        ]
+        (rangeWH 4 4 |> List.map (\p -> viewCell p (Dict.get p d)))
 
 
 viewCell : Pos -> Maybe Int -> Html msg
@@ -117,12 +116,23 @@ gridAreaFromPos ( x, y ) =
 
 
 
-{-
-   NEXT STEPS:
-   * model game data
-   * Board -> Dict Pos Int
-   * initial board
-   * move board
-   * generate new elements
-   * or declare game over
--}
+-- BASICS
+
+
+rangeWH : Int -> Int -> List ( Int, Int )
+rangeWH w h =
+    indicesOfLen h
+        |> List.concatMap
+            (\y ->
+                indicesOfLen w |> List.map (pairTo y)
+            )
+
+
+pairTo : b -> a -> ( a, b )
+pairTo b a =
+    ( a, b )
+
+
+indicesOfLen : Int -> List Int
+indicesOfLen len =
+    List.range 0 (len - 1)
