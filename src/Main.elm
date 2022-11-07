@@ -70,7 +70,12 @@ boardFromLists : List (List Int) -> Board
 boardFromLists lls =
     lls
         |> gridFromLists
-        |> Dict.filter isValidBoardEntry
+        |> boardFromGrid
+
+
+boardFromGrid : Grid Int -> Board
+boardFromGrid d =
+    Dict.filter isValidBoardEntry d
         |> Board
 
 
@@ -94,42 +99,63 @@ nextBoard =
     initialBoard |> moveUp
 
 
+type alias Acc =
+    { d : Grid Int
+    , x : Int
+    , y : Int
+    , lastUnmerged : Maybe Int
+    }
+
+
 moveUp : Board -> Board
 moveUp (Board d) =
     let
-        reducer ( ( x, _ ), val ) acc =
+        resetAccOnColumnChange : Int -> Acc -> Acc
+        resetAccOnColumnChange x acc =
+            if x == acc.x then
+                acc
+
+            else
+                { acc | lastUnmerged = Nothing, y = 0, x = x }
+
+        reducerHelp : Int -> Int -> Acc -> Acc
+        reducerHelp x val acc =
             let
-                ( lastUnmerged, y ) =
-                    if x == acc.x then
-                        ( acc.lastUnmerged, acc.y )
-
-                    else
-                        ( Nothing, 0 )
-
                 shouldMerge =
-                    lastUnmerged == Just val
+                    acc.lastUnmerged == Just val
             in
             if shouldMerge then
-                { acc
-                    | d = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.d
-                    , x = x
-                    , y = y
-                    , lastUnmerged = Nothing
+                { d = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.d
+                , x = x
+                , y = acc.y
+                , lastUnmerged = Nothing
                 }
 
             else
-                { acc
-                    | d = Dict.insert ( x, y ) val acc.d
-                    , x = x
-                    , y = y + 1
-                    , lastUnmerged = Just val
+                { d = Dict.insert ( x, acc.y ) val acc.d
+                , x = x
+                , y = acc.y + 1
+                , lastUnmerged = Just val
                 }
+
+        reducer : ( Pos, Int ) -> Acc -> Acc
+        reducer ( ( x, _ ), val ) acc =
+            resetAccOnColumnChange x acc
+                |> reducerHelp x val
+
+        initialAcc : Acc
+        initialAcc =
+            { d = Dict.empty
+            , x = 0
+            , y = 0
+            , lastUnmerged = Nothing
+            }
     in
     d
         |> Dict.toList
-        |> List.foldl reducer { d = Dict.empty, x = 0, y = 0, lastUnmerged = Nothing }
+        |> List.foldl reducer initialAcc
         |> .d
-        |> Board
+        |> boardFromGrid
 
 
 allBoardEntries : Board -> List ( Pos, Maybe Int )
