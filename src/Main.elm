@@ -74,17 +74,22 @@ initialBoard =
         |> boardFromLists
 
 
-viewBoard : Board -> Html msg
-viewBoard (Board d) =
+listFromBoardPositions : (Pos -> a) -> List a
+listFromBoardPositions fn =
     List.range 0 3
         |> List.concatMap
             (\x ->
                 List.range 0 3
                     |> List.map
                         (\y ->
-                            viewCell x y (Dict.get ( x, y ) d |> Maybe.withDefault 0)
+                            fn ( x, y )
                         )
             )
+
+
+viewBoard : Board -> Html msg
+viewBoard (Board d) =
+    listFromBoardPositions (\p -> viewCell p (Dict.get p d))
         |> div
             [ style "width" "fit-content"
             , style "display" "grid"
@@ -92,10 +97,10 @@ viewBoard (Board d) =
             ]
 
 
-viewCell : Int -> Int -> Int -> Html msg
-viewCell x y val =
+viewCell : Pos -> Maybe Int -> Html msg
+viewCell pos val =
     div
-        [ style "grid-area" (fromInt (y + 1) ++ "/" ++ fromInt (x + 1))
+        [ gridAreaFromPos pos
         , style "display" "grid"
         , style "place-content" "center"
         , style "aspect-ratio" "1"
@@ -103,7 +108,12 @@ viewCell x y val =
         , style "font-size" "60px"
         , style "width" "100px"
         ]
-        [ text (fromInt val) ]
+        [ text (val |> Maybe.map fromInt |> Maybe.withDefault "") ]
+
+
+gridAreaFromPos : Pos -> Html.Attribute msg
+gridAreaFromPos ( x, y ) =
+    style "grid-area" (fromInt (y + 1) ++ "/" ++ fromInt (x + 1))
 
 
 
