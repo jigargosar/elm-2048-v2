@@ -86,10 +86,9 @@ viewBoard (Board d) =
                         )
             )
         |> div
-            [ style "max-width" "600px"
-            , style "aspect-ratio" "1"
+            [ style "width" "fit-content"
             , style "display" "grid"
-            , style "gap" "1ch"
+            , style "gap" "15px"
             ]
 
 
@@ -101,7 +100,8 @@ viewCell x y val =
         , style "place-content" "center"
         , style "aspect-ratio" "1"
         , style "background" "#eee"
-        , style "min-width" "5ch"
+        , style "font-size" "60px"
+        , style "width" "100px"
         ]
         [ text (fromInt val) ]
 
