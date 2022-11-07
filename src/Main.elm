@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Dict exposing (Dict)
-import Html exposing (Html, div, text)
+import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
 import Tuple exposing (pair)
 
@@ -24,6 +24,10 @@ type Board
     = Board (Dict Pos Int)
 
 
+type alias Grid a =
+    Dict Pos a
+
+
 boardInit : Board
 boardInit =
     let
@@ -33,26 +37,29 @@ boardInit =
             , [ 0, 1, 1, 0 ]
             ]
 
-        reducer2: Int -> (Int, Int) -> Dict Pos Int -> Dict Pos Int 
-        reducer2 y (x, val) acc = 
-            if val /= 0 then
-                Dict.insert (x,y) val acc
-            else
-                acc
-
-        reducer: (Int, List Int) -> Dict Pos Int -> Dict Pos Int 
-        reducer (y, ls) acc =
-            ls 
-                |> List.indexedMap pair 
-                |> List.foldl (reducer2 y) acc
-
         dict =
-            lol
-                |> List.indexedMap pair
-                |> List.foldl reducer Dict.empty
+            gridFromLists lol
     in
     -- Board (Dict.fromList [ ( pair 0 0, 1 ) ])
     Board dict
+
+
+gridFromLists : List (List a) -> Dict Pos a
+gridFromLists lls =
+    let
+        reducer2 : Int -> ( Int, a ) -> Grid a -> Grid a
+        reducer2 y ( x, val ) acc =
+            Dict.insert ( x, y ) val acc
+
+        reducer : ( Int, List a ) -> Grid a -> Grid a
+        reducer ( y, ls ) acc =
+            ls
+                |> List.indexedMap pair
+                |> List.foldl (reducer2 y) acc
+    in
+    lls
+        |> List.indexedMap pair
+        |> List.foldl reducer Dict.empty
 
 
 
