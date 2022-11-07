@@ -12,3 +12,15 @@ main =
         ]
         [ text "Hello World!"
         ]
+
+
+
+{-
+    NEXT STEPS:
+    * model game data
+    * Board -> Dict Pos Int
+    * initial board
+    * move board
+    * generate new elements
+    * or declare game over
+-}
