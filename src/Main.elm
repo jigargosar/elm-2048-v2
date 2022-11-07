@@ -83,7 +83,7 @@ initialBoard : Board
 initialBoard =
     [ [ 0, 0, 0, 0 ]
     , [ 0, 1, 2, 0 ]
-    , [ 0, 3, 4, 0 ]
+    , [ 0, 3, 2, 0 ]
     , [ 5, 0, 0, 7 ]
     ]
         |> boardFromLists
