@@ -28,21 +28,24 @@ type alias Grid a =
 
 
 gridFromLists : List (List a) -> Grid a
-gridFromLists lls =
-    let
-        reducer2 : Int -> ( Int, a ) -> Grid a -> Grid a
-        reducer2 y ( x, val ) acc =
-            Dict.insert ( x, y ) val acc
+gridFromLists =
+    indexedFoldl
+        (\y ls acc ->
+            indexedFoldl
+                (\x val ->
+                    Dict.insert ( x, y ) val
+                )
+                acc
+                ls
+        )
+        Dict.empty
 
-        reducer : ( Int, List a ) -> Grid a -> Grid a
-        reducer ( y, ls ) acc =
-            ls
-                |> List.indexedMap pair
-                |> List.foldl (reducer2 y) acc
-    in
-    lls
+
+indexedFoldl : (Int -> b -> a -> a) -> a -> List b -> a
+indexedFoldl fn acc ls =
+    ls
         |> List.indexedMap pair
-        |> List.foldl reducer Dict.empty
+        |> List.foldl (\( i, a ) -> fn i a) acc
 
 
 type Board
