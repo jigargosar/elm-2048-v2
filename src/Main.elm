@@ -91,30 +91,43 @@ initialBoard =
 
 nextBoard : Board
 nextBoard =
-    initialBoard |> moveLeft
+    initialBoard |> moveUp
 
 
-moveLeft : Board -> Board
-moveLeft (Board d) =
+moveUp : Board -> Board
+moveUp (Board d) =
     let
-        reducer ( ( x, _ ) as pos, val ) acc =
+        reducer ( ( x, _ ), val ) acc =
             let
-                y =
-                    if x /= acc.x then
-                        0
+                ( lastUnmerged, y ) =
+                    if x == acc.x then
+                        ( acc.lastUnmerged, acc.y )
 
                     else
-                        acc.y
+                        ( Nothing, 0 )
+
+                shouldMerge =
+                    lastUnmerged == Just val
             in
-            { acc
-                | d = Dict.insert ( x, y ) val acc.d
-                , x = x
-                , y = y + 1
-            }
+            if shouldMerge then
+                { acc
+                    | d = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.d
+                    , x = x
+                    , y = y
+                    , lastUnmerged = Nothing
+                }
+
+            else
+                { acc
+                    | d = Dict.insert ( x, y ) val acc.d
+                    , x = x
+                    , y = y + 1
+                    , lastUnmerged = Just val
+                }
     in
     d
         |> Dict.toList
-        |> List.foldl reducer { d = Dict.empty, x = 0, y = 0 }
+        |> List.foldl reducer { d = Dict.empty, x = 0, y = 0, lastUnmerged = Nothing }
         |> .d
         |> Board
 
