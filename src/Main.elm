@@ -100,7 +100,7 @@ nextBoard =
 
 
 type alias Acc =
-    { d : Grid Int
+    { dict : Grid Int
     , x : Int
     , y : Int
     , lastUnmerged : Maybe Int
@@ -108,7 +108,7 @@ type alias Acc =
 
 
 moveUp : Board -> Board
-moveUp (Board d) =
+moveUp (Board dict) =
     let
         resetAccOnColumnChange : Int -> Acc -> Acc
         resetAccOnColumnChange x acc =
@@ -116,7 +116,11 @@ moveUp (Board d) =
                 acc
 
             else
-                { acc | lastUnmerged = Nothing, y = 0, x = x }
+                { lastUnmerged = Nothing
+                , y = 0
+                , x = x
+                , dict = acc.dict
+                }
 
         reducerHelp : Int -> Int -> Acc -> Acc
         reducerHelp x val acc =
@@ -125,14 +129,14 @@ moveUp (Board d) =
                     acc.lastUnmerged == Just val
             in
             if shouldMerge then
-                { d = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.d
+                { dict = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.dict
                 , x = x
                 , y = acc.y
                 , lastUnmerged = Nothing
                 }
 
             else
-                { d = Dict.insert ( x, acc.y ) val acc.d
+                { dict = Dict.insert ( x, acc.y ) val acc.dict
                 , x = x
                 , y = acc.y + 1
                 , lastUnmerged = Just val
@@ -145,16 +149,16 @@ moveUp (Board d) =
 
         initialAcc : Acc
         initialAcc =
-            { d = Dict.empty
+            { dict = Dict.empty
             , x = 0
             , y = 0
             , lastUnmerged = Nothing
             }
     in
-    d
+    dict
         |> Dict.toList
         |> List.foldl reducer initialAcc
-        |> .d
+        |> .dict
         |> boardFromGrid
 
 
