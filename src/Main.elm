@@ -62,7 +62,7 @@ indexedFoldl fn acc ls =
 
 
 type Board
-    = Board (Dict Pos Int)
+    = Board (Grid Int)
 
 
 boardFromLists : List (List Int) -> Board
@@ -86,18 +86,23 @@ initialBoard =
         |> boardFromLists
 
 
+allBoardEntries : Board -> List ( Pos, Maybe Int )
+allBoardEntries (Board d) =
+    rangeWH 4 4 |> List.map (\p -> ( p, Dict.get p d ))
+
+
 viewBoard : Board -> Html msg
-viewBoard (Board d) =
+viewBoard board =
     div
         [ style "width" "fit-content"
         , style "display" "grid"
         , style "gap" "15px"
         ]
-        (rangeWH 4 4 |> List.map (\p -> viewCell p (Dict.get p d)))
+        (allBoardEntries board |> List.map viewBoardEntry)
 
 
-viewCell : Pos -> Maybe Int -> Html msg
-viewCell pos val =
+viewBoardEntry : ( Pos, Maybe Int ) -> Html msg
+viewBoardEntry ( pos, val ) =
     div
         [ gridAreaFromPos pos
         , style "display" "grid"
