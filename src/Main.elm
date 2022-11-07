@@ -3,6 +3,7 @@ module Main exposing (main)
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
+import String exposing (fromInt)
 import Tuple exposing (pair)
 
 
@@ -13,7 +14,7 @@ main =
         , style "padding" "20px"
         ]
         [ text "Hello World!"
-        , div [ style "padding" "20px" ]
+        , div [ style "padding" "20px"]
             [ viewBoard initialBoard
             ]
         ]
@@ -76,7 +77,33 @@ initialBoard =
 
 viewBoard : Board -> Html msg
 viewBoard (Board d) =
-    text (Debug.toString d)
+    List.range 0 3
+        |> List.concatMap
+            (\x ->
+                List.range 0 3
+                    |> List.map
+                        (\y ->
+                            viewCell x y (Dict.get ( x, y ) d |> Maybe.withDefault 0)
+                        )
+            )
+        |> div
+            [ style "max-width" "80vmin"
+            , style "display" "grid"
+            , style "gap" "1ch"
+            ]
+
+
+viewCell : Int -> Int -> Int -> Html msg
+viewCell x y val =
+    div
+        [ style "grid-area" (fromInt (y + 1) ++ "/" ++ fromInt (x + 1))
+        , style "display" "grid"
+        , style "place-content" "center"
+        , style "aspect-ratio" "1"
+        , style "background" "#eee"
+        , style "min-width" "5ch"
+        ]
+        [ text (fromInt val) , text "2048"]
 
 
 
