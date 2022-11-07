@@ -122,8 +122,8 @@ moveUp (Board dict) =
                 , dict = acc.dict
                 }
 
-        reducerHelp : Int -> Int -> Acc -> Acc
-        reducerHelp x val acc =
+        slideOrMerge : Int -> Int -> Acc -> Acc
+        slideOrMerge x val acc =
             let
                 shouldMerge =
                     acc.lastUnmerged == Just val
@@ -145,7 +145,7 @@ moveUp (Board dict) =
         reducer : ( Pos, Int ) -> Acc -> Acc
         reducer ( ( x, _ ), val ) acc =
             resetAccOnColumnChange x acc
-                |> reducerHelp x val
+                |> slideOrMerge x val
 
         initialAcc : Acc
         initialAcc =
