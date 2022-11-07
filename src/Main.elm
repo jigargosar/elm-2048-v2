@@ -26,8 +26,9 @@ main =
         , style "padding" "20px"
         ]
         [ text "Hello World!"
-        , div [ style "padding" "20px" ]
+        , div [ style "padding" "20px", style "display" "flex", style "gap" "50px" ]
             [ viewBoard initialBoard
+            , viewBoard nextBoard
             ]
         ]
 
@@ -80,10 +81,42 @@ isValidBoardEntry ( x, y ) val =
 
 initialBoard : Board
 initialBoard =
-    [ [ 0, 1, 0, 0 ]
-    , [ 0, 1, 1, 0 ]
+    [ [ 0, 0, 0, 0 ]
+    , [ 0, 1, 2, 0 ]
+    , [ 0, 3, 4, 0 ]
+    , [ 5, 0, 0, 7 ]
     ]
         |> boardFromLists
+
+
+nextBoard : Board
+nextBoard =
+    initialBoard |> moveLeft
+
+
+moveLeft : Board -> Board
+moveLeft (Board d) =
+    let
+        reducer ( ( x, _ ) as pos, val ) acc =
+            let
+                y =
+                    if x /= acc.x then
+                        0
+
+                    else
+                        acc.y
+            in
+            { acc
+                | d = Dict.insert ( x, y ) val acc.d
+                , x = x
+                , y = y + 1
+            }
+    in
+    d
+        |> Dict.toList
+        |> List.foldl reducer { d = Dict.empty, x = 0, y = 0 }
+        |> .d
+        |> Board
 
 
 allBoardEntries : Board -> List ( Pos, Maybe Int )
