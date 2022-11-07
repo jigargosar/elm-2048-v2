@@ -20,31 +20,11 @@ type alias Pos =
     ( Int, Int )
 
 
-type Board
-    = Board (Dict Pos Int)
-
-
 type alias Grid a =
     Dict Pos a
 
 
-boardInit : Board
-boardInit =
-    let
-        -- might be easier to visualize board by using LOL?
-        lol =
-            [ [ 0, 1, 0, 0 ]
-            , [ 0, 1, 1, 0 ]
-            ]
-
-        dict =
-            gridFromLists lol
-    in
-    -- Board (Dict.fromList [ ( pair 0 0, 1 ) ])
-    Board dict
-
-
-gridFromLists : List (List a) -> Dict Pos a
+gridFromLists : List (List a) -> Grid a
 gridFromLists lls =
     let
         reducer2 : Int -> ( Int, a ) -> Grid a -> Grid a
@@ -60,6 +40,32 @@ gridFromLists lls =
     lls
         |> List.indexedMap pair
         |> List.foldl reducer Dict.empty
+
+
+type Board
+    = Board (Dict Pos Int)
+
+
+boardFromLists : List (List Int) -> Board
+boardFromLists lls =
+    lls
+        |> gridFromLists
+        |> Dict.filter isValidBoardEntry
+        |> Board
+
+
+isValidBoardEntry : Pos -> Int -> Bool
+isValidBoardEntry ( x, y ) val =
+    clamp 0 3 x == x && clamp 0 3 y == y && val > 0
+
+
+initialBoard : Board
+initialBoard =
+    -- Board (Dict.fromList [ ( pair 0 0, 1 ) ])
+    [ [ 0, 1, 0, 0 ]
+    , [ 0, 1, 1, 0 ]
+    ]
+        |> boardFromLists
 
 
 
