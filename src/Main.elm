@@ -14,7 +14,7 @@ main =
         , style "padding" "20px"
         ]
         [ text "Hello World!"
-        , div [ style "padding" "20px"]
+        , div [ style "padding" "20px" ]
             [ viewBoard initialBoard
             ]
         ]
@@ -87,7 +87,8 @@ viewBoard (Board d) =
                         )
             )
         |> div
-            [ style "max-width" "80vmin"
+            [ style "max-width" "600px"
+            , style "aspect-ratio" "1"
             , style "display" "grid"
             , style "gap" "1ch"
             ]
@@ -103,7 +104,7 @@ viewCell x y val =
         , style "background" "#eee"
         , style "min-width" "5ch"
         ]
-        [ text (fromInt val) , text "2048"]
+        [ text (fromInt val) ]
 
 
 
