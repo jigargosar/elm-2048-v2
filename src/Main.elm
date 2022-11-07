@@ -13,6 +13,9 @@ main =
         , style "padding" "20px"
         ]
         [ text "Hello World!"
+        , div [ style "padding" "20px" ]
+            [ viewBoard initialBoard
+            ]
         ]
 
 
@@ -66,6 +69,11 @@ initialBoard =
     , [ 0, 1, 1, 0 ]
     ]
         |> boardFromLists
+
+
+viewBoard : Board -> Html msg
+viewBoard (Board d) =
+    text (Debug.toString d)
 
 
 
