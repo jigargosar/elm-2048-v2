@@ -68,7 +68,6 @@ isValidBoardEntry ( x, y ) val =
 
 initialBoard : Board
 initialBoard =
-    -- Board (Dict.fromList [ ( pair 0 0, 1 ) ])
     [ [ 0, 1, 0, 0 ]
     , [ 0, 1, 1, 0 ]
     ]
