@@ -14,8 +14,7 @@ import Tuple exposing (pair)
    * [x] Board -> Dict Pos Int
    * [x] initial board
    * [x] move board
-   * generate new elements
-   * or declare game over
+   * generate new elements unless game over
    * setup neovim
    * enable vim emulation
 -}
