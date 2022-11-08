@@ -32,10 +32,6 @@ main =
             , [ 5, 2, 0, 7 ]
             ]
                 |> boardFromLists
-
-        nextBoard : Board
-        nextBoard =
-            initialBoard |> moveUp
     in
     div
         [ style "font" "22px monospace"
@@ -48,7 +44,7 @@ main =
             , style "gap" "50px"
             ]
             [ viewBoard initialBoard
-            , viewBoard nextBoard
+            , viewBoard (initialBoard |> moveUp)
             ]
         ]
 
