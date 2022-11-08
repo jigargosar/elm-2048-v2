@@ -125,8 +125,8 @@ valAsString =
 
 
 boardFromLists : List (List Int) -> Board
-boardFromLists lls =
-    lls
+boardFromLists lists =
+    lists
         |> gridFromLists
         |> dictFilterMap parseBoardEntry
         |> boardFromGrid
