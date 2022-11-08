@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
 import Random exposing (Generator)
-import Tuple exposing (first, mapSecond, pair)
+import Tuple exposing (first, mapSecond, pair, second)
 
 
 
@@ -29,7 +29,7 @@ main =
             [ [ 0, 1, 0, 7 ]
             , [ 0, 1, 3, 7 ]
             , [ 0, 2, 3, 7 ]
-            , [ 5, 2, 0, 7 ]
+            , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
 
@@ -172,13 +172,6 @@ isValidBoardEntry ( x, y ) _ =
     clamp 0 3 x == x && clamp 0 3 y == y
 
 
-moveUp : Board -> Board
-moveUp board =
-    boardEntries board
-        |> List.foldl (mapSecond valAsInt >> moveBoardEntryUp) initialAcc
-        |> accToBoard
-
-
 addRandomEntries : Board -> Generator Board
 addRandomEntries board =
     addRandomEntry board
@@ -204,6 +197,13 @@ randomVal =
         |> Random.map New
 
 
+moveUp : Board -> Board
+moveUp board =
+    boardEntries board
+        |> List.foldl (mapSecond valAsInt >> moveBoardEntryUp) initialAcc
+        |> accToBoard
+
+
 type alias Acc =
     { grid : Grid Val
     , x : Int
@@ -227,44 +227,61 @@ accToBoard acc =
 
 
 moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
-moveBoardEntryUp (( ( x, _ ), _ ) as oldEntry) acc =
+moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
     let
         hasColumnChanged =
             x /= acc.x
+
+        ( y, lastUnmerged ) =
+            if hasColumnChanged then
+                ( 0, Nothing )
+
+            else
+                ( acc.y, acc.lastUnmerged )
     in
-    if hasColumnChanged then
-        slideEntryUp x 0 oldEntry acc.grid
+    moveBoardEntryUpHelp entry lastUnmerged x y acc.grid
+
+
+moveBoardEntryUpHelp :
+    ( Pos, Int )
+    -> Maybe ( Pos, Int )
+    -> Int
+    -> Int
+    -> Grid Val
+    -> Acc
+moveBoardEntryUpHelp (( from, val ) as entry) lastUnmerged x y grid =
+    let
+        maybeMerged =
+            lastUnmerged
+                |> Maybe.andThen (mergeWith entry)
+    in
+    case maybeMerged of
+        Nothing ->
+            { grid = Dict.insert ( x, y ) (Moved val from) grid
+            , x = x
+            , y = y + 1
+            , lastUnmerged = Just ( from, val )
+            }
+
+        Just merged ->
+            { grid = Dict.insert ( x, y - 1 ) merged grid
+            , x = x
+            , y = y
+            , lastUnmerged = Nothing
+            }
+
+
+mergeWith : ( Pos, Int ) -> ( Pos, Int ) -> Maybe Val
+mergeWith entry lastUnmerged =
+    if second lastUnmerged == second entry then
+        Just
+            (Merged (second entry)
+                (first lastUnmerged)
+                (first entry)
+            )
 
     else
-        --let
-        --    shouldMerge =
-        --        acc.lastUnmerged
-        --            |> Maybe.andThen
-        --in
-        --if shouldMerge then
-        --    mergeEntryUp x acc.y val acc.grid
-        --
-        --else
-        slideEntryUp x acc.y oldEntry acc.grid
-
-
-slideEntryUp : Int -> Int -> ( Pos, Int ) -> Grid Val -> Acc
-slideEntryUp x y ( from, val ) grid =
-    { grid = Dict.insert ( x, y ) (Moved val from) grid
-    , x = x
-    , y = y + 1
-    , lastUnmerged = Just ( from, val )
-    }
-
-
-
---mergeEntryUp : Int -> Int -> Val -> Grid Val -> Acc
---mergeEntryUp x y val grid =
---    { grid = Dict.insert ( x, y - 1 ) (nextVal val) grid
---    , x = x
---    , y = y
---    , lastUnmerged = Nothing
---    }
+        Nothing
 
 
 allBoardEntries : Board -> List ( Pos, Maybe Val )
