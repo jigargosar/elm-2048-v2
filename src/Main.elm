@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
 import Random exposing (Generator)
-import Tuple exposing (first, pair)
+import Tuple exposing (first, mapSecond, pair)
 
 
 
@@ -92,26 +92,36 @@ type Board
 
 
 type Val
-    = Val Int
+    = New Int
+    | Moved Pos Int
+    | Merged Int Pos Pos
 
 
 parseVal : Int -> Maybe Val
 parseVal int =
     if int > 0 then
-        Just (Val int)
+        Just (New int)
 
     else
         Nothing
 
 
+valAsInt : Val -> Int
+valAsInt val =
+    case val of
+        New int ->
+            int
+
+        Moved _ int ->
+            int
+
+        Merged int _ _ ->
+            int + 1
+
+
 valAsString : Val -> String.String
-valAsString (Val val) =
-    String.fromInt val
-
-
-nextVal : Val -> Val
-nextVal (Val val) =
-    Val (val + 1)
+valAsString =
+    valAsInt >> String.fromInt
 
 
 boardFromLists : List (List Int) -> Board
@@ -164,8 +174,7 @@ isValidBoardEntry ( x, y ) _ =
 
 moveUp : Board -> Board
 moveUp board =
-    board
-        |> boardEntries
+    boardEntries board
         |> List.foldl moveBoardEntryUp initialAcc
         |> accToBoard
 
@@ -192,14 +201,15 @@ addRandomEntry board =
 randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
-        |> Random.map Val
+        |> Random.map New
 
 
 type alias Acc =
     { grid : Grid Val
     , x : Int
     , y : Int
-    , lastUnmerged : Maybe Val
+
+    --, lastUnmerged : Maybe (Pos, Int)
     }
 
 
@@ -208,7 +218,8 @@ initialAcc =
     { grid = Dict.empty
     , x = 0
     , y = 0
-    , lastUnmerged = Nothing
+
+    --, lastUnmerged = Nothing
     }
 
 
@@ -218,42 +229,50 @@ accToBoard acc =
 
 
 moveBoardEntryUp : ( Pos, Val ) -> Acc -> Acc
-moveBoardEntryUp ( ( x, _ ), val ) acc =
+moveBoardEntryUp (( ( x, _ ), _ ) as oldEntry) acc =
     let
         hasColumnChanged =
             x /= acc.x
     in
     if hasColumnChanged then
-        slideEntryUp x 0 val acc.grid
+        slideEntryUp x 0 oldEntry acc.grid
 
     else
-        let
-            shouldMerge =
-                acc.lastUnmerged == Just val
-        in
-        if shouldMerge then
-            mergeEntryUp x acc.y val acc.grid
+        --let
+        --    shouldMerge =
+        --        acc.lastUnmerged
+        --            |> Maybe.andThen
+        --in
+        --if shouldMerge then
+        --    mergeEntryUp x acc.y val acc.grid
+        --
+        --else
+        slideEntryUp x acc.y oldEntry acc.grid
 
-        else
-            slideEntryUp x acc.y val acc.grid
 
-
-slideEntryUp : Int -> Int -> Val -> Grid Val -> Acc
-slideEntryUp x y val grid =
-    { grid = Dict.insert ( x, y ) val grid
+slideEntryUp : Int -> Int -> ( Pos, Val ) -> Grid Val -> Acc
+slideEntryUp x y oldEntry grid =
+    { grid = Dict.insert ( x, y ) (boardEntryToMovedVal oldEntry) grid
     , x = x
     , y = y + 1
-    , lastUnmerged = Just val
+
+    --, lastUnmerged = Just val
     }
 
 
-mergeEntryUp : Int -> Int -> Val -> Grid Val -> Acc
-mergeEntryUp x y val grid =
-    { grid = Dict.insert ( x, y - 1 ) (nextVal val) grid
-    , x = x
-    , y = y
-    , lastUnmerged = Nothing
-    }
+boardEntryToMovedVal : ( Pos, Val ) -> Val
+boardEntryToMovedVal ( pos, val ) =
+    Moved pos (valAsInt val)
+
+
+
+--mergeEntryUp : Int -> Int -> Val -> Grid Val -> Acc
+--mergeEntryUp x y val grid =
+--    { grid = Dict.insert ( x, y - 1 ) (nextVal val) grid
+--    , x = x
+--    , y = y
+--    , lastUnmerged = Nothing
+--    }
 
 
 allBoardEntries : Board -> List ( Pos, Maybe Val )
