@@ -115,8 +115,7 @@ moveUp board =
     board
         |> boardEntries
         |> List.foldl moveBoardEntryUp initialAcc
-        |> .dict
-        |> boardFromGrid
+        |> accToBoard
 
 
 type alias Acc =
@@ -134,6 +133,11 @@ initialAcc =
     , y = 0
     , lastUnmerged = Nothing
     }
+
+
+accToBoard : Acc -> Board
+accToBoard acc =
+    boardFromGrid acc.dict
 
 
 moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
