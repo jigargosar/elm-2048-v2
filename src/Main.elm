@@ -5,7 +5,7 @@ import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
 import Random exposing (Generator)
 import String exposing (fromInt)
-import Tuple exposing (pair)
+import Tuple exposing (first, pair)
 
 
 
@@ -32,6 +32,13 @@ main =
             , [ 5, 2, 0, 7 ]
             ]
                 |> boardFromLists
+
+        board2 =
+            initialBoard |> moveUp
+
+        board3 =
+            Random.step (addRandomEntries board2) (Random.initialSeed 0)
+                |> first
     in
     div
         [ style "font" "22px monospace"
@@ -45,6 +52,7 @@ main =
             ]
             [ viewBoard initialBoard
             , viewBoard (initialBoard |> moveUp)
+            , viewBoard board3
             ]
         ]
 
