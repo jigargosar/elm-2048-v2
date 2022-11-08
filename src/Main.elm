@@ -10,10 +10,10 @@ import Tuple exposing (pair)
 
 {-
    NEXT STEPS:
-   * model game data
-   * Board -> Dict Pos Int
-   * initial board
-   * move board
+   * [x] model game data
+   * [x] Board -> Dict Pos Int
+   * [x] initial board
+   * [x] move board
    * generate new elements
    * or declare game over
 -}
