@@ -119,7 +119,7 @@ moveUp board =
 
 
 type alias Acc =
-    { dict : Grid Int
+    { grid : Grid Int
     , x : Int
     , y : Int
     , lastUnmerged : Maybe Int
@@ -128,7 +128,7 @@ type alias Acc =
 
 initialAcc : Acc
 initialAcc =
-    { dict = Dict.empty
+    { grid = Dict.empty
     , x = 0
     , y = 0
     , lastUnmerged = Nothing
@@ -137,7 +137,7 @@ initialAcc =
 
 accToBoard : Acc -> Board
 accToBoard acc =
-    boardFromGrid acc.dict
+    boardFromGrid acc.grid
 
 
 moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
@@ -155,7 +155,7 @@ resetAccOnColumnChange x acc =
         { lastUnmerged = Nothing
         , y = 0
         , x = x
-        , dict = acc.dict
+        , grid = acc.grid
         }
 
 
@@ -166,14 +166,14 @@ slideOrMerge x val acc =
             acc.lastUnmerged == Just val
     in
     if shouldMerge then
-        { dict = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.dict
+        { grid = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.grid
         , x = x
         , y = acc.y
         , lastUnmerged = Nothing
         }
 
     else
-        { dict = Dict.insert ( x, acc.y ) val acc.dict
+        { grid = Dict.insert ( x, acc.y ) val acc.grid
         , x = x
         , y = acc.y + 1
         , lastUnmerged = Just val
@@ -181,8 +181,8 @@ slideOrMerge x val acc =
 
 
 allBoardEntries : Board -> List ( Pos, Maybe Int )
-allBoardEntries (Board d) =
-    rangeWH 4 4 |> List.map (\p -> ( p, Dict.get p d ))
+allBoardEntries (Board grid) =
+    rangeWH 4 4 |> List.map (\pos -> ( pos, Dict.get pos grid ))
 
 
 viewBoard : Board -> Html msg
