@@ -23,6 +23,20 @@ import Tuple exposing (pair)
 
 main : Html msg
 main =
+    let
+        initialBoard : Board
+        initialBoard =
+            [ [ 0, 1, 0, 7 ]
+            , [ 0, 1, 3, 7 ]
+            , [ 0, 2, 3, 7 ]
+            , [ 5, 2, 0, 7 ]
+            ]
+                |> boardFromLists
+
+        nextBoard : Board
+        nextBoard =
+            initialBoard |> moveUp
+    in
     div
         [ style "font" "22px monospace"
         , style "padding" "20px"
@@ -93,21 +107,6 @@ boardEntries (Board d) =
 isValidBoardEntry : Pos -> Int -> Bool
 isValidBoardEntry ( x, y ) val =
     clamp 0 3 x == x && clamp 0 3 y == y && val > 0
-
-
-initialBoard : Board
-initialBoard =
-    [ [ 0, 1, 0, 7 ]
-    , [ 0, 1, 3, 7 ]
-    , [ 0, 2, 3, 7 ]
-    , [ 5, 2, 0, 7 ]
-    ]
-        |> boardFromLists
-
-
-nextBoard : Board
-nextBoard =
-    initialBoard |> moveUp
 
 
 moveUp : Board -> Board
