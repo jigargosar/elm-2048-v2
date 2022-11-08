@@ -110,6 +110,15 @@ nextBoard =
     initialBoard |> moveUp
 
 
+moveUp : Board -> Board
+moveUp board =
+    board
+        |> boardEntries
+        |> List.foldl moveBoardEntryUp initialAcc
+        |> .dict
+        |> boardFromGrid
+
+
 type alias Acc =
     { dict : Grid Int
     , x : Int
@@ -118,59 +127,53 @@ type alias Acc =
     }
 
 
-moveUp : Board -> Board
-moveUp board =
+initialAcc : Acc
+initialAcc =
+    { dict = Dict.empty
+    , x = 0
+    , y = 0
+    , lastUnmerged = Nothing
+    }
+
+
+moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
+moveBoardEntryUp ( ( x, _ ), val ) acc =
+    resetAccOnColumnChange x acc
+        |> slideOrMerge x val
+
+
+resetAccOnColumnChange : Int -> Acc -> Acc
+resetAccOnColumnChange x acc =
+    if x == acc.x then
+        acc
+
+    else
+        { lastUnmerged = Nothing
+        , y = 0
+        , x = x
+        , dict = acc.dict
+        }
+
+
+slideOrMerge : Int -> Int -> Acc -> Acc
+slideOrMerge x val acc =
     let
-        resetAccOnColumnChange : Int -> Acc -> Acc
-        resetAccOnColumnChange x acc =
-            if x == acc.x then
-                acc
-
-            else
-                { lastUnmerged = Nothing
-                , y = 0
-                , x = x
-                , dict = acc.dict
-                }
-
-        slideOrMerge : Int -> Int -> Acc -> Acc
-        slideOrMerge x val acc =
-            let
-                shouldMerge =
-                    acc.lastUnmerged == Just val
-            in
-            if shouldMerge then
-                { dict = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.dict
-                , x = x
-                , y = acc.y
-                , lastUnmerged = Nothing
-                }
-
-            else
-                { dict = Dict.insert ( x, acc.y ) val acc.dict
-                , x = x
-                , y = acc.y + 1
-                , lastUnmerged = Just val
-                }
-
-        reducer : ( Pos, Int ) -> Acc -> Acc
-        reducer ( ( x, _ ), val ) acc =
-            resetAccOnColumnChange x acc
-                |> slideOrMerge x val
-
-        initialAcc : Acc
-        initialAcc =
-            { dict = Dict.empty
-            , x = 0
-            , y = 0
-            , lastUnmerged = Nothing
-            }
+        shouldMerge =
+            acc.lastUnmerged == Just val
     in
-    board
-        |> boardEntries
-        |> List.foldl reducer initialAcc
-        |> .dict
-        |> boardFromGrid
+    if shouldMerge then
+        { dict = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.dict
+        , x = x
+        , y = acc.y
+        , lastUnmerged = Nothing
+        }
+
+    else
+        { dict = Dict.insert ( x, acc.y ) val acc.dict
+        , x = x
+        , y = acc.y + 1
+        , lastUnmerged = Just val
+        }
 
 
 allBoardEntries : Board -> List ( Pos, Maybe Int )
