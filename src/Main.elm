@@ -239,17 +239,16 @@ moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
             else
                 ( acc.y, acc.lastUnmerged )
     in
-    moveBoardEntryUpHelp entry lastUnmerged x y acc.grid
+    moveBoardEntryUpHelp entry lastUnmerged ( x, y ) acc.grid
 
 
 moveBoardEntryUpHelp :
     ( Pos, Int )
     -> Maybe ( Pos, Int )
-    -> Int
-    -> Int
+    -> Pos
     -> Grid Val
     -> Acc
-moveBoardEntryUpHelp (( from, val ) as entry) lastUnmerged x y grid =
+moveBoardEntryUpHelp (( from, val ) as entry) lastUnmerged ( x, y ) grid =
     let
         maybeMerged =
             lastUnmerged
