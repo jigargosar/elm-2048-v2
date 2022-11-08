@@ -272,13 +272,9 @@ moveBoardEntryUpHelp (( from, val ) as entry) lastUnmerged x y grid =
 
 
 mergeWith : ( Pos, Int ) -> ( Pos, Int ) -> Maybe Val
-mergeWith entry lastUnmerged =
-    if second lastUnmerged == second entry then
-        Just
-            (Merged (second entry)
-                (first lastUnmerged)
-                (first entry)
-            )
+mergeWith ( p2, v2 ) ( p1, v1 ) =
+    if v2 == v1 then
+        Just (Merged v2 p1 p2)
 
     else
         Nothing
