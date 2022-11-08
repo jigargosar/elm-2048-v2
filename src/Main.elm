@@ -208,8 +208,7 @@ type alias Acc =
     { grid : Grid Val
     , x : Int
     , y : Int
-
-    --, lastUnmerged : Maybe (Pos, Int)
+    , lastUnmerged : Maybe ( Pos, Int )
     }
 
 
@@ -218,8 +217,7 @@ initialAcc =
     { grid = Dict.empty
     , x = 0
     , y = 0
-
-    --, lastUnmerged = Nothing
+    , lastUnmerged = Nothing
     }
 
 
@@ -255,8 +253,7 @@ slideEntryUp x y ( from, val ) grid =
     { grid = Dict.insert ( x, y ) (Moved val from) grid
     , x = x
     , y = y + 1
-
-    --, lastUnmerged = Just val
+    , lastUnmerged = Just ( from, val )
     }
 
 
