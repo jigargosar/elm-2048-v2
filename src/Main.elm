@@ -179,27 +179,6 @@ mergeEntryUp x y val grid =
     }
 
 
-slideOrMerge : Int -> Int -> Acc -> Acc
-slideOrMerge x val acc =
-    let
-        shouldMerge =
-            acc.lastUnmerged == Just val
-    in
-    if shouldMerge then
-        { grid = Dict.insert ( x, acc.y - 1 ) (val + 1) acc.grid
-        , x = x
-        , y = acc.y
-        , lastUnmerged = Nothing
-        }
-
-    else
-        { grid = Dict.insert ( x, acc.y ) val acc.grid
-        , x = x
-        , y = acc.y + 1
-        , lastUnmerged = Just val
-        }
-
-
 allBoardEntries : Board -> List ( Pos, Maybe Int )
 allBoardEntries (Board grid) =
     rangeWH 4 4 |> List.map (\pos -> ( pos, Dict.get pos grid ))
