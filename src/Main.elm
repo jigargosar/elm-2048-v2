@@ -142,21 +142,41 @@ accToBoard acc =
 
 moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
 moveBoardEntryUp ( ( x, _ ), val ) acc =
-    resetAccOnColumnChange x acc
-        |> slideOrMerge x val
-
-
-resetAccOnColumnChange : Int -> Acc -> Acc
-resetAccOnColumnChange x acc =
-    if x == acc.x then
-        acc
+    let
+        hasColumnChanged =
+            x /= acc.x
+    in
+    if hasColumnChanged then
+        slideEntryUp x 0 val acc.grid
 
     else
-        { lastUnmerged = Nothing
-        , y = 0
-        , x = x
-        , grid = acc.grid
-        }
+        let
+            shouldMerge =
+                acc.lastUnmerged == Just val
+        in
+        if shouldMerge then
+            mergeEntryUp x acc.y val acc.grid
+
+        else
+            slideEntryUp x acc.y val acc.grid
+
+
+slideEntryUp : Int -> Int -> Int -> Grid Int -> Acc
+slideEntryUp x y val grid =
+    { grid = Dict.insert ( x, y ) val grid
+    , x = x
+    , y = y + 1
+    , lastUnmerged = Just val
+    }
+
+
+mergeEntryUp : Int -> Int -> Int -> Grid Int -> Acc
+mergeEntryUp x y val grid =
+    { grid = Dict.insert ( x, y - 1 ) (val + 1) grid
+    , x = x
+    , y = y
+    , lastUnmerged = Nothing
+    }
 
 
 slideOrMerge : Int -> Int -> Acc -> Acc
