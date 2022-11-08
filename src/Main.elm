@@ -85,6 +85,11 @@ boardFromGrid d =
         |> Board
 
 
+boardEntries : Board -> List ( Pos, Int )
+boardEntries (Board d) =
+    d |> Dict.toList
+
+
 isValidBoardEntry : Pos -> Int -> Bool
 isValidBoardEntry ( x, y ) val =
     clamp 0 3 x == x && clamp 0 3 y == y && val > 0
@@ -114,7 +119,7 @@ type alias Acc =
 
 
 moveUp : Board -> Board
-moveUp (Board dict) =
+moveUp board =
     let
         resetAccOnColumnChange : Int -> Acc -> Acc
         resetAccOnColumnChange x acc =
@@ -161,8 +166,8 @@ moveUp (Board dict) =
             , lastUnmerged = Nothing
             }
     in
-    dict
-        |> Dict.toList
+    board
+        |> boardEntries
         |> List.foldl reducer initialAcc
         |> .dict
         |> boardFromGrid
