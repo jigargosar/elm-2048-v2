@@ -28,7 +28,11 @@ main =
         , style "padding" "20px"
         ]
         [ text "Hello World!"
-        , div [ style "padding" "20px", style "display" "flex", style "gap" "50px" ]
+        , div
+            [ style "padding" "20px"
+            , style "display" "flex"
+            , style "gap" "50px"
+            ]
             [ viewBoard initialBoard
             , viewBoard nextBoard
             ]
@@ -172,9 +176,9 @@ allBoardEntries (Board d) =
 viewBoard : Board -> Html msg
 viewBoard board =
     div
-        [ style "width" "fit-content"
-        , style "display" "grid"
-        , style "gap" "15px"
+        [ style "display" "grid"
+        , style "gap" "10px"
+        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
         ]
         (allBoardEntries board |> List.map viewBoardEntry)
 
@@ -185,10 +189,7 @@ viewBoardEntry ( pos, val ) =
         [ gridAreaFromPos pos
         , style "display" "grid"
         , style "place-content" "center"
-        , style "aspect-ratio" "1"
         , style "background" "#eee"
-        , style "font-size" "60px"
-        , style "width" "100px"
         ]
         [ text (val |> Maybe.map fromInt |> Maybe.withDefault "") ]
 
