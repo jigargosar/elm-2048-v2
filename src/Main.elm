@@ -48,6 +48,7 @@ main =
         , div
             [ style "padding" "20px"
             , style "display" "flex"
+            , style "flex-flow" "row wrap"
             , style "gap" "50px"
             ]
             [ viewBoard initialBoard
@@ -111,7 +112,11 @@ boardEntries (Board d) =
 boardEmptyPositions : Board -> List Pos
 boardEmptyPositions (Board grid) =
     rangeWH 4 4
-        |> List.filter (\pos -> Dict.member pos grid)
+        |> reject (\pos -> Dict.member pos grid)
+
+
+reject fn =
+    List.filter (fn >> not)
 
 
 setBoardValueAtPos : Pos -> Int -> Board -> Board
