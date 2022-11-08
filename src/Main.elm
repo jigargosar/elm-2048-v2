@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
 import Random exposing (Generator)
-import Tuple exposing (first, mapSecond, pair, second)
+import Tuple exposing (first, mapSecond, pair)
 
 
 
@@ -128,10 +128,18 @@ boardFromLists : List (List Int) -> Board
 boardFromLists lls =
     lls
         |> gridFromLists
-        |> Dict.toList
-        |> List.filterMap parseBoardEntry
-        |> Dict.fromList
+        |> dictFilterMap parseBoardEntry
         |> boardFromGrid
+
+
+dictFilterMap :
+    (( k, v ) -> Maybe ( comparable, v2 ))
+    -> Dict k v
+    -> Dict comparable v2
+dictFilterMap fn dict =
+    Dict.toList dict
+        |> List.filterMap fn
+        |> Dict.fromList
 
 
 parseBoardEntry : ( Pos, Int ) -> Maybe ( Pos, Val )
@@ -157,6 +165,7 @@ boardEmptyPositions (Board grid) =
         |> reject (\pos -> Dict.member pos grid)
 
 
+reject : (a -> Bool) -> List a -> List a
 reject fn =
     List.filter (fn >> not)
 
