@@ -3,6 +3,7 @@ module Main exposing (main)
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
+import Random exposing (Generator)
 import String exposing (fromInt)
 import Tuple exposing (pair)
 
@@ -99,6 +100,18 @@ boardEntries (Board d) =
     d |> Dict.toList
 
 
+boardEmptyPositions : Board -> List Pos
+boardEmptyPositions (Board grid) =
+    rangeWH 4 4
+        |> List.filter (\pos -> Dict.member pos grid)
+
+
+setBoardValueAtPos : Pos -> Int -> Board -> Board
+setBoardValueAtPos pos val (Board grid) =
+    Dict.insert pos val grid
+        |> boardFromGrid
+
+
 isValidBoardEntry : Pos -> Int -> Bool
 isValidBoardEntry ( x, y ) val =
     clamp 0 3 x == x && clamp 0 3 y == y && val > 0
@@ -110,6 +123,30 @@ moveUp board =
         |> boardEntries
         |> List.foldl moveBoardEntryUp initialAcc
         |> accToBoard
+
+
+addRandomEntries : Board -> Generator Board
+addRandomEntries board =
+    addRandomEntry board
+        |> Random.andThen addRandomEntry
+
+
+addRandomEntry : Board -> Generator Board
+addRandomEntry board =
+    case boardEmptyPositions board of
+        emptyPos :: emptyPosList ->
+            Random.map2
+                (\pos val -> setBoardValueAtPos pos val board)
+                (Random.uniform emptyPos emptyPosList)
+                randomVal
+
+        [] ->
+            Random.constant board
+
+
+randomVal : Generator Int
+randomVal =
+    Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
 
 
 type alias Acc =
