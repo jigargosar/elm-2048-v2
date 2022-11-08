@@ -93,7 +93,7 @@ type Board
 
 type Val
     = New Int
-    | Moved Pos Int
+    | Moved Int Pos
     | Merged Int Pos Pos
 
 
@@ -112,7 +112,7 @@ valAsInt val =
         New int ->
             int
 
-        Moved _ int ->
+        Moved int _ ->
             int
 
         Merged int _ _ ->
@@ -175,7 +175,7 @@ isValidBoardEntry ( x, y ) _ =
 moveUp : Board -> Board
 moveUp board =
     boardEntries board
-        |> List.foldl moveBoardEntryUp initialAcc
+        |> List.foldl (mapSecond valAsInt >> moveBoardEntryUp) initialAcc
         |> accToBoard
 
 
@@ -228,7 +228,7 @@ accToBoard acc =
     boardFromGrid acc.grid
 
 
-moveBoardEntryUp : ( Pos, Val ) -> Acc -> Acc
+moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
 moveBoardEntryUp (( ( x, _ ), _ ) as oldEntry) acc =
     let
         hasColumnChanged =
@@ -250,19 +250,14 @@ moveBoardEntryUp (( ( x, _ ), _ ) as oldEntry) acc =
         slideEntryUp x acc.y oldEntry acc.grid
 
 
-slideEntryUp : Int -> Int -> ( Pos, Val ) -> Grid Val -> Acc
-slideEntryUp x y oldEntry grid =
-    { grid = Dict.insert ( x, y ) (boardEntryToMovedVal oldEntry) grid
+slideEntryUp : Int -> Int -> ( Pos, Int ) -> Grid Val -> Acc
+slideEntryUp x y ( from, val ) grid =
+    { grid = Dict.insert ( x, y ) (Moved val from) grid
     , x = x
     , y = y + 1
 
     --, lastUnmerged = Just val
     }
-
-
-boardEntryToMovedVal : ( Pos, Val ) -> Val
-boardEntryToMovedVal ( pos, val ) =
-    Moved pos (valAsInt val)
 
 
 
