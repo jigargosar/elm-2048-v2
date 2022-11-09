@@ -189,7 +189,8 @@ view model =
                     viewTransitionNew model.board
 
                 TMoveAndMerge ->
-                    viewTransitionMoveAndMerge model.board
+                    --viewTransitionMoveAndMerge model.board
+                    Debug.todo "todo"
 
                 TStatic ->
                     viewBoard model.board
@@ -275,15 +276,23 @@ type Board
 
 
 type Val
-    = New Int
-    | Moved Int Pos
-    | Merged Int Pos Pos
+    = Val Int
+
+
+type Cell
+    = Moved Pos Val
+    | Merged Pos Pos Val
+
+
+nextVal : Val -> Val
+nextVal (Val val) =
+    Val (val + 1)
 
 
 parseVal : Int -> Maybe Val
 parseVal int =
     if int > 0 then
-        Just (New int)
+        Just (Val int)
 
     else
         Nothing
@@ -292,14 +301,16 @@ parseVal int =
 valAsInt : Val -> Int
 valAsInt val =
     case val of
-        New int ->
+        Val int ->
             int
 
-        Moved int _ ->
-            int
 
-        Merged int _ _ ->
-            int + 1
+
+--Moved int _ ->
+--    int
+--
+--Merged int _ _ ->
+--    int + 1
 
 
 valAsString : Val -> String.String
@@ -386,21 +397,21 @@ addRandomEntry board =
 randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
-        |> Random.map New
+        |> Random.map Val
 
 
 moveUp : Board -> Board
 moveUp board =
     boardEntries board
-        |> List.foldl (mapSecond valAsInt >> moveBoardEntryUp) initialAcc
+        |> List.foldl moveBoardEntryUp initialAcc
         |> accToBoard
 
 
 type alias Acc =
-    { grid : Grid Val
+    { grid : Grid Cell
     , x : Int
     , y : Int
-    , lastUnmerged : Maybe ( Pos, Int )
+    , lastUnmerged : Maybe ( Pos, Val )
     }
 
 
@@ -415,10 +426,20 @@ initialAcc =
 
 accToBoard : Acc -> Board
 accToBoard acc =
-    boardFromGrid acc.grid
+    acc.grid
+        |> Dict.map
+            (\p cell ->
+                case cell of
+                    Moved _ v ->
+                        v
+
+                    Merged _ _ ov ->
+                        nextVal ov
+            )
+        |> boardFromGrid
 
 
-moveBoardEntryUp : ( Pos, Int ) -> Acc -> Acc
+moveBoardEntryUp : ( Pos, Val ) -> Acc -> Acc
 moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
     let
         hasColumnChanged =
@@ -431,24 +452,25 @@ moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
             else
                 ( acc.y, acc.lastUnmerged )
     in
-    moveBoardEntryUpHelp entry lastUnmerged ( x, y ) acc.grid
+    moveBoardEntryUpHelp entry { acc | y = y, lastUnmerged = lastUnmerged }
 
 
 moveBoardEntryUpHelp :
-    ( Pos, Int )
-    -> Maybe ( Pos, Int )
-    -> Pos
-    -> Grid Val
+    ( Pos, Val )
     -> Acc
-moveBoardEntryUpHelp (( from, val ) as entry) lastUnmerged ( x, y ) grid =
+    -> Acc
+moveBoardEntryUpHelp (( from, val ) as entry) acc =
     let
+        { x, y, grid } =
+            acc
+
         maybeMerged =
-            lastUnmerged
+            acc.lastUnmerged
                 |> Maybe.andThen (mergeWith entry)
     in
     case maybeMerged of
         Nothing ->
-            { grid = Dict.insert ( x, y ) (Moved val from) grid
+            { grid = Dict.insert ( x, y ) (Moved from val) grid
             , x = x
             , y = y + 1
             , lastUnmerged = Just ( from, val )
@@ -462,10 +484,10 @@ moveBoardEntryUpHelp (( from, val ) as entry) lastUnmerged ( x, y ) grid =
             }
 
 
-mergeWith : ( Pos, Int ) -> ( Pos, Int ) -> Maybe Val
+mergeWith : ( Pos, Val ) -> ( Pos, Val ) -> Maybe Cell
 mergeWith ( p2, v2 ) ( p1, v1 ) =
     if v2 == v1 then
-        Just (Merged v2 p1 p2)
+        Just (Merged p1 p2 v2)
 
     else
         Nothing
@@ -504,7 +526,7 @@ viewTransitionNew board =
                         , classList
                             [ ( "apply-fadeIn"
                               , case mbVal of
-                                    Just (New _) ->
+                                    Just (Val _) ->
                                         True
 
                                     _ ->
@@ -522,33 +544,34 @@ viewTransitionNew board =
         )
 
 
-viewTransitionMoveAndMerge : Board -> Html msg
-viewTransitionMoveAndMerge board =
-    div
-        [ style "display" "grid"
-        , style "gap" "10px"
-        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
-        ]
-        (allBoardEntries board
-            |> List.concatMap
-                (\( pos, mbVal ) ->
-                    case mbVal of
-                        Nothing ->
-                            [ viewStaticCell pos 0 ]
 
-                        Just (Merged i p1 p2) ->
-                            [ viewNewCell pos i
-                            , viewExitCell p1 (i - 1)
-                            , viewExitCell p2 (i - 1)
-                            ]
-
-                        Just (Moved i p1) ->
-                            [ viewMovedCell p1 pos i ]
-
-                        Just (New _) ->
-                            Debug.todo "invariant failed"
-                )
-        )
+--viewTransitionMoveAndMerge : Board -> Html msg
+--viewTransitionMoveAndMerge board =
+--    div
+--        [ style "display" "grid"
+--        , style "gap" "10px"
+--        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+--        ]
+--        (allBoardEntries board
+--            |> List.concatMap
+--                (\( pos, mbVal ) ->
+--                    case mbVal of
+--                        Nothing ->
+--                            [ viewStaticCell pos 0 ]
+--
+--                        Just (Merged i p1 p2) ->
+--                            [ viewNewCell pos i
+--                            , viewExitCell p1 (i - 1)
+--                            , viewExitCell p2 (i - 1)
+--                            ]
+--
+--                        Just (Moved i p1) ->
+--                            [ viewMovedCell p1 pos i ]
+--
+--                        Just (Val _) ->
+--                            Debug.todo "invariant failed"
+--                )
+--        )
 
 
 viewStaticCell : Pos -> Int -> Html msg
