@@ -130,7 +130,7 @@ globalStyles =
 }
 
 .apply-fadeOut {
-    animation:fadeOut 0.6s ease-in;
+    animation:fadeOut 0.6s ease-in both;
     z-index: 0;
 }
 """
@@ -570,7 +570,7 @@ viewExitCell pos i =
         , style "display" "grid"
         , style "place-content" "center"
         , style "background" "#eee"
-        , class "apply-fadeIOut"
+        , class "apply-fadeOut"
         ]
         [ text (displayStringFromInt i) ]
 
