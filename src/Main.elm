@@ -215,7 +215,8 @@ viewBoard2 model =
                         (\pos ->
                             case Dict.get pos grid of
                                 Nothing ->
-                                    viewEmptyCell pos
+                                    --viewEmptyCell pos
+                                    noView
 
                                 Just val ->
                                     viewNewCell pos val
