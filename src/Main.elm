@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (style)
@@ -48,25 +49,58 @@ import Tuple exposing (first, mapSecond, pair)
 -}
 
 
-main : Html msg
+main : Program Flags Model Msg
 main =
-    let
-        initialBoard : Board
-        initialBoard =
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+type alias Model =
+    { board : Board
+    }
+
+
+type alias Flags =
+    ()
+
+
+init : Flags -> ( Model, Cmd Msg )
+init () =
+    ( { board =
             [ [ 0, 1, 0, 7 ]
             , [ 0, 1, 3, 7 ]
             , [ 0, 2, 3, 7 ]
             , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
+      }
+    , Cmd.none
+    )
 
-        board2 =
-            initialBoard |> moveUp
 
-        board3 =
-            Random.step (addRandomEntries board2) (Random.initialSeed 0)
-                |> first
-    in
+type Msg
+    = Msg
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    always Sub.none <|
+        model
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        Msg ->
+            ( model, Cmd.none )
+
+
+view : Model -> Html Msg
+view model =
     div
         [ style "font" "22px monospace"
         , style "padding" "20px"
@@ -78,11 +112,47 @@ main =
             , style "flex-flow" "row wrap"
             , style "gap" "50px"
             ]
-            [ viewBoard initialBoard
-            , viewBoard (initialBoard |> moveUp)
-            , viewBoard board3
+            [ viewBoard model.board
             ]
         ]
+
+
+
+--main : Html msg
+--main =
+--    let
+--        initialBoard : Board
+--        initialBoard =
+--            [ [ 0, 1, 0, 7 ]
+--            , [ 0, 1, 3, 7 ]
+--            , [ 0, 2, 3, 7 ]
+--            , [ 1, 2, 0, 7 ]
+--            ]
+--                |> boardFromLists
+--
+--        board2 =
+--            initialBoard |> moveUp
+--
+--        board3 =
+--            Random.step (addRandomEntries board2) (Random.initialSeed 0)
+--                |> first
+--    in
+--    div
+--        [ style "font" "22px monospace"
+--        , style "padding" "20px"
+--        ]
+--        [ text "Hello World!"
+--        , div
+--            [ style "padding" "20px"
+--            , style "display" "flex"
+--            , style "flex-flow" "row wrap"
+--            , style "gap" "50px"
+--            ]
+--            [ viewBoard initialBoard
+--            , viewBoard (initialBoard |> moveUp)
+--            , viewBoard board3
+--            ]
+--        ]
 
 
 type Transition
