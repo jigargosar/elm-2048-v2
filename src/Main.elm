@@ -93,10 +93,11 @@ init () =
             , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
-                |> moveUp
+
+        --|> moveUp
     in
     ( { board = board
-      , transition = TMoveAndMerge board
+      , transition = TNew
       }
     , Cmd.none
     )
@@ -184,14 +185,14 @@ view model =
             ]
             [ viewBoard model.board
             , case model.transition of
-                TNew board ->
-                    viewTransitionNew board
+                TNew ->
+                    viewTransitionNew model.board
 
-                TMoveAndMerge board ->
-                    viewTransitionMoveAndMerge board
+                TMoveAndMerge ->
+                    viewTransitionMoveAndMerge model.board
 
-                TStatic board ->
-                    viewBoard board
+                TStatic ->
+                    viewBoard model.board
             ]
         ]
 
@@ -235,9 +236,9 @@ view model =
 
 
 type Transition
-    = TNew Board
-    | TMoveAndMerge Board
-    | TStatic Board
+    = TNew
+    | TMoveAndMerge
+    | TStatic
 
 
 type alias Pos =
