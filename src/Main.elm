@@ -500,6 +500,15 @@ viewTransitionMoveAndMerge board =
         (allBoardEntries board
             |> List.map
                 (\( pos, mbVal ) ->
+                    let
+                        _ =
+                            case mbVal of
+                                Nothing ->
+                                    viewStaticCell pos ""
+
+                                _ ->
+                                    noView
+                    in
                     div
                         [ gridAreaFromPos pos
                         , style "display" "grid"
@@ -524,6 +533,17 @@ viewTransitionMoveAndMerge board =
                         ]
                 )
         )
+
+
+viewStaticCell : Pos -> String -> Html msg
+viewStaticCell pos txt =
+    div
+        [ gridAreaFromPos pos
+        , style "display" "grid"
+        , style "place-content" "center"
+        , style "background" "#eee"
+        ]
+        [ text txt ]
 
 
 viewNewCell : Pos -> String -> Html msg
