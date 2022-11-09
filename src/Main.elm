@@ -429,7 +429,7 @@ viewTransitionNew board =
         ]
         (allBoardEntries board
             |> List.map
-                (\( pos, val ) ->
+                (\( pos, mbVal ) ->
                     div
                         [ gridAreaFromPos pos
                         , style "display" "grid"
@@ -437,7 +437,7 @@ viewTransitionNew board =
                         , style "background" "#eee"
                         ]
                         [ text
-                            (val
+                            (mbVal
                                 |> Maybe.map valAsString
                                 |> Maybe.withDefault ""
                             )
