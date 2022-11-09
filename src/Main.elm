@@ -130,7 +130,7 @@ globalStyles =
 
 @keyframes slideIn{
     from {
-        transform: translateY(-100%);
+        transform: translateY(200%);
     }
     to {
         transform: translateY(0);
@@ -145,6 +145,10 @@ globalStyles =
 .apply-fadeOut {
     animation:fadeOut 0.6s ease-in both;
     z-index: 0;
+}
+.apply-slideIn{
+    animation:slideIn 0.6s ease-in both;
+    z-index:1;
 }
 """
         ]
@@ -551,6 +555,7 @@ viewMovedCell from to i =
         , style "display" "grid"
         , style "place-content" "center"
         , style "background" "#eee"
+        , class "apply-slideIn"
         ]
         [ text (displayStringFromInt i) ]
 
