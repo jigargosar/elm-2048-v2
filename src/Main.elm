@@ -107,6 +107,7 @@ init () =
     in
     ( model2
         |> always model1
+        |> always model2
     , Cmd.none
     )
 
