@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, classList, style)
 import Random exposing (Generator)
 import Tuple exposing (first, mapSecond, pair)
 
@@ -115,6 +115,10 @@ globalStyles =
                         opacity:0;
                         transform: scale(0);
                     },
+                }
+                
+                .apply-fadeIn{
+                    animation:fadeIn 5s;
                 }
             """
         ]
@@ -452,12 +456,16 @@ viewTransitionNew board =
                         , style "display" "grid"
                         , style "place-content" "center"
                         , style "background" "#eee"
-                        , case mbVal of
-                            Just (New _) ->
-                                style "animation" "fadeIn 5s"
+                        , classList
+                            [ ( "apply-fadeIn"
+                              , case mbVal of
+                                    Just (New _) ->
+                                        True
 
-                            _ ->
-                                noAttr
+                                    _ ->
+                                        False
+                              )
+                            ]
                         ]
                         [ text
                             (mbVal
@@ -519,6 +527,10 @@ indicesOfLen len =
 
 noView =
     text ""
+
+
+
+--noinspection ElmUnusedSymbol
 
 
 noAttr =
