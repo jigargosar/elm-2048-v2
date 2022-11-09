@@ -132,6 +132,10 @@ globalStyles =
     Html.node "style"
         []
         [ text """
+body{
+    background: hsl(225deg 6% 13%);
+    color:hsl(72deg 20% 90%);
+}
 @keyframes fadeIn {
     from {
         opacity: 0.8;
@@ -199,12 +203,10 @@ viewBoard : Model -> Html msg
 viewBoard model =
     div
         [ style "display" "grid"
-
-        --, style "gap" "10px"
-        , style "padding" "10px"
+        , style "padding" "3px"
+        , style "border-radius" "5px"
         , style "grid-template" "repeat(4, 60px) / repeat(4, 60px)"
-        , style "background" "hsl(0deg 0% 25%)"
-        , style "border-radius" "10px"
+        , style "background" "hsl(0deg 0% 27%)"
         ]
         (case model.transition of
             TNew board ->
@@ -254,9 +256,9 @@ viewCell attrs pos val =
             :: style "display" "grid"
             :: style "place-content" "center"
             :: style "background" "hwb(260deg 40% 10%)"
-            :: style "border-radius" "10%"
+            :: style "border-radius" "5px"
             :: style "color" "white"
-            :: style "margin" "5px"
+            :: style "margin" "2.5px"
             :: attrs
         )
         [ viewVal val ]
