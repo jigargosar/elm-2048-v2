@@ -96,10 +96,17 @@ init () =
 
         ( movedBoard, movedGrid ) =
             moveUp board
+
+        model1 =
+            { board = board, transition = TNew }
+
+        model2 =
+            { board = movedBoard
+            , transition = TMoveAndMerge movedGrid
+            }
     in
-    ( { board = movedBoard
-      , transition = TMoveAndMerge movedGrid
-      }
+    ( model2
+        |> always model1
     , Cmd.none
     )
 
@@ -210,28 +217,12 @@ viewBoard2 model =
                                 mbVal =
                                     Dict.get pos grid
                             in
-                            div
-                                [ gridAreaFromPos pos
-                                , style "display" "grid"
-                                , style "place-content" "center"
-                                , style "background" "#eee"
-                                , classList
-                                    [ ( "apply-fadeIn"
-                                      , case mbVal of
-                                            Just (Val _) ->
-                                                True
+                            case Dict.get pos grid of
+                                Nothing ->
+                                    viewEmptyCell pos
 
-                                            _ ->
-                                                False
-                                      )
-                                    ]
-                                ]
-                                [ text
-                                    (mbVal
-                                        |> Maybe.map valAsString
-                                        |> Maybe.withDefault ""
-                                    )
-                                ]
+                                Just val ->
+                                    viewNewCell pos val
                         )
 
             TMoveAndMerge grid ->
