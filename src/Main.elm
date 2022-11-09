@@ -336,14 +336,6 @@ valAsInt val =
             int
 
 
-
---Moved int _ ->
---    int
---
---Merged int _ _ ->
---    int + 1
-
-
 valAsString : Val -> String.String
 valAsString =
     let
