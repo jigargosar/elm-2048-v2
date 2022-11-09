@@ -202,7 +202,9 @@ viewBoard2 model =
     div
         [ style "display" "grid"
         , style "gap" "10px"
+        , style "padding" "10px"
         , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+        , style "background" "#ddd"
         ]
         (case model.transition of
             TNew ->
