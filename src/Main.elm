@@ -3,9 +3,9 @@ module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
-import Html.Attributes exposing (class, classList, style)
+import Html.Attributes exposing (class, style)
 import Random exposing (Generator)
-import Tuple exposing (first, mapSecond, pair)
+import Tuple exposing (pair)
 
 
 
@@ -213,10 +213,6 @@ viewBoard2 model =
                 rangeWH 4 4
                     |> List.map
                         (\pos ->
-                            let
-                                mbVal =
-                                    Dict.get pos grid
-                            in
                             case Dict.get pos grid of
                                 Nothing ->
                                     viewEmptyCell pos
@@ -430,6 +426,10 @@ isValidBoardEntry ( x, y ) _ =
     clamp 0 3 x == x && clamp 0 3 y == y
 
 
+
+--noinspection ElmUnusedSymbol
+
+
 addRandomEntries : Board -> Generator Board
 addRandomEntries board =
     addRandomEntry board
@@ -483,7 +483,7 @@ accToBoard : Acc -> ( Board, Grid MMCell )
 accToBoard acc =
     ( acc.grid
         |> Dict.map
-            (\p cell ->
+            (\_ cell ->
                 case cell of
                     Moved _ v ->
                         v
