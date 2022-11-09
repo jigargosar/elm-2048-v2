@@ -79,9 +79,10 @@ init () =
             , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
+                |> moveUp
     in
     ( { board = board
-      , transition = TNew board
+      , transition = TMoveAndMerge board
       }
     , Cmd.none
     )
