@@ -210,7 +210,10 @@ viewBoard2 model =
         (case model.transition of
             TNew ->
                 boardEntries model.board
-                    |> List.map (\( pos, val ) -> viewNewCell pos val)
+                    |> List.map
+                        (\( pos, val ) ->
+                            viewNewCell pos val
+                        )
 
             TMoveAndMerge grid ->
                 grid
