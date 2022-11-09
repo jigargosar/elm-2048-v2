@@ -204,6 +204,7 @@ viewBoard model =
         , style "padding" "10px"
         , style "grid-template" "repeat(4, 60px) / repeat(4, 60px)"
         , style "background" "hsl(0deg 0% 25%)"
+        , style "border-radius" "10px"
         ]
         (case model.transition of
             TNew board ->
@@ -253,6 +254,7 @@ viewCell attrs pos val =
             :: style "display" "grid"
             :: style "place-content" "center"
             :: style "background" "hwb(260deg 40% 10%)"
+            :: style "border-radius" "10%"
             :: style "color" "white"
             :: style "margin" "5px"
             :: attrs
