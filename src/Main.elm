@@ -209,12 +209,7 @@ viewBoard2 model =
         ]
         (case model.transition of
             TNew ->
-                let
-                    (Board grid) =
-                        model.board
-                in
-                grid
-                    |> Dict.toList
+                boardEntries model.board
                     |> List.map (\( pos, val ) -> viewNewCell pos val)
 
             TMoveAndMerge grid ->
