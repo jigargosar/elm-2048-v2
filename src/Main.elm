@@ -231,6 +231,44 @@ viewBoard model =
         )
 
 
+viewNewCell : Pos -> Val -> Html msg
+viewNewCell =
+    viewCell [ class "apply-fadeIn" ]
+
+
+viewMovedCell : Pos -> Pos -> Val -> Html msg
+viewMovedCell _ to val =
+    viewCell [ class "apply-slideIn" ] to val
+
+
+viewExitCell : Pos -> Val -> Html msg
+viewExitCell =
+    viewCell [ class "apply-fadeOut" ]
+
+
+viewCell : List (Html.Attribute msg) -> Pos -> Val -> Html msg
+viewCell attrs pos val =
+    div
+        (gridAreaFromPos pos
+            :: style "display" "grid"
+            :: style "place-content" "center"
+            :: style "background" "#eee"
+            :: style "margin" "5px"
+            :: attrs
+        )
+        [ viewVal val ]
+
+
+viewVal : Val -> Html msg
+viewVal val =
+    text (valAsString val)
+
+
+gridAreaFromPos : Pos -> Html.Attribute msg
+gridAreaFromPos ( x, y ) =
+    style "grid-area" (fromInt (y + 1) ++ "/" ++ fromInt (x + 1))
+
+
 
 --main : Html msg
 --main =
@@ -535,44 +573,6 @@ mergeWith ( p2, v2 ) ( p1, v1 ) =
 
     else
         Nothing
-
-
-viewNewCell : Pos -> Val -> Html msg
-viewNewCell =
-    viewCell [ class "apply-fadeIn" ]
-
-
-viewMovedCell : Pos -> Pos -> Val -> Html msg
-viewMovedCell _ to val =
-    viewCell [ class "apply-slideIn" ] to val
-
-
-viewExitCell : Pos -> Val -> Html msg
-viewExitCell =
-    viewCell [ class "apply-fadeOut" ]
-
-
-viewCell : List (Html.Attribute msg) -> Pos -> Val -> Html msg
-viewCell attrs pos val =
-    div
-        (gridAreaFromPos pos
-            :: style "display" "grid"
-            :: style "place-content" "center"
-            :: style "background" "#eee"
-            :: style "margin" "5px"
-            :: attrs
-        )
-        [ viewVal val ]
-
-
-viewVal : Val -> Html msg
-viewVal val =
-    text (valAsString val)
-
-
-gridAreaFromPos : Pos -> Html.Attribute msg
-gridAreaFromPos ( x, y ) =
-    style "grid-area" (fromInt (y + 1) ++ "/" ++ fromInt (x + 1))
 
 
 
