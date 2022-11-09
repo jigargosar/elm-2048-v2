@@ -108,19 +108,18 @@ globalStyles : Html msg
 globalStyles =
     Html.node "style"
         []
-        [ text
-            """
-                @keyframes fadeIn{
-                    from{
-                        opacity:0;
-                        transform: scale(0);
-                    },
-                }
-                
-                .apply-fadeIn{
-                    animation:fadeIn 5s;
-                }
-            """
+        [ text """
+@keyframes fadeIn {
+    from {
+        opacity: 0.8;
+        transform: scale(0);
+    },
+}
+
+.apply-fadeIn {
+    animation:fadeIn 0.6s ease-out;
+}
+"""
         ]
 
 
