@@ -93,8 +93,7 @@ init () =
             , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
-
-        --|> moveUp
+                |> moveUp
     in
     ( { board = board
       , transition = TNew
@@ -452,7 +451,12 @@ moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
             else
                 ( acc.y, acc.lastUnmerged )
     in
-    moveBoardEntryUpHelp entry { acc | y = y, lastUnmerged = lastUnmerged }
+    moveBoardEntryUpHelp entry
+        { grid = acc.grid
+        , x = x
+        , y = y
+        , lastUnmerged = lastUnmerged
+        }
 
 
 moveBoardEntryUpHelp :
