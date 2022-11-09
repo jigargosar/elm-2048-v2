@@ -191,9 +191,6 @@ view model =
 
                 TMoveAndMerge grid ->
                     viewTransitionMoveAndMerge grid
-
-                TStatic ->
-                    viewBoard model.board
             ]
         ]
 
@@ -239,7 +236,6 @@ view model =
 type Transition
     = TNew
     | TMoveAndMerge (Grid MMCell)
-    | TStatic
 
 
 type alias Pos =
