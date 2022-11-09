@@ -199,9 +199,10 @@ viewBoard : Model -> Html msg
 viewBoard model =
     div
         [ style "display" "grid"
-        , style "gap" "10px"
+
+        --, style "gap" "10px"
         , style "padding" "10px"
-        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+        , style "grid-template" "repeat(4, 60px) / repeat(4, 60px)"
         , style "background" "#ddd"
         ]
         (case model.transition of
@@ -545,7 +546,7 @@ viewNewCell pos val =
         , style "background" "#eee"
         , class "apply-fadeIn"
         ]
-        [ text (valAsString val) ]
+        [ viewVal val ]
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
@@ -558,7 +559,7 @@ viewMovedCell from to val =
         , style "background" "#eee"
         , class "apply-slideIn"
         ]
-        [ text (valAsString val) ]
+        [ viewVal val ]
 
 
 viewExitCell : Pos -> Val -> Html msg
@@ -570,7 +571,12 @@ viewExitCell pos val =
         , style "background" "#eee"
         , class "apply-fadeOut"
         ]
-        [ text (valAsString val) ]
+        [ viewVal val ]
+
+
+viewVal : Val -> Html msg
+viewVal val =
+    text (valAsString val)
 
 
 gridAreaFromPos : Pos -> Html.Attribute msg
