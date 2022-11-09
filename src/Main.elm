@@ -185,35 +185,73 @@ view model =
             , style "gap" "50px"
             ]
             [ viewBoard model.board
-            , case model.transition of
-                TNew ->
-                    viewTransitionNew model.board
-
-                TMoveAndMerge grid ->
-                    div
-                        [ style "display" "grid"
-                        , style "gap" "10px"
-                        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
-                        ]
-                        (rangeWH 4 4
-                            |> List.concatMap
-                                (\to ->
-                                    case Dict.get to grid of
-                                        Nothing ->
-                                            [ viewEmptyCell to ]
-
-                                        Just (Merged from1 from2 oldVal) ->
-                                            [ viewNewCell to (nextVal oldVal)
-                                            , viewExitCell from1 oldVal
-                                            , viewExitCell from2 oldVal
-                                            ]
-
-                                        Just (Moved from val) ->
-                                            [ viewMovedCell from to val ]
-                                )
-                        )
+            , viewBoard2 model
             ]
         ]
+
+
+viewBoard2 : Model -> Html msg
+viewBoard2 model =
+    div
+        [ style "display" "grid"
+        , style "gap" "10px"
+        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+        ]
+        (case model.transition of
+            TNew ->
+                let
+                    (Board grid) =
+                        model.board
+                in
+                rangeWH 4 4
+                    |> List.map
+                        (\pos ->
+                            let
+                                mbVal =
+                                    Dict.get pos grid
+                            in
+                            div
+                                [ gridAreaFromPos pos
+                                , style "display" "grid"
+                                , style "place-content" "center"
+                                , style "background" "#eee"
+                                , classList
+                                    [ ( "apply-fadeIn"
+                                      , case mbVal of
+                                            Just (Val _) ->
+                                                True
+
+                                            _ ->
+                                                False
+                                      )
+                                    ]
+                                ]
+                                [ text
+                                    (mbVal
+                                        |> Maybe.map valAsString
+                                        |> Maybe.withDefault ""
+                                    )
+                                ]
+                        )
+
+            TMoveAndMerge grid ->
+                rangeWH 4 4
+                    |> List.concatMap
+                        (\to ->
+                            case Dict.get to grid of
+                                Nothing ->
+                                    [ viewEmptyCell to ]
+
+                                Just (Merged from1 from2 oldVal) ->
+                                    [ viewNewCell to (nextVal oldVal)
+                                    , viewExitCell from1 oldVal
+                                    , viewExitCell from2 oldVal
+                                    ]
+
+                                Just (Moved from val) ->
+                                    [ viewMovedCell from to val ]
+                        )
+        )
 
 
 
@@ -539,46 +577,6 @@ viewBoard board =
         , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
         ]
         (allBoardEntries board |> List.map viewBoardEntry)
-
-
-viewTransitionNew : Board -> Html msg
-viewTransitionNew (Board grid) =
-    div
-        [ style "display" "grid"
-        , style "gap" "10px"
-        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
-        ]
-        (rangeWH 4 4
-            |> List.map
-                (\pos ->
-                    let
-                        mbVal =
-                            Dict.get pos grid
-                    in
-                    div
-                        [ gridAreaFromPos pos
-                        , style "display" "grid"
-                        , style "place-content" "center"
-                        , style "background" "#eee"
-                        , classList
-                            [ ( "apply-fadeIn"
-                              , case mbVal of
-                                    Just (Val _) ->
-                                        True
-
-                                    _ ->
-                                        False
-                              )
-                            ]
-                        ]
-                        [ text
-                            (mbVal
-                                |> Maybe.map valAsString
-                                |> Maybe.withDefault ""
-                            )
-                        ]
-                )
-        )
 
 
 viewEmptyCell : Pos -> Html msg
