@@ -18,6 +18,20 @@ import Tuple exposing (first, mapSecond, pair)
    * animation
    * setup neovim
    * enable vim emulation
+
+   Problem Solving:
+   How to implement animation
+   * store state of each cell in board when move is performed.
+   * have animation states
+   * MoveTransitions
+   * New
+   * MoveAndMerge
+   * Static
+   * start with new.
+   * new phase goes to static.
+   * on slide, goto move&merge.
+   * on end of move and merge go to new.
+
 -}
 
 
