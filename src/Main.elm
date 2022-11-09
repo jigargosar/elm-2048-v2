@@ -252,7 +252,8 @@ viewCell attrs pos val =
         (gridAreaFromPos pos
             :: style "display" "grid"
             :: style "place-content" "center"
-            :: style "background" "hwb(260deg 60% 10%)"
+            :: style "background" "hwb(260deg 40% 10%)"
+            :: style "color" "white"
             :: style "margin" "5px"
             :: attrs
         )
