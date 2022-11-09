@@ -93,10 +93,12 @@ init () =
             , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
-                |> moveUp
+
+        ( movedBoard, movedGrid ) =
+            moveUp board
     in
-    ( { board = board
-      , transition = TMoveAndMerge
+    ( { board = movedBoard
+      , transition = TMoveAndMerge movedGrid
       }
     , Cmd.none
     )
@@ -187,8 +189,8 @@ view model =
                 TNew ->
                     viewTransitionNew model.board
 
-                TMoveAndMerge ->
-                    viewTransitionMoveAndMerge model.board
+                TMoveAndMerge grid ->
+                    viewTransitionMoveAndMerge grid
 
                 TStatic ->
                     viewBoard model.board
@@ -236,7 +238,7 @@ view model =
 
 type Transition
     = TNew
-    | TMoveAndMerge
+    | TMoveAndMerge (Grid MMCell)
     | TStatic
 
 
@@ -277,7 +279,7 @@ type Val
     = Val Int
 
 
-type Cell
+type MMCell
     = Moved Pos Val
     | Merged Pos Pos Val
 
@@ -313,7 +315,16 @@ valAsInt val =
 
 valAsString : Val -> String.String
 valAsString =
-    valAsInt >> String.fromInt
+    let
+        displayStringFromInt : Int -> String
+        displayStringFromInt i =
+            if i < 1 then
+                ""
+
+            else
+                String.fromInt (2 ^ i)
+    in
+    valAsInt >> displayStringFromInt
 
 
 boardFromLists : List (List Int) -> Board
@@ -398,7 +409,7 @@ randomVal =
         |> Random.map Val
 
 
-moveUp : Board -> Board
+moveUp : Board -> ( Board, Grid MMCell )
 moveUp board =
     boardEntries board
         |> List.foldl moveBoardEntryUp initialAcc
@@ -406,7 +417,7 @@ moveUp board =
 
 
 type alias Acc =
-    { grid : Grid Cell
+    { grid : Grid MMCell
     , x : Int
     , y : Int
     , lastUnmerged : Maybe ( Pos, Val )
@@ -422,9 +433,9 @@ initialAcc =
     }
 
 
-accToBoard : Acc -> Board
+accToBoard : Acc -> ( Board, Grid MMCell )
 accToBoard acc =
-    acc.grid
+    ( acc.grid
         |> Dict.map
             (\p cell ->
                 case cell of
@@ -435,6 +446,8 @@ accToBoard acc =
                         nextVal ov
             )
         |> boardFromGrid
+    , acc.grid
+    )
 
 
 moveBoardEntryUp : ( Pos, Val ) -> Acc -> Acc
@@ -487,7 +500,7 @@ moveBoardEntryUpHelp (( from, val ) as entry) acc =
             }
 
 
-mergeWith : ( Pos, Val ) -> ( Pos, Val ) -> Maybe Cell
+mergeWith : ( Pos, Val ) -> ( Pos, Val ) -> Maybe MMCell
 mergeWith ( p2, v2 ) ( p1, v1 ) =
     if v2 == v1 then
         Just (Merged p1 p2 v2)
@@ -547,48 +560,45 @@ viewTransitionNew board =
         )
 
 
-viewTransitionMoveAndMerge : Board -> Html msg
-viewTransitionMoveAndMerge board =
+viewTransitionMoveAndMerge : Grid MMCell -> Html msg
+viewTransitionMoveAndMerge grid =
     div
         [ style "display" "grid"
         , style "gap" "10px"
         , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
         ]
-        (allBoardEntries board
+        (rangeWH 4 4
             |> List.concatMap
-                (\( pos, mbVal ) ->
-                    case mbVal of
+                (\to ->
+                    case Dict.get to grid of
                         Nothing ->
-                            [ viewStaticCell pos 0 ]
+                            [ viewEmptyCell to ]
 
-                        --Just (Merged i p1 p2) ->
-                        --    [ viewNewCell pos i
-                        --    , viewExitCell p1 (i - 1)
-                        --    , viewExitCell p2 (i - 1)
-                        --    ]
-                        --
-                        --Just (Moved i p1) ->
-                        --    [ viewMovedCell p1 pos i ]
-                        --
-                        Just (Val i) ->
-                            [ viewStaticCell pos i ]
+                        Just (Merged from1 from2 oldVal) ->
+                            [ viewNewCell to (nextVal oldVal)
+                            , viewExitCell from1 oldVal
+                            , viewExitCell from2 oldVal
+                            ]
+
+                        Just (Moved from val) ->
+                            [ viewMovedCell from to val ]
                 )
         )
 
 
-viewStaticCell : Pos -> Int -> Html msg
-viewStaticCell pos i =
+viewEmptyCell : Pos -> Html msg
+viewEmptyCell pos =
     div
         [ gridAreaFromPos pos
         , style "display" "grid"
         , style "place-content" "center"
         , style "background" "#eee"
         ]
-        [ text (displayStringFromInt i) ]
+        []
 
 
-viewMovedCell : Pos -> Pos -> Int -> Html msg
-viewMovedCell from to i =
+viewMovedCell : Pos -> Pos -> Val -> Html msg
+viewMovedCell from to val =
     div
         [ gridAreaFromPos from
         , gridAreaFromPos to
@@ -597,20 +607,11 @@ viewMovedCell from to i =
         , style "background" "#eee"
         , class "apply-slideIn"
         ]
-        [ text (displayStringFromInt i) ]
+        [ text (valAsString val) ]
 
 
-displayStringFromInt : Int -> String
-displayStringFromInt i =
-    if i < 1 then
-        ""
-
-    else
-        String.fromInt (2 ^ i)
-
-
-viewNewCell : Pos -> Int -> Html msg
-viewNewCell pos i =
+viewNewCell : Pos -> Val -> Html msg
+viewNewCell pos val =
     div
         [ gridAreaFromPos pos
         , style "display" "grid"
@@ -618,11 +619,11 @@ viewNewCell pos i =
         , style "background" "#eee"
         , class "apply-fadeIn"
         ]
-        [ text (displayStringFromInt i) ]
+        [ text (valAsString val) ]
 
 
-viewExitCell : Pos -> Int -> Html msg
-viewExitCell pos i =
+viewExitCell : Pos -> Val -> Html msg
+viewExitCell pos val =
     div
         [ gridAreaFromPos pos
         , style "display" "grid"
@@ -630,7 +631,7 @@ viewExitCell pos i =
         , style "background" "#eee"
         , class "apply-fadeOut"
         ]
-        [ text (displayStringFromInt i) ]
+        [ text (valAsString val) ]
 
 
 viewBoardEntry : ( Pos, Maybe Val ) -> Html msg
