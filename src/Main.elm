@@ -214,8 +214,8 @@ viewBoard model =
                             viewNewCell pos val
                         )
 
-            TMoveAndMerge grid ->
-                grid
+            TMoveAndMerge mmGrid ->
+                mmGrid
                     |> Dict.toList
                     |> List.concatMap
                         (\( to, mmCell ) ->
