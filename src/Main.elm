@@ -538,39 +538,30 @@ mergeWith ( p2, v2 ) ( p1, v1 ) =
 
 
 viewNewCell : Pos -> Val -> Html msg
-viewNewCell pos val =
-    div
-        [ gridAreaFromPos pos
-        , style "display" "grid"
-        , style "place-content" "center"
-        , style "background" "#eee"
-        , class "apply-fadeIn"
-        ]
-        [ viewVal val ]
+viewNewCell =
+    viewCell [ class "apply-fadeIn" ]
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
 viewMovedCell from to val =
-    div
-        [ gridAreaFromPos from
-        , gridAreaFromPos to
-        , style "display" "grid"
-        , style "place-content" "center"
-        , style "background" "#eee"
-        , class "apply-slideIn"
-        ]
-        [ viewVal val ]
+    viewCell [ class "apply-slideIn" ] to val
 
 
 viewExitCell : Pos -> Val -> Html msg
-viewExitCell pos val =
+viewExitCell =
+    viewCell [ class "apply-fadeOut" ]
+
+
+viewCell : List (Html.Attribute msg) -> Pos -> Val -> Html msg
+viewCell attrs pos val =
     div
-        [ gridAreaFromPos pos
-        , style "display" "grid"
-        , style "place-content" "center"
-        , style "background" "#eee"
-        , class "apply-fadeOut"
-        ]
+        (gridAreaFromPos pos
+            :: style "display" "grid"
+            :: style "place-content" "center"
+            :: style "background" "#eee"
+            :: style "margin" "5px"
+            :: attrs
+        )
         [ viewVal val ]
 
 
