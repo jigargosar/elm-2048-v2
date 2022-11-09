@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, a, div, text)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (class, style)
 import Random exposing (Generator)
 import Tuple exposing (first, mapSecond, pair)
 
@@ -120,7 +120,7 @@ view model =
             [ viewBoard model.board
             , case model.transition of
                 TNew board ->
-                    viewBoard board
+                    viewTransitionNew board
 
                 TMoveAndMerge board ->
                     viewBoard board
@@ -435,6 +435,12 @@ viewTransitionNew board =
                         , style "display" "grid"
                         , style "place-content" "center"
                         , style "background" "#eee"
+                        , case mbVal of
+                            Just (New _) ->
+                                style "animation" "fadeIn 1s"
+
+                            _ ->
+                                noAttr
                         ]
                         [ text
                             (mbVal
@@ -496,3 +502,7 @@ indicesOfLen len =
 
 noView =
     text ""
+
+
+noAttr =
+    class ""
