@@ -192,14 +192,13 @@ view model =
             , style "flex-flow" "row wrap"
             , style "gap" "50px"
             ]
-            [ viewBoard model.board
-            , viewBoard2 model
+            [ viewBoard model
             ]
         ]
 
 
-viewBoard2 : Model -> Html msg
-viewBoard2 model =
+viewBoard : Model -> Html msg
+viewBoard model =
     div
         [ style "display" "grid"
         , style "gap" "10px"
@@ -547,21 +546,6 @@ mergeWith ( p2, v2 ) ( p1, v1 ) =
         Nothing
 
 
-allBoardEntries : Board -> List ( Pos, Maybe Val )
-allBoardEntries (Board grid) =
-    rangeWH 4 4 |> List.map (\pos -> ( pos, Dict.get pos grid ))
-
-
-viewBoard : Board -> Html msg
-viewBoard board =
-    div
-        [ style "display" "grid"
-        , style "gap" "10px"
-        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
-        ]
-        (allBoardEntries board |> List.map viewBoardEntry)
-
-
 viewMovedCell : Pos -> Pos -> Val -> Html msg
 viewMovedCell from to val =
     div
@@ -597,17 +581,6 @@ viewExitCell pos val =
         , class "apply-fadeOut"
         ]
         [ text (valAsString val) ]
-
-
-viewBoardEntry : ( Pos, Maybe Val ) -> Html msg
-viewBoardEntry ( pos, val ) =
-    div
-        [ gridAreaFromPos pos
-        , style "display" "grid"
-        , style "place-content" "center"
-        , style "background" "#eee"
-        ]
-        [ text (val |> Maybe.map valAsString |> Maybe.withDefault "") ]
 
 
 gridAreaFromPos : Pos -> Html.Attribute msg
