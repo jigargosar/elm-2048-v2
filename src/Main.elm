@@ -420,6 +420,32 @@ viewBoard board =
         (allBoardEntries board |> List.map viewBoardEntry)
 
 
+viewTransitionNew : Board -> Html msg
+viewTransitionNew board =
+    div
+        [ style "display" "grid"
+        , style "gap" "10px"
+        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+        ]
+        (allBoardEntries board
+            |> List.map
+                (\( pos, val ) ->
+                    div
+                        [ gridAreaFromPos pos
+                        , style "display" "grid"
+                        , style "place-content" "center"
+                        , style "background" "#eee"
+                        ]
+                        [ text
+                            (val
+                                |> Maybe.map valAsString
+                                |> Maybe.withDefault ""
+                            )
+                        ]
+                )
+        )
+
+
 viewBoardEntry : ( Pos, Maybe Val ) -> Html msg
 viewBoardEntry ( pos, val ) =
     div
