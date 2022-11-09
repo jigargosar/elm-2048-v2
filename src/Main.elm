@@ -203,7 +203,7 @@ viewBoard model =
         --, style "gap" "10px"
         , style "padding" "10px"
         , style "grid-template" "repeat(4, 60px) / repeat(4, 60px)"
-        , style "background" "#ddd"
+        , style "background" "hsl(0deg 0% 25%)"
         ]
         (case model.transition of
             TNew board ->
