@@ -536,6 +536,18 @@ mergeWith ( p2, v2 ) ( p1, v1 ) =
         Nothing
 
 
+viewNewCell : Pos -> Val -> Html msg
+viewNewCell pos val =
+    div
+        [ gridAreaFromPos pos
+        , style "display" "grid"
+        , style "place-content" "center"
+        , style "background" "#eee"
+        , class "apply-fadeIn"
+        ]
+        [ text (valAsString val) ]
+
+
 viewMovedCell : Pos -> Pos -> Val -> Html msg
 viewMovedCell from to val =
     div
@@ -545,18 +557,6 @@ viewMovedCell from to val =
         , style "place-content" "center"
         , style "background" "#eee"
         , class "apply-slideIn"
-        ]
-        [ text (valAsString val) ]
-
-
-viewNewCell : Pos -> Val -> Html msg
-viewNewCell pos val =
-    div
-        [ gridAreaFromPos pos
-        , style "display" "grid"
-        , style "place-content" "center"
-        , style "background" "#eee"
-        , class "apply-fadeIn"
         ]
         [ text (valAsString val) ]
 
