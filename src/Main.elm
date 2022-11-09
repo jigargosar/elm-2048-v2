@@ -104,13 +104,30 @@ update msg model =
             ( model, Cmd.none )
 
 
+globalStyles : Html msg
+globalStyles =
+    Html.node "style"
+        []
+        [ text
+            """
+                @keyframes fadeIn{
+                    from{
+                        opacity:0;
+                        transform: scale(0);
+                    },
+                }
+            """
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div
         [ style "font" "22px monospace"
         , style "padding" "20px"
         ]
-        [ text "Hello World!"
+        [ globalStyles
+        , text "Hello World!"
         , div
             [ style "padding" "20px"
             , style "display" "flex"
@@ -437,7 +454,7 @@ viewTransitionNew board =
                         , style "background" "#eee"
                         , case mbVal of
                             Just (New _) ->
-                                style "animation" "fadeIn 1s"
+                                style "animation" "fadeIn 5s"
 
                             _ ->
                                 noAttr
