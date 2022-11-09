@@ -213,20 +213,18 @@ viewBoard2 model =
                     |> List.map (\( pos, val ) -> viewNewCell pos val)
 
             TMoveAndMerge grid ->
-                rangeWH 4 4
+                grid
+                    |> Dict.toList
                     |> List.concatMap
-                        (\to ->
-                            case Dict.get to grid of
-                                Nothing ->
-                                    []
-
-                                Just (Merged from1 from2 oldVal) ->
+                        (\( to, mmCell ) ->
+                            case mmCell of
+                                Merged from1 from2 oldVal ->
                                     [ viewNewCell to (nextVal oldVal)
                                     , viewExitCell from1 oldVal
                                     , viewExitCell from2 oldVal
                                     ]
 
-                                Just (Moved from val) ->
+                                Moved from val ->
                                     [ viewMovedCell from to val ]
                         )
         )
