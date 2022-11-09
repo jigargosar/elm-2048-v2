@@ -498,56 +498,61 @@ viewTransitionMoveAndMerge board =
         , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
         ]
         (allBoardEntries board
-            |> List.map
+            |> List.concatMap
                 (\( pos, mbVal ) ->
-                    let
-                        _ =
-                            case mbVal of
-                                Nothing ->
-                                    viewStaticCell pos ""
+                    case mbVal of
+                        Nothing ->
+                            [ viewStaticCell pos 0 ]
 
-                                _ ->
-                                    noView
-                    in
-                    div
-                        [ gridAreaFromPos pos
-                        , style "display" "grid"
-                        , style "place-content" "center"
-                        , style "background" "#eee"
-                        , classList
-                            [ ( "apply-fadeIn"
-                              , case mbVal of
-                                    Just (Merged _ _ _) ->
-                                        True
-
-                                    _ ->
-                                        False
-                              )
+                        Just (Merged i p1 p2) ->
+                            [ viewNewCell pos i
+                            , viewExitCell p1 (i - 1)
+                            , viewExitCell p2 (i - 1)
                             ]
-                        ]
-                        [ text
-                            (mbVal
-                                |> Maybe.map valAsString
-                                |> Maybe.withDefault ""
-                            )
-                        ]
+
+                        Just (Moved i p1) ->
+                            [ viewMovedCell p1 pos i ]
+
+                        Just (New _) ->
+                            Debug.todo "invariant failed"
                 )
         )
 
 
-viewStaticCell : Pos -> String -> Html msg
-viewStaticCell pos txt =
+viewStaticCell : Pos -> Int -> Html msg
+viewStaticCell pos i =
     div
         [ gridAreaFromPos pos
         , style "display" "grid"
         , style "place-content" "center"
         , style "background" "#eee"
         ]
-        [ text txt ]
+        [ text (displayStringFromInt i) ]
 
 
-viewNewCell : Pos -> String -> Html msg
-viewNewCell pos txt =
+viewMovedCell : Pos -> Pos -> Int -> Html msg
+viewMovedCell from to i =
+    div
+        [ gridAreaFromPos from
+        , gridAreaFromPos to
+        , style "display" "grid"
+        , style "place-content" "center"
+        , style "background" "#eee"
+        ]
+        [ text (displayStringFromInt i) ]
+
+
+displayStringFromInt : Int -> String
+displayStringFromInt i =
+    if i < 1 then
+        ""
+
+    else
+        String.fromInt (2 ^ i)
+
+
+viewNewCell : Pos -> Int -> Html msg
+viewNewCell pos i =
     div
         [ gridAreaFromPos pos
         , style "display" "grid"
@@ -555,7 +560,19 @@ viewNewCell pos txt =
         , style "background" "#eee"
         , class "apply-fadeIn"
         ]
-        [ text txt ]
+        [ text (displayStringFromInt i) ]
+
+
+viewExitCell : Pos -> Int -> Html msg
+viewExitCell pos i =
+    div
+        [ gridAreaFromPos pos
+        , style "display" "grid"
+        , style "place-content" "center"
+        , style "background" "#eee"
+        , class "apply-fadeIOut"
+        ]
+        [ text (displayStringFromInt i) ]
 
 
 viewBoardEntry : ( Pos, Maybe Val ) -> Html msg
