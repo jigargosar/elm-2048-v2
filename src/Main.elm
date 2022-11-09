@@ -21,6 +21,18 @@ import Tuple exposing (first, mapSecond, pair)
    * enable vim emulation
 
    Problem Solving:
+   Can we address state changes for animation by using extra data?
+   * Board continues to hold only val.
+   * the acc collects moved/merged/static entries.
+   * which then can be used for animation.
+   * Can this be done.
+   * how can we ensure there is no impedance mismatch.
+   * initial board can be rendered as fadeIn.
+   * moved & merged can be rendered, from static, merged & moved
+     entries. Same as now.
+   * additionally, let transitions store additional info it requires
+     rather than clobbering board with it.
+   * sounds good.
    How to implement animation
    * store state of each cell in board when move is performed.
    * have animation states
