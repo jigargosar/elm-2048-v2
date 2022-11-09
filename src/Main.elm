@@ -190,7 +190,28 @@ view model =
                     viewTransitionNew model.board
 
                 TMoveAndMerge grid ->
-                    viewTransitionMoveAndMerge grid
+                    div
+                        [ style "display" "grid"
+                        , style "gap" "10px"
+                        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+                        ]
+                        (rangeWH 4 4
+                            |> List.concatMap
+                                (\to ->
+                                    case Dict.get to grid of
+                                        Nothing ->
+                                            [ viewEmptyCell to ]
+
+                                        Just (Merged from1 from2 oldVal) ->
+                                            [ viewNewCell to (nextVal oldVal)
+                                            , viewExitCell from1 oldVal
+                                            , viewExitCell from2 oldVal
+                                            ]
+
+                                        Just (Moved from val) ->
+                                            [ viewMovedCell from to val ]
+                                )
+                        )
             ]
         ]
 
@@ -521,15 +542,19 @@ viewBoard board =
 
 
 viewTransitionNew : Board -> Html msg
-viewTransitionNew board =
+viewTransitionNew (Board grid) =
     div
         [ style "display" "grid"
         , style "gap" "10px"
         , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
         ]
-        (allBoardEntries board
+        (rangeWH 4 4
             |> List.map
-                (\( pos, mbVal ) ->
+                (\pos ->
+                    let
+                        mbVal =
+                            Dict.get pos grid
+                    in
                     div
                         [ gridAreaFromPos pos
                         , style "display" "grid"
@@ -552,32 +577,6 @@ viewTransitionNew board =
                                 |> Maybe.withDefault ""
                             )
                         ]
-                )
-        )
-
-
-viewTransitionMoveAndMerge : Grid MMCell -> Html msg
-viewTransitionMoveAndMerge grid =
-    div
-        [ style "display" "grid"
-        , style "gap" "10px"
-        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
-        ]
-        (rangeWH 4 4
-            |> List.concatMap
-                (\to ->
-                    case Dict.get to grid of
-                        Nothing ->
-                            [ viewEmptyCell to ]
-
-                        Just (Merged from1 from2 oldVal) ->
-                            [ viewNewCell to (nextVal oldVal)
-                            , viewExitCell from1 oldVal
-                            , viewExitCell from2 oldVal
-                            ]
-
-                        Just (Moved from val) ->
-                            [ viewMovedCell from to val ]
                 )
         )
 
