@@ -543,7 +543,7 @@ viewNewCell =
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
-viewMovedCell from to val =
+viewMovedCell _ to val =
     viewCell [ class "apply-slideIn" ] to val
 
 
