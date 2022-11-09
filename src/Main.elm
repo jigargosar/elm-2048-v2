@@ -31,6 +31,19 @@ import Tuple exposing (first, mapSecond, pair)
    * new phase goes to static.
    * on slide, goto move&merge.
    * on end of move and merge go to new.
+   * rendering val
+   * New: -> render new elements with opacity 0
+        * transition: to opacity 1.
+        * create anim fadeIn
+        * apply to new elements.
+        * show merged and moved elements as static.
+
+    * MoveAndMerge: ->
+        * fadeIn new merged elements.
+        * show moved as static.
+        * ignore new elements.
+
+    * Static: show all elements as static. ignore old merged.
 
 -}
 
@@ -70,6 +83,12 @@ main =
             , viewBoard board3
             ]
         ]
+
+
+type Transition
+    = TNew Board
+    | TMoveAndMerge Board
+    | TStatic Board
 
 
 type alias Pos =
