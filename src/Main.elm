@@ -213,17 +213,9 @@ viewBoard2 model =
                     (Board grid) =
                         model.board
                 in
-                rangeWH 4 4
-                    |> List.map
-                        (\pos ->
-                            case Dict.get pos grid of
-                                Nothing ->
-                                    --viewEmptyCell pos
-                                    noView
-
-                                Just val ->
-                                    viewNewCell pos val
-                        )
+                grid
+                    |> Dict.toList
+                    |> List.map (\( pos, val ) -> viewNewCell pos val)
 
             TMoveAndMerge grid ->
                 rangeWH 4 4
