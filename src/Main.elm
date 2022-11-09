@@ -118,6 +118,15 @@ view model =
             , style "gap" "50px"
             ]
             [ viewBoard model.board
+            , case model.transition of
+                TNew board ->
+                    viewBoard board
+
+                TMoveAndMerge board ->
+                    viewBoard board
+
+                TStatic board ->
+                    viewBoard board
             ]
         ]
 
@@ -453,3 +462,11 @@ pairTo b a =
 indicesOfLen : Int -> List Int
 indicesOfLen len =
     List.range 0 (len - 1)
+
+
+
+--noinspection ElmUnusedSymbol
+
+
+noView =
+    text ""
