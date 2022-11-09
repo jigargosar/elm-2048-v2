@@ -96,7 +96,7 @@ init () =
                 |> moveUp
     in
     ( { board = board
-      , transition = TNew
+      , transition = TMoveAndMerge
       }
     , Cmd.none
     )
@@ -188,8 +188,7 @@ view model =
                     viewTransitionNew model.board
 
                 TMoveAndMerge ->
-                    --viewTransitionMoveAndMerge model.board
-                    Debug.todo "todo"
+                    viewTransitionMoveAndMerge model.board
 
                 TStatic ->
                     viewBoard model.board
@@ -548,34 +547,33 @@ viewTransitionNew board =
         )
 
 
+viewTransitionMoveAndMerge : Board -> Html msg
+viewTransitionMoveAndMerge board =
+    div
+        [ style "display" "grid"
+        , style "gap" "10px"
+        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+        ]
+        (allBoardEntries board
+            |> List.concatMap
+                (\( pos, mbVal ) ->
+                    case mbVal of
+                        Nothing ->
+                            [ viewStaticCell pos 0 ]
 
---viewTransitionMoveAndMerge : Board -> Html msg
---viewTransitionMoveAndMerge board =
---    div
---        [ style "display" "grid"
---        , style "gap" "10px"
---        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
---        ]
---        (allBoardEntries board
---            |> List.concatMap
---                (\( pos, mbVal ) ->
---                    case mbVal of
---                        Nothing ->
---                            [ viewStaticCell pos 0 ]
---
---                        Just (Merged i p1 p2) ->
---                            [ viewNewCell pos i
---                            , viewExitCell p1 (i - 1)
---                            , viewExitCell p2 (i - 1)
---                            ]
---
---                        Just (Moved i p1) ->
---                            [ viewMovedCell p1 pos i ]
---
---                        Just (Val _) ->
---                            Debug.todo "invariant failed"
---                )
---        )
+                        --Just (Merged i p1 p2) ->
+                        --    [ viewNewCell pos i
+                        --    , viewExitCell p1 (i - 1)
+                        --    , viewExitCell p2 (i - 1)
+                        --    ]
+                        --
+                        --Just (Moved i p1) ->
+                        --    [ viewMovedCell p1 pos i ]
+                        --
+                        Just (Val i) ->
+                            [ viewStaticCell pos i ]
+                )
+        )
 
 
 viewStaticCell : Pos -> Int -> Html msg
