@@ -120,20 +120,20 @@ globalStyles =
 @keyframes fadeOut{
     from {
         opacity: 1;
-        transform: scale(1) ;
+        transform: translateY(0) scale(1) ;
     }
     to {
         opacity: 0;
-        transform: scale(0) ;
+        transform: translateY(-100%) scale(0) ;
     }
 }
 
-@keyframes slideUp{
+@keyframes slideIn{
     from {
-        transform: translateY(0);
+        transform: translateY(-100%);
     }
     to {
-        transform: translateY(-100%);
+        transform: translateY(0);
     }
 }
 
