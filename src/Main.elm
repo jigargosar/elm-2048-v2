@@ -129,12 +129,12 @@ globalStyles =
 }
 
 .apply-fadeIn {
-    animation:fadeIn 0.6s ease-out both;
+    animation:fadeIn 0.6s linear both;
     z-index: 1;
 }
 
 .apply-fadeOut {
-    animation:fadeOut 0.6s ease-in both;
+    animation:fadeOut 0.6s linear both;
     z-index: 0;
 }
 """
