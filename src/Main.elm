@@ -61,6 +61,7 @@ main =
 
 type alias Model =
     { board : Board
+    , transition : Transition
     }
 
 
@@ -70,13 +71,17 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init () =
-    ( { board =
+    let
+        board =
             [ [ 0, 1, 0, 7 ]
             , [ 0, 1, 3, 7 ]
             , [ 0, 2, 3, 7 ]
             , [ 1, 2, 0, 7 ]
             ]
                 |> boardFromLists
+    in
+    ( { board = board
+      , transition = TNew board
       }
     , Cmd.none
     )
