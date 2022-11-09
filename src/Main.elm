@@ -231,7 +231,7 @@ viewBoard2 model =
                         (\to ->
                             case Dict.get to grid of
                                 Nothing ->
-                                    [ viewEmptyCell to ]
+                                    []
 
                                 Just (Merged from1 from2 oldVal) ->
                                     [ viewNewCell to (nextVal oldVal)
@@ -572,17 +572,6 @@ viewBoard board =
         , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
         ]
         (allBoardEntries board |> List.map viewBoardEntry)
-
-
-viewEmptyCell : Pos -> Html msg
-viewEmptyCell pos =
-    div
-        [ gridAreaFromPos pos
-        , style "display" "grid"
-        , style "place-content" "center"
-        , style "background" "#eee"
-        ]
-        []
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
