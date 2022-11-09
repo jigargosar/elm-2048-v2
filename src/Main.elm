@@ -120,21 +120,21 @@ globalStyles =
 @keyframes fadeOut{
     from {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0) scale(1) ;
     }
     to {
         opacity: 0;
-        transform: scale(0);
+        transform: translateY(-100%) scale(0) ;
     }
 }
 
 .apply-fadeIn {
-    animation:fadeIn 0.6s linear both;
+    animation:fadeIn 0.6s ease-out both;
     z-index: 1;
 }
 
 .apply-fadeOut {
-    animation:fadeOut 0.6s linear both;
+    animation:fadeOut 0.6s ease-in both;
     z-index: 0;
 }
 """
