@@ -45,6 +45,8 @@ import Tuple exposing (first, mapSecond, pair)
         * ignore new elements.
 
     * Static: show all elements as static. ignore old merged.
+    * How about modifying the algorithm to give back additional
+      data and keep the core board simple?
 
 -}
 
