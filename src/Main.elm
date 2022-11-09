@@ -74,8 +74,7 @@ main =
 
 
 type alias Model =
-    { board : Board
-    , transition : Transition
+    { transition : Transition
     }
 
 
@@ -98,11 +97,10 @@ init () =
             moveUp board
 
         model1 =
-            { board = board, transition = TNew }
+            { transition = TNew board }
 
         model2 =
-            { board = movedBoard
-            , transition = TMoveAndMerge movedGrid
+            { transition = TMoveAndMerge movedBoard movedGrid
             }
     in
     ( model2
@@ -207,14 +205,14 @@ viewBoard model =
         , style "background" "#ddd"
         ]
         (case model.transition of
-            TNew ->
-                boardEntries model.board
+            TNew board ->
+                boardEntries board
                     |> List.map
                         (\( pos, val ) ->
                             viewNewCell pos val
                         )
 
-            TMoveAndMerge mmGrid ->
+            TMoveAndMerge _ mmGrid ->
                 mmGrid
                     |> Dict.toList
                     |> List.concatMap
@@ -271,8 +269,8 @@ viewBoard model =
 
 
 type Transition
-    = TNew
-    | TMoveAndMerge (Grid MMCell)
+    = TNew Board
+    | TMoveAndMerge Board (Grid MMCell)
 
 
 type alias Pos =
