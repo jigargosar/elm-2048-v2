@@ -117,8 +117,21 @@ globalStyles =
     },
 }
 
+@keyframes fadeOut{
+    to {
+        opacity: 0;
+        transform: scale(0);
+    },
+}
+
 .apply-fadeIn {
     animation:fadeIn 0.6s ease-out;
+    z-index: 1;
+}
+
+.apply-fadeOut {
+    animation:fadeOut 0.6s ease-in;
+    z-index: 0;
 }
 """
         ]
@@ -144,7 +157,7 @@ view model =
                     viewTransitionNew board
 
                 TMoveAndMerge board ->
-                    viewBoard board
+                    viewTransitionMoveAndMerge board
 
                 TStatic board ->
                     viewBoard board
@@ -475,6 +488,54 @@ viewTransitionNew board =
                         ]
                 )
         )
+
+
+viewTransitionMoveAndMerge : Board -> Html msg
+viewTransitionMoveAndMerge board =
+    div
+        [ style "display" "grid"
+        , style "gap" "10px"
+        , style "grid-template" "repeat(4, 50px) / repeat(4, 50px)"
+        ]
+        (allBoardEntries board
+            |> List.map
+                (\( pos, mbVal ) ->
+                    div
+                        [ gridAreaFromPos pos
+                        , style "display" "grid"
+                        , style "place-content" "center"
+                        , style "background" "#eee"
+                        , classList
+                            [ ( "apply-fadeIn"
+                              , case mbVal of
+                                    Just (Merged _ _ _) ->
+                                        True
+
+                                    _ ->
+                                        False
+                              )
+                            ]
+                        ]
+                        [ text
+                            (mbVal
+                                |> Maybe.map valAsString
+                                |> Maybe.withDefault ""
+                            )
+                        ]
+                )
+        )
+
+
+viewNewCell : Pos -> String -> Html msg
+viewNewCell pos txt =
+    div
+        [ gridAreaFromPos pos
+        , style "display" "grid"
+        , style "place-content" "center"
+        , style "background" "#eee"
+        , class "apply-fadeIn"
+        ]
+        [ text txt ]
 
 
 viewBoardEntry : ( Pos, Maybe Val ) -> Html msg
