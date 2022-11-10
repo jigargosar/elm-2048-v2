@@ -207,6 +207,8 @@ viewBoard model =
         , style "border-radius" "5px"
         , style "grid-template" "repeat(4, 60px) / repeat(4, 60px)"
         , style "background" "hsl(0deg 0% 27%)"
+
+        --, style "box-shadow" "0px 10px 20px 0px hsl(0deg 0% 27% / 50%)"
         ]
         (case model.transition of
             TNew board ->
