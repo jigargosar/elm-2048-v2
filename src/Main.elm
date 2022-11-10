@@ -256,14 +256,19 @@ viewCell attrs pos val =
     div
         (gridAreaFromPos pos
             :: style "display" "grid"
-            :: style "place-content" "center"
-            :: style "background" "hwb(260deg 40% 10%)"
-            :: style "border-radius" "5px"
-            :: style "color" "white"
-            :: style "margin" "2.5px"
             :: attrs
         )
-        [ viewVal val ]
+        [ div
+            (style "display" "grid"
+                :: style "place-content" "center"
+                :: style "margin" "2.5px"
+                :: style "border-radius" "5px"
+                :: style "background" "hwb(260deg 40% 10%)"
+                :: style "color" "white"
+                :: []
+            )
+            [ viewVal val ]
+        ]
 
 
 viewVal : Val -> Html msg
