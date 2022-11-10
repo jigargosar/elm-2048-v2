@@ -236,21 +236,11 @@ viewNewCell =
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
 viewMovedCell from to val =
-    let
-        dy =
-            second from - second to
-    in
     viewCell
         [ css
             [ animationName
                 (keyframes
-                    [ ( 0
-                      , [ Anim.transform
-                            [ Css.translateY (pct100 dy)
-                            ]
-                        ]
-                      )
-                    ]
+                    [ ( 0, [ animTransformFromTo from to ] ) ]
                 )
             , animationDuration (ms 600)
             , property "animation-timing-function" "ease-in"
@@ -269,19 +259,12 @@ pct100 i =
 
 viewExitCell : Pos -> Pos -> Val -> Html msg
 viewExitCell from to val =
-    let
-        dy =
-            second from - second to
-    in
     viewCell
         [ noAttr
         , css
             [ animationName
                 (keyframes
-                    [ ( 0
-                      , [ Anim.transform [ Css.translateY (pct100 dy) ]
-                        ]
-                      )
+                    [ ( 0, [ animTransformFromTo from to ] )
                     , ( 100
                       , [ Anim.opacity (num 0.8)
                         , Anim.transform [ scale 0.8 ]
@@ -297,6 +280,28 @@ viewExitCell from to val =
         ]
         to
         val
+
+
+map2 fn ( a, b ) ( c, d ) =
+    ( fn a c, fn b d )
+
+
+sub2 =
+    map2 (-)
+
+
+animTransformFromTo : ( Int, Int ) -> ( Int, Int ) -> Anim.Property
+animTransformFromTo from to =
+    Anim.transform [ translateFromTo from to ]
+
+
+translateFromTo : ( Int, Int ) -> ( Int, Int ) -> Css.Transform {}
+translateFromTo from to =
+    let
+        ( dx, dy ) =
+            sub2 from to
+    in
+    Css.translate2 (pct100 dx) (pct100 dy)
 
 
 viewCell : List (Attribute msg) -> Pos -> Val -> Html msg
