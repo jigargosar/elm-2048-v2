@@ -256,6 +256,7 @@ viewNewCell =
         ]
 
 
+animationNameFadeIn : Css.Style
 animationNameFadeIn =
     animationName
         (keyframes
