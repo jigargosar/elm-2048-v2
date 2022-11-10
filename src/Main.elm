@@ -30,6 +30,7 @@ import Tuple exposing (pair, second)
    * [x] move board
    * [x] generate new elements unless game over
    * animation
+   * use translate instead of margin
    * setup neovim
    * enable vim emulation
 
