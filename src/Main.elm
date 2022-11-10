@@ -253,21 +253,25 @@ viewNewCell =
              ,
           -}
           css
-            [ animationName
-                (keyframes
-                    [ ( 0
-                      , [ Css.Animations.opacity (num 0.8)
-                        , Css.Animations.transform [ scale 0 ]
-                        ]
-                      )
-                    ]
-                )
+            [ keyframesFadeIn
             , animationDuration (ms 600)
             , property "animation-timing-function" "ease-out"
             , property "animation-fill-mode" "both"
             , zIndex (int 1)
             ]
         ]
+
+
+keyframesFadeIn =
+    animationName
+        (keyframes
+            [ ( 0
+              , [ Css.Animations.opacity (num 0.8)
+                , Css.Animations.transform [ scale 0 ]
+                ]
+              )
+            ]
+        )
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
