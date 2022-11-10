@@ -277,14 +277,6 @@ viewExitCell from to val =
         val
 
 
-map2 fn ( a, b ) ( c, d ) =
-    ( fn a c, fn b d )
-
-
-sub2 =
-    map2 (-)
-
-
 animTransformFromTo : ( Int, Int ) -> ( Int, Int ) -> Anim.Property
 animTransformFromTo from to =
     Anim.transform [ translateFromTo from to ]
@@ -664,6 +656,14 @@ pairTo b a =
 indicesOfLen : Int -> List Int
 indicesOfLen len =
     List.range 0 (len - 1)
+
+
+map2 fn ( a, b ) ( c, d ) =
+    ( fn a c, fn b d )
+
+
+sub2 =
+    map2 (-)
 
 
 
