@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (animationDuration, animationName, int, ms, num, pct, property, scale, zIndex)
-import Css.Animations exposing (keyframes)
+import Css.Animations as Anim exposing (keyframes)
 import Dict exposing (Dict)
 import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
@@ -209,8 +209,8 @@ viewNewCell =
             [ animationName
                 (keyframes
                     [ ( 0
-                      , [ Css.Animations.opacity (num 0.8)
-                        , Css.Animations.transform [ scale 0 ]
+                      , [ Anim.opacity (num 0.8)
+                        , Anim.transform [ scale 0 ]
                         ]
                       )
                     ]
@@ -234,7 +234,7 @@ viewMovedCell from to val =
             [ animationName
                 (keyframes
                     [ ( 0
-                      , [ Css.Animations.transform
+                      , [ Anim.transform
                             [ Css.translateY (pct100 dy)
                             ]
                         ]
@@ -273,13 +273,13 @@ viewExitCell from to val =
             [ animationName
                 (keyframes
                     [ ( 0
-                      , [ Css.Animations.property "margin-top" (to100Pc dy)
-                        , Css.Animations.property "margin-bottom" (to100Pc -dy)
+                      , [ Anim.property "margin-top" (to100Pc dy)
+                        , Anim.property "margin-bottom" (to100Pc -dy)
                         ]
                       )
                     , ( 100
-                      , [ Css.Animations.opacity (num 0.8)
-                        , Css.Animations.transform [ scale 0.8 ]
+                      , [ Anim.opacity (num 0.8)
+                        , Anim.transform [ scale 0.8 ]
                         ]
                       )
                     ]
