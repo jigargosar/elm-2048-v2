@@ -249,8 +249,10 @@ viewNewCell =
     --    }
     --}
     viewCell
-        [ class "apply-fadeIn"
-        , css
+        [ {- class "apply-fadeIn"
+             ,
+          -}
+          css
             [ animationName
                 (keyframes
                     [ ( 0
