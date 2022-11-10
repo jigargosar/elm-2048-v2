@@ -261,7 +261,7 @@ viewMovedCell from to val =
 
 to100Pc : Int -> String
 to100Pc i =
-    String.fromInt i ++ "00%"
+    String.fromInt (i * 100) ++ "%"
 
 
 viewExitCell : Pos -> Pos -> Val -> Html msg
