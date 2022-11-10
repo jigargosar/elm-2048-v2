@@ -1,17 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Css
-    exposing
-        ( animationDuration
-        , animationName
-        , int
-        , ms
-        , num
-        , property
-        , scale
-        , zIndex
-        )
+import Css exposing (animationDuration, animationName, int, ms, num, pct, property, scale, zIndex)
 import Css.Animations exposing (keyframes)
 import Dict exposing (Dict)
 import Html
@@ -244,8 +234,9 @@ viewMovedCell from to val =
             [ animationName
                 (keyframes
                     [ ( 0
-                      , [ Css.Animations.property "margin-top" (to100Pc dy)
-                        , Css.Animations.property "margin-bottom" (to100Pc -dy)
+                      , [ Css.Animations.transform
+                            [ Css.translateY (pct100 dy)
+                            ]
                         ]
                       )
                     ]
@@ -258,6 +249,11 @@ viewMovedCell from to val =
         ]
         to
         val
+
+
+pct100 : Int -> Css.Pct
+pct100 i =
+    i * 100 |> toFloat |> pct
 
 
 to100Pc : Int -> String
