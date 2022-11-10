@@ -1,7 +1,18 @@
 module Main exposing (main)
 
 import Browser
-import Css exposing (animationDuration, animationName, int, ms, num, pct, property, scale, zIndex, zero)
+import Css
+    exposing
+        ( animationDuration
+        , animationName
+        , int
+        , ms
+        , num
+        , pct
+        , property
+        , scale
+        , zIndex
+        )
 import Css.Animations as Anim exposing (keyframes)
 import Dict exposing (Dict)
 import Html
@@ -254,11 +265,6 @@ viewMovedCell from to val =
 pct100 : Int -> Css.Pct
 pct100 i =
     i * 100 |> toFloat |> pct
-
-
-to100Pc : Int -> String
-to100Pc i =
-    String.fromInt (i * 100) ++ "%"
 
 
 viewExitCell : Pos -> Pos -> Val -> Html msg
