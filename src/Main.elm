@@ -280,6 +280,11 @@ viewExitCell from to val =
                         , Css.Animations.property "margin-bottom" (to100Pc -dy)
                         ]
                       )
+                    , ( 100
+                      , [ Css.Animations.opacity (num 0.8)
+                        , Css.Animations.transform [ scale 0.8 ]
+                        ]
+                      )
                     ]
                 )
             , animationDuration (ms 600)
