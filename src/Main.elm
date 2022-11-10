@@ -253,7 +253,7 @@ viewNewCell =
              ,
           -}
           css
-            [ keyframesFadeIn
+            [ animationNameFadeIn
             , animationDuration (ms 600)
             , property "animation-timing-function" "ease-out"
             , property "animation-fill-mode" "both"
@@ -262,7 +262,7 @@ viewNewCell =
         ]
 
 
-keyframesFadeIn =
+animationNameFadeIn =
     animationName
         (keyframes
             [ ( 0
