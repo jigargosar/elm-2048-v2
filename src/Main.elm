@@ -242,12 +242,6 @@ viewBoard model =
 
 viewNewCell : Pos -> Val -> Html msg
 viewNewCell =
-    --@keyframes fadeIn {
-    --    from {
-    --        opacity: 0.8;
-    --        transform: scale(0);
-    --    }
-    --}
     viewCell
         [ {- class "apply-fadeIn"
              ,
