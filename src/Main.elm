@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Css exposing (animationDuration, animationName, int, ms, num, pct, property, scale, zIndex)
+import Css exposing (animationDuration, animationName, int, ms, num, pct, property, scale, zIndex, zero)
 import Css.Animations as Anim exposing (keyframes)
 import Dict exposing (Dict)
 import Html
@@ -273,8 +273,7 @@ viewExitCell from to val =
             [ animationName
                 (keyframes
                     [ ( 0
-                      , [ Anim.property "margin-top" (to100Pc dy)
-                        , Anim.property "margin-bottom" (to100Pc -dy)
+                      , [ Anim.transform [ Css.translateY (pct100 dy) ]
                         ]
                       )
                     , ( 100
