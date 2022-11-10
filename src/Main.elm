@@ -272,13 +272,7 @@ viewMovedCell from to val =
             second from - second to
     in
     viewCell
-        [ {- class "apply-slideIn"
-             , style "margin-top" (asPC dy)
-
-             , style "margin-bottom" (asPC -dy)
-             ,
-          -}
-          css
+        [ css
             [ animationName
                 (keyframes
                     [ ( 0
