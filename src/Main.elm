@@ -252,11 +252,6 @@ viewMovedCell from to val =
         val
 
 
-pct100 : Int -> Css.Pct
-pct100 i =
-    i * 100 |> toFloat |> pct
-
-
 viewExitCell : Pos -> Pos -> Val -> Html msg
 viewExitCell from to val =
     viewCell
@@ -300,6 +295,9 @@ translateFromTo from to =
     let
         ( dx, dy ) =
             sub2 from to
+
+        pct100 i =
+            i * 100 |> toFloat |> pct
     in
     Css.translate2 (pct100 dx) (pct100 dy)
 
