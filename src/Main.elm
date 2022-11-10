@@ -243,16 +243,15 @@ viewBoard model =
 viewNewCell : Pos -> Val -> Html msg
 viewNewCell =
     viewCell
-        [ {- class "apply-fadeIn"
-             ,
-          -}
-          css
+        [ css
             [ animationNameFadeIn
             , animationDuration (ms 600)
             , property "animation-timing-function" "ease-out"
             , property "animation-fill-mode" "both"
             , zIndex (int 1)
             ]
+
+        --, class "apply-fadeIn"
         ]
 
 
