@@ -139,43 +139,7 @@ body{
     background: hsl(225deg 6% 13%);
     color:hsl(72deg 20% 90%);
 }
-@keyframes fadeIn {
-    from {
-        opacity: 0.8;
-        transform: scale(0);
-    }
-}
 
-@keyframes fadeOut{
-    from {
-        opacity: 1;
-        transform: translateY(0) scale(1) ;
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-100%) scale(0) ;
-    }
-}
-
-@keyframes slideIn{
-    to {
-        margin: 0;
-    }
-}
-
-.apply-fadeIn {
-    animation:fadeIn 0.6s ease-out both;
-    z-index: 1;
-}
-
-.apply-fadeOut {
-    animation:fadeOut 0.6s ease-in both;
-    z-index: 0;
-}
-.apply-slideIn{
-    animation:slideIn 0.6s ease-in both;
-    z-index:1;
-}
 """
         ]
 
@@ -255,8 +219,6 @@ viewNewCell =
             , property "animation-fill-mode" "both"
             , zIndex (int 1)
             ]
-
-        --, class "apply-fadeIn"
         ]
 
 
@@ -299,8 +261,6 @@ viewExitCell from to val =
     in
     viewCell
         [ noAttr
-
-        --, class "apply-fadeOut"
         , css
             [ animationName
                 (keyframes
