@@ -2,8 +2,9 @@ module Main exposing (main)
 
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, a, div, text)
-import Html.Attributes exposing (class, style)
+import Html
+import Html.Styled exposing (Attribute, Html, a, div, text)
+import Html.Styled.Attributes exposing (class, style)
 import Random exposing (Generator)
 import Tuple exposing (pair)
 
@@ -129,7 +130,7 @@ update msg model =
 
 globalStyles : Html msg
 globalStyles =
-    Html.node "style"
+    Html.Styled.node "style"
         []
         [ text """
 body{
@@ -180,23 +181,24 @@ body{
         ]
 
 
-view : Model -> Html Msg
+view : Model -> Html.Html msg
 view model =
-    div
-        [ style "font" "22px monospace"
-        , style "padding" "20px"
-        ]
-        [ globalStyles
-        , text "Hello World!"
-        , div
-            [ style "padding" "20px"
-            , style "display" "flex"
-            , style "flex-flow" "row wrap"
-            , style "gap" "50px"
+    Html.Styled.toUnstyled <|
+        div
+            [ style "font" "22px monospace"
+            , style "padding" "20px"
             ]
-            [ viewBoard model
+            [ globalStyles
+            , text "Hello World!"
+            , div
+                [ style "padding" "20px"
+                , style "display" "flex"
+                , style "flex-flow" "row wrap"
+                , style "gap" "50px"
+                ]
+                [ viewBoard model
+                ]
             ]
-        ]
 
 
 viewBoard : Model -> Html msg
@@ -251,7 +253,7 @@ viewExitCell =
     viewCell [ class "apply-fadeOut" ]
 
 
-viewCell : List (Html.Attribute msg) -> Pos -> Val -> Html msg
+viewCell : List (Attribute msg) -> Pos -> Val -> Html msg
 viewCell attrs pos val =
     div
         (gridAreaFromPos pos
@@ -276,7 +278,7 @@ viewVal val =
     text (valAsString val)
 
 
-gridAreaFromPos : Pos -> Html.Attribute msg
+gridAreaFromPos : Pos -> Attribute msg
 gridAreaFromPos ( x, y ) =
     style "grid-area" (fromInt (y + 1) ++ "/" ++ fromInt (x + 1))
 
