@@ -8,7 +8,7 @@ import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
 import Html.Styled.Attributes exposing (class, css, style)
 import Random exposing (Generator)
-import Tuple exposing (pair)
+import Tuple exposing (pair, second)
 
 
 
@@ -158,11 +158,8 @@ body{
 }
 
 @keyframes slideIn{
-    from {
-        transform: translateY(200%);
-    }
     to {
-        transform: translateY(0);
+        margin: 0;
     }
 }
 
@@ -269,8 +266,40 @@ animationNameFadeIn =
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
-viewMovedCell _ to val =
-    viewCell [ class "apply-slideIn" ] to val
+viewMovedCell from to val =
+    let
+        dy =
+            second from - second to
+    in
+    viewCell
+        [ {- class "apply-slideIn"
+             , style "margin-top" (asPC dy)
+
+             , style "margin-bottom" (asPC -dy)
+             ,
+          -}
+          css
+            [ animationName
+                (keyframes
+                    [ ( 0
+                      , [ Css.Animations.property "margin-top" (to100Pc dy)
+                        , Css.Animations.property "margin-bottom" (to100Pc -dy)
+                        ]
+                      )
+                    ]
+                )
+            , animationDuration (ms 600)
+            , property "animation-timing-function" "ease-in"
+            , property "animation-fill-mode" "both"
+            , zIndex (int 1)
+            ]
+        ]
+        to
+        val
+
+
+to100Pc i =
+    String.fromInt i ++ "00%"
 
 
 viewExitCell : Pos -> Val -> Html msg
