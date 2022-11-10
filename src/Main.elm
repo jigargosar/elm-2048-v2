@@ -1,10 +1,12 @@
 module Main exposing (main)
 
 import Browser
+import Css exposing (animationDuration, animationName, int, ms, num, property, scale, zIndex, zero)
+import Css.Animations exposing (keyframes)
 import Dict exposing (Dict)
 import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
-import Html.Styled.Attributes exposing (class, style)
+import Html.Styled.Attributes exposing (class, css, style)
 import Random exposing (Generator)
 import Tuple exposing (pair)
 
@@ -240,7 +242,30 @@ viewBoard model =
 
 viewNewCell : Pos -> Val -> Html msg
 viewNewCell =
-    viewCell [ class "apply-fadeIn" ]
+    --@keyframes fadeIn {
+    --    from {
+    --        opacity: 0.8;
+    --        transform: scale(0);
+    --    }
+    --}
+    viewCell
+        [ class "apply-fadeIn"
+        , css
+            [ animationName
+                (keyframes
+                    [ ( 0
+                      , [ Css.Animations.opacity (num 0.8)
+                        , Css.Animations.transform [ scale 0 ]
+                        ]
+                      )
+                    ]
+                )
+            , animationDuration (ms 600)
+            , property "animation-timing-function" "ease-out"
+            , property "animation-fill-mode" "both"
+            , zIndex (int 1)
+            ]
+        ]
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
