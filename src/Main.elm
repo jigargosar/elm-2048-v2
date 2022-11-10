@@ -227,8 +227,8 @@ viewBoard model =
                             case mmCell of
                                 Merged from1 from2 oldVal ->
                                     [ viewNewCell to (nextVal oldVal)
-                                    , viewExitCell from1 oldVal
-                                    , viewExitCell from2 oldVal
+                                    , viewExitCell from1 to oldVal
+                                    , viewExitCell from2 to oldVal
                                     ]
 
                                 Moved from val ->
@@ -291,9 +291,34 @@ to100Pc i =
     String.fromInt i ++ "00%"
 
 
-viewExitCell : Pos -> Val -> Html msg
-viewExitCell =
-    viewCell [ class "apply-fadeOut" ]
+viewExitCell : Pos -> Pos -> Val -> Html msg
+viewExitCell from to val =
+    let
+        dy =
+            second from - second to
+    in
+    viewCell
+        [ noAttr
+
+        --, class "apply-fadeOut"
+        , css
+            [ animationName
+                (keyframes
+                    [ ( 0
+                      , [ Css.Animations.property "margin-top" (to100Pc dy)
+                        , Css.Animations.property "margin-bottom" (to100Pc -dy)
+                        ]
+                      )
+                    ]
+                )
+            , animationDuration (ms 600)
+            , property "animation-timing-function" "ease-in"
+            , property "animation-fill-mode" "both"
+            , zIndex (int 0)
+            ]
+        ]
+        to
+        val
 
 
 viewCell : List (Attribute msg) -> Pos -> Val -> Html msg
