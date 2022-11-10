@@ -241,7 +241,15 @@ viewNewCell : Pos -> Val -> Html msg
 viewNewCell =
     viewCell
         [ css
-            [ animationNameFadeIn
+            [ animationName
+                (keyframes
+                    [ ( 0
+                      , [ Css.Animations.opacity (num 0.8)
+                        , Css.Animations.transform [ scale 0 ]
+                        ]
+                      )
+                    ]
+                )
             , animationDuration (ms 600)
             , property "animation-timing-function" "ease-out"
             , property "animation-fill-mode" "both"
@@ -250,19 +258,6 @@ viewNewCell =
 
         --, class "apply-fadeIn"
         ]
-
-
-animationNameFadeIn : Css.Style
-animationNameFadeIn =
-    animationName
-        (keyframes
-            [ ( 0
-              , [ Css.Animations.opacity (num 0.8)
-                , Css.Animations.transform [ scale 0 ]
-                ]
-              )
-            ]
-        )
 
 
 viewMovedCell : Pos -> Pos -> Val -> Html msg
