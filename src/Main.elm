@@ -541,7 +541,8 @@ moveUp : Board -> ( Board, Grid MMCell )
 moveUp board =
     boardEntries board
         |> List.foldl moveBoardEntryUp initialAcc
-        |> accToBoard
+        |> .grid
+        |> boardWithMMGrid
 
 
 type alias Acc =
@@ -561,9 +562,16 @@ initialAcc =
     }
 
 
-accToBoard : Acc -> ( Board, Grid MMCell )
-accToBoard acc =
-    ( acc.grid
+boardWithMMGrid : Grid MMCell -> ( Board, Grid MMCell )
+boardWithMMGrid grid =
+    ( boardFromMMGrid grid
+    , grid
+    )
+
+
+boardFromMMGrid : Dict Pos MMCell -> Board
+boardFromMMGrid grid =
+    grid
         |> Dict.map
             (\_ cell ->
                 case cell of
@@ -574,8 +582,6 @@ accToBoard acc =
                         nextVal ov
             )
         |> boardFromGrid
-    , acc.grid
-    )
 
 
 moveBoardEntryUp : ( Pos, Val ) -> Acc -> Acc
