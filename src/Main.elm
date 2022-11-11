@@ -486,6 +486,11 @@ boardEntries (Board d) =
     d |> Dict.toList
 
 
+boardToGrid : Board -> Grid Val
+boardToGrid (Board grid) =
+    grid
+
+
 boardEmptyPositions : Board -> List Pos
 boardEmptyPositions (Board grid) =
     rangeWH 4 4
@@ -539,8 +544,9 @@ randomVal =
 
 moveUp : Board -> ( Board, Grid MMCell )
 moveUp board =
-    boardEntries board
-        |> List.foldl moveBoardEntryUp initialAcc
+    board
+        |> boardToGrid
+        |> Dict.foldl moveBoardEntryUp initialAcc
         |> .grid
         |> boardWithMMGrid
 
@@ -584,9 +590,12 @@ boardFromMMGrid grid =
         |> boardFromGrid
 
 
-moveBoardEntryUp : ( Pos, Val ) -> Acc -> Acc
-moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
+moveBoardEntryUp : Pos -> Val -> Acc -> Acc
+moveBoardEntryUp pos val acc =
     let
+        ( x, _ ) =
+            pos
+
         hasColumnChanged =
             x /= acc.x
 
@@ -597,7 +606,7 @@ moveBoardEntryUp (( ( x, _ ), _ ) as entry) acc =
             else
                 ( acc.y, acc.lastUnmerged )
     in
-    moveBoardEntryUpHelp entry
+    moveBoardEntryUpHelp ( pos, val )
         { grid = acc.grid
         , x = x
         , y = y
