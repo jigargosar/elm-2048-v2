@@ -33,7 +33,8 @@ import Tuple exposing (pair)
    * [x] generate new elements unless game over
    * [x] use translate instead of margin
    * [x] animation
-   * spawn random cells
+   * [x] spawn random cells
+   * view all transitions one after another
    * setup neovim
    * enable vim emulation
 
