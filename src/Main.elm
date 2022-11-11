@@ -19,6 +19,7 @@ import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
 import Html.Styled.Attributes exposing (class, css, style)
 import Random exposing (Generator)
+import Set exposing (Set)
 import Tuple exposing (pair)
 
 
@@ -108,7 +109,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init () =
     let
-        board =
+        ( board1, ps1 ) =
             [ [ 0, 1, 0, 7 ]
             , [ 0, 1, 3, 7 ]
             , [ 0, 2, 3, 7 ]
@@ -116,19 +117,28 @@ init () =
             ]
                 |> boardFromLists
 
-        ( movedBoard, movedGrid ) =
-            moveUp board
-
         model1 =
-            { transition = TNew board }
+            { transition = TNew board1 ps1 }
+
+        ( board2, movedGrid2 ) =
+            moveUp board1
 
         model2 =
-            { transition = TMoveAndMerge movedBoard movedGrid
+            { transition = TMoveAndMerge board2 movedGrid2
+            }
+
+        ( board3, ps3 ) =
+            Random.step (addRandomEntries board2) (Random.initialSeed 0)
+                |> Tuple.first
+
+        model3 =
+            { transition = TNew board3 ps3
             }
     in
     ( model2
         |> always model1
         |> always model2
+        |> always model3
     , Cmd.none
     )
 
@@ -196,11 +206,15 @@ viewBoard model =
         --, style "box-shadow" "0px 10px 20px 0px hsl(0deg 0% 27% / 50%)"
         ]
         (case model.transition of
-            TNew board ->
+            TNew board newPs ->
                 boardEntries board
                     |> List.map
                         (\( pos, val ) ->
-                            viewNewCell pos val
+                            if Set.member pos newPs then
+                                viewNewCell pos val
+
+                            else
+                                viewStaticCell pos val
                         )
 
             TMoveAndMerge _ mmGrid ->
@@ -219,6 +233,11 @@ viewBoard model =
                                     [ viewMovedCell from to val ]
                         )
         )
+
+
+viewStaticCell : Pos -> Val -> Html msg
+viewStaticCell =
+    viewCell []
 
 
 viewNewCell : Pos -> Val -> Html msg
@@ -371,7 +390,7 @@ gridAreaFromPos ( x, y ) =
 
 
 type Transition
-    = TNew Board
+    = TNew Board (Set Pos)
     | TMoveAndMerge Board (Grid MMCell)
 
 
@@ -452,12 +471,21 @@ valAsString =
     valAsInt >> displayStringFromInt
 
 
-boardFromLists : List (List Int) -> Board
+boardFromLists : List (List Int) -> ( Board, Set Pos )
 boardFromLists lists =
-    lists
-        |> gridFromLists
-        |> dictFilterMap parseBoardEntry
-        |> boardFromGrid
+    let
+        board =
+            lists
+                |> gridFromLists
+                |> dictFilterMap parseBoardEntry
+                |> boardFromGrid
+    in
+    ( board, boardFilledPositions board )
+
+
+boardFilledPositions : Board -> Set Pos
+boardFilledPositions (Board grid) =
+    Dict.keys grid |> Set.fromList
 
 
 dictFilterMap :
@@ -513,23 +541,23 @@ isValidBoardEntry ( x, y ) _ =
 --noinspection ElmUnusedSymbol
 
 
-addRandomEntries : Board -> Generator ( Board, List Pos )
+addRandomEntries : Board -> Generator ( Board, Set Pos )
 addRandomEntries board =
-    addRandomEntry ( board, [] )
+    addRandomEntry ( board, Set.empty )
         |> Random.andThen addRandomEntry
 
 
-addRandomEntry : ( Board, List Pos ) -> Generator ( Board, List Pos )
+addRandomEntry : ( Board, Set Pos ) -> Generator ( Board, Set Pos )
 addRandomEntry ( board, ps ) =
     case boardEmptyPositions board of
         emptyPos :: emptyPosList ->
             Random.map2
-                (\pos val -> ( setBoardValueAtPos pos val board, pos :: ps ))
+                (\pos val -> ( setBoardValueAtPos pos val board, Set.insert pos ps ))
                 (Random.uniform emptyPos emptyPosList)
                 randomVal
 
         [] ->
-            Random.constant ( board, [] )
+            Random.constant ( board, Set.empty )
 
 
 randomVal : Generator Val
