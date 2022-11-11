@@ -39,7 +39,7 @@ import Tuple exposing (pair)
    * [x] animation
    * [x] spawn random cells
    * [x] view all transitions one after another
-   * fix animation not being applied to new cells,
+   * [x] fix animation not being applied to new cells,
      merged or otherwise
      * probable cause, virtual dom and elm-css.
      * when a dom node gets reused animation doesnt get
@@ -228,7 +228,14 @@ view model =
                 , style "flex-flow" "row wrap"
                 , style "gap" "50px"
                 ]
-                [ ( Debug.toString model, viewBoard model )
+                [ ( case model.transition of
+                        TNew _ _ ->
+                            "TNew"
+
+                        TMoveAndMerge _ _ ->
+                            "TMoveAndMerge"
+                  , viewBoard model
+                  )
                 ]
             ]
 
