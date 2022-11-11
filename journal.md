@@ -1,7 +1,7 @@
 ## RECORDING ON 11-11-22
 
 NEXT STEPS:
-
+* move in other dir.
 
 
 ## ARCHIVED ON 11-11-22
