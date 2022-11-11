@@ -18,8 +18,12 @@ import Dict exposing (Dict)
 import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
 import Html.Styled.Attributes exposing (class, css, style)
-import Random exposing (Generator)
+import Html.Styled.Keyed
+import Process
+import Random exposing (Generator, Seed)
 import Set exposing (Set)
+import Task
+import Time
 import Tuple exposing (pair)
 
 
@@ -100,6 +104,7 @@ main =
 
 type alias Model =
     { transition : Transition
+    , seed : Seed
     }
 
 
@@ -119,28 +124,33 @@ init () =
                 |> boardFromLists
 
         model1 =
-            { transition = TNew board1 ps1 }
+            { transition = TNew board1 ps1
+            , seed = Random.initialSeed 0
+            }
 
         ( board2, movedGrid2 ) =
             moveUp board1
 
         model2 =
             { transition = TMoveAndMerge board2 movedGrid2
+            , seed = Random.initialSeed 0
             }
 
-        ( board3, ps3 ) =
+        ( ( board3, ps3 ), seed ) =
             Random.step (addRandomEntries board2) (Random.initialSeed 0)
-                |> Tuple.first
 
         model3 =
             { transition = TNew board3 ps3
+            , seed = seed
             }
     in
     ( model2
-        |> always model1
-        |> always model2
         |> always model3
-    , Cmd.none
+        |> always model2
+        |> always model1
+    , Process.sleep 1000
+        |> Task.perform (always Msg)
+        |> always Cmd.none
     )
 
 
@@ -149,16 +159,35 @@ type Msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    always Sub.none <|
-        model
+subscriptions _ =
+    Sub.batch
+        [ Time.every 1000 (always Msg)
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg ->
-            ( model, Cmd.none )
+            case model.transition of
+                TNew board _ ->
+                    let
+                        ( a, b ) =
+                            moveUp board
+                    in
+                    ( { model | transition = TMoveAndMerge a b }, Cmd.none )
+
+                TMoveAndMerge board _ ->
+                    let
+                        ( ( a, b ), seed ) =
+                            Random.step (addRandomEntries board) model.seed
+                    in
+                    ( { model
+                        | transition = TNew a b
+                        , seed = seed
+                      }
+                    , Cmd.none
+                    )
 
 
 globalStyles : Html msg
@@ -184,13 +213,13 @@ view model =
             ]
             [ globalStyles
             , text "Hello World!"
-            , div
+            , Html.Styled.Keyed.node "div"
                 [ style "padding" "20px"
                 , style "display" "flex"
                 , style "flex-flow" "row wrap"
                 , style "gap" "50px"
                 ]
-                [ viewBoard model
+                [ ( Debug.toString model, viewBoard model )
                 ]
             ]
 
