@@ -549,6 +549,7 @@ moveUp =
 
 type Dir
     = Up
+    | Down
 
 
 move : Dir -> Board -> ( Board, Grid MMCell )
@@ -560,6 +561,18 @@ move dir board =
                 |> Dict.foldl moveBoardEntryUp initialAcc
                 |> .grid
                 |> boardWithMMGrid
+
+        Down ->
+            board
+                |> boardToGrid
+                |> Dict.foldl moveBoardEntryUp initialAcc
+                |> .grid
+                |> boardWithMMGrid
+
+
+rotateGrid : Grid a -> Grid a
+rotateGrid grid =
+    Debug.todo "todo"
 
 
 type alias Acc =
