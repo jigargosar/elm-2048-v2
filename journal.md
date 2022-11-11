@@ -19,7 +19,7 @@ NEXT STEPS:
 * [x] fix animation not being applied to new cells,
   merged or otherwise
     * probable cause, virtual dom and elm-css.
-    * when a dom node gets reused animation doesnt get
+    * when a dom node gets reused animation doesn't get
       applied, if the animation-name for the old virtual node and new
       virtual node are same.
     * The new content and grid area props are just patched over.
