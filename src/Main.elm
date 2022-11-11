@@ -37,6 +37,13 @@ import Tuple exposing (pair)
    * enable vim emulation
 
    Problem Solving:
+   How to model 3 states of board?
+   * board only contains val
+   * in new phase we assume all entries are new
+   * we need to be able to distinguish, between board static val
+     and newly added val's.
+   * perhaps we could store positions of newly added random val.
+
    Can we address state changes for animation by using extra data?
    * Board continues to hold only val.
    * the acc collects moved/merged/static entries.
