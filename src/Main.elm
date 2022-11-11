@@ -49,6 +49,10 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init () =
     let
+        _ =
+            rotatePosCCW ( 0, 0 )
+                |> Debug.log "Debug: "
+
         ( board1, ps1 ) =
             [ [ 0, 1, 0, 7 ]
             , [ 0, 1, 3, 7 ]
@@ -572,7 +576,7 @@ move dir board =
 
 rotateGrid : Grid a -> Grid a
 rotateGrid =
-    mapKeys rotatePos
+    mapKeys rotatePosCCW
 
 
 mapKeys : (a -> comparable) -> Dict a v -> Dict comparable v
@@ -580,9 +584,26 @@ mapKeys fn =
     Dict.foldl (\pos -> Dict.insert (fn pos)) Dict.empty
 
 
-rotatePos : Pos -> Pos
-rotatePos pos =
-    Debug.todo "todo"
+mapBothWith fn =
+    Tuple.mapBoth fn fn
+
+
+add =
+    (+)
+
+
+mul =
+    (*)
+
+
+rotatePosCCW : Pos -> Pos
+rotatePosCCW pos =
+    pos
+        |> mapBothWith (toFloat >> add -1.5)
+        |> toPolar
+        |> Tuple.mapSecond (mul (degrees 90))
+        |> fromPolar
+        |> mapBothWith (add 1.5 >> round)
 
 
 type alias Acc =
