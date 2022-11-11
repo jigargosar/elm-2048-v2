@@ -50,7 +50,7 @@ init : Flags -> ( Model, Cmd Msg )
 init () =
     let
         _ =
-            rotatePosCCW ( 0, 0 )
+            rotatePos 90 ( 0, 0 )
                 |> Debug.log "Debug: "
 
         ( board1, ps1 ) =
@@ -597,11 +597,16 @@ mul =
 
 
 rotatePosCCW : Pos -> Pos
-rotatePosCCW pos =
+rotatePosCCW =
+    rotatePos 90
+
+
+rotatePos : Float -> Pos -> Pos
+rotatePos angleInDegrees pos =
     pos
         |> mapBothWith (toFloat >> add -1.5)
         |> toPolar
-        |> Tuple.mapSecond (mul (degrees 90))
+        |> Tuple.mapSecond (mul (degrees angleInDegrees))
         |> fromPolar
         |> mapBothWith (add 1.5 >> round)
 
