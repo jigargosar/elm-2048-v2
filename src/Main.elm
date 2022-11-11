@@ -38,7 +38,16 @@ import Tuple exposing (pair)
    * [x] use translate instead of margin
    * [x] animation
    * [x] spawn random cells
-   * view all transitions one after another
+   * [x] view all transitions one after another
+   * fix animation not being applied to new cells,
+     merged or otherwise
+     * probable cause, virtual dom and elm-css.
+     * when a dom node gets reused animation doesnt get
+       applied, if the animation-name for the old virtual node and new
+       virtual node are same.
+     * The new content and grid area props are just patched over.
+     * Causing appropriate change in appearance,
+       but not in animation-name prop.
    * setup neovim
    * enable vim emulation
 
