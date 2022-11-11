@@ -513,23 +513,23 @@ isValidBoardEntry ( x, y ) _ =
 --noinspection ElmUnusedSymbol
 
 
-addRandomEntries : Board -> Generator Board
+addRandomEntries : Board -> Generator ( Board, List Pos )
 addRandomEntries board =
-    addRandomEntry board
+    addRandomEntry ( board, [] )
         |> Random.andThen addRandomEntry
 
 
-addRandomEntry : Board -> Generator Board
-addRandomEntry board =
+addRandomEntry : ( Board, List Pos ) -> Generator ( Board, List Pos )
+addRandomEntry ( board, ps ) =
     case boardEmptyPositions board of
         emptyPos :: emptyPosList ->
             Random.map2
-                (\pos val -> setBoardValueAtPos pos val board)
+                (\pos val -> ( setBoardValueAtPos pos val board, pos :: ps ))
                 (Random.uniform emptyPos emptyPosList)
                 randomVal
 
         [] ->
-            Random.constant board
+            Random.constant ( board, [] )
 
 
 randomVal : Generator Val
