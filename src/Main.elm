@@ -543,12 +543,23 @@ randomVal =
 
 
 moveUp : Board -> ( Board, Grid MMCell )
-moveUp board =
-    board
-        |> boardToGrid
-        |> Dict.foldl moveBoardEntryUp initialAcc
-        |> .grid
-        |> boardWithMMGrid
+moveUp =
+    move Up
+
+
+type Dir
+    = Up
+
+
+move : Dir -> Board -> ( Board, Grid MMCell )
+move dir board =
+    case dir of
+        Up ->
+            board
+                |> boardToGrid
+                |> Dict.foldl moveBoardEntryUp initialAcc
+                |> .grid
+                |> boardWithMMGrid
 
 
 type alias Acc =
