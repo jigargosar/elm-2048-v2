@@ -549,7 +549,7 @@ moveUp =
 
 type Dir
     = Up
-    | Down
+    | Right
 
 
 move : Dir -> Board -> ( Board, Grid MMCell )
@@ -562,7 +562,7 @@ move dir board =
                 |> .grid
                 |> boardWithMMGrid
 
-        Down ->
+        Right ->
             board
                 |> boardToGrid
                 |> Dict.foldl moveBoardEntryUp initialAcc
@@ -571,7 +571,17 @@ move dir board =
 
 
 rotateGrid : Grid a -> Grid a
-rotateGrid grid =
+rotateGrid =
+    mapKeys rotatePos
+
+
+mapKeys : (a -> comparable) -> Dict a v -> Dict comparable v
+mapKeys fn =
+    Dict.foldl (\pos -> Dict.insert (fn pos)) Dict.empty
+
+
+rotatePos : Pos -> Pos
+rotatePos pos =
     Debug.todo "todo"
 
 
