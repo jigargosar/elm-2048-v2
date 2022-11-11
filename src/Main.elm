@@ -19,7 +19,7 @@ import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
 import Html.Styled.Attributes exposing (class, css, style)
 import Random exposing (Generator)
-import Tuple exposing (pair, second)
+import Tuple exposing (pair)
 
 
 
@@ -31,7 +31,8 @@ import Tuple exposing (pair, second)
    * [x] move board
    * [x] generate new elements unless game over
    * [x] use translate instead of margin
-   * animation
+   * [x] animation
+   * spawn random cells
    * setup neovim
    * enable vim emulation
 
