@@ -24,7 +24,6 @@ import Random exposing (Generator, Seed)
 import Set exposing (Set)
 import Task
 import Time
-import Tuple exposing (pair)
 
 
 main : Program Flags Model Msg
@@ -654,6 +653,11 @@ rangeWH w h =
             (\y ->
                 indicesOfLen w |> List.map (pairTo y)
             )
+
+
+pair : a -> b -> ( a, b )
+pair a b =
+    ( a, b )
 
 
 pairTo : b -> a -> ( a, b )
