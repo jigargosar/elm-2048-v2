@@ -50,7 +50,9 @@ init : Flags -> ( Model, Cmd Msg )
 init () =
     let
         _ =
-            rotatePos 90 ( 0, 0 )
+            rotatePosCCW ( 0, 0 )
+                |> rotatePosCW
+                |> rotatePosCCW
                 |> Debug.log "Debug: "
 
         ( board1, ps1 ) =
@@ -88,7 +90,7 @@ init () =
         |> always model1
     , Process.sleep 1000
         |> Task.perform (always Msg)
-        |> always Cmd.none
+      --|> always Cmd.none
     )
 
 
@@ -100,6 +102,7 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Time.every 1000 (always Msg)
+            |> always Sub.none
         ]
 
 
@@ -111,7 +114,7 @@ update msg model =
                 TNew board _ ->
                     let
                         ( a, b ) =
-                            moveUp board
+                            move Right board
                     in
                     ( { model | transition = TMoveAndMerge a b }, Cmd.none )
 
@@ -569,14 +572,49 @@ move dir board =
         Right ->
             board
                 |> boardToGrid
+                |> rotateGridCCW
                 |> Dict.foldl moveBoardEntryUp initialAcc
                 |> .grid
+                |> rotateMMCellGridCW
                 |> boardWithMMGrid
 
 
-rotateGrid : Grid a -> Grid a
-rotateGrid =
+rotateGridCCW =
     mapKeys rotatePosCCW
+
+
+rotateMMCellGridCCW : Grid MMCell -> Grid MMCell
+rotateMMCellGridCCW =
+    mapEntries
+        (\pos mmCell ->
+            ( rotatePosCCW pos, updateMMCellPos rotatePosCCW mmCell )
+        )
+
+
+rotateMMCellGridCW : Grid MMCell -> Grid MMCell
+rotateMMCellGridCW =
+    mapEntries
+        (\pos mmCell ->
+            ( rotatePosCW pos, updateMMCellPos rotatePosCW mmCell )
+        )
+
+
+mapEntries : (a -> b -> ( comparable, v )) -> Dict a b -> Dict comparable v
+mapEntries fn =
+    Dict.foldl
+        (\pos val ->
+            let
+                ( newPos, newVal ) =
+                    fn pos val
+            in
+            Dict.insert newPos newVal
+        )
+        Dict.empty
+
+
+rotateGridCW : Grid a -> Grid a
+rotateGridCW =
+    mapKeys rotatePosCW
 
 
 mapKeys : (a -> comparable) -> Dict a v -> Dict comparable v
@@ -584,31 +622,24 @@ mapKeys fn =
     Dict.foldl (\pos -> Dict.insert (fn pos)) Dict.empty
 
 
-mapBothWith fn =
-    Tuple.mapBoth fn fn
+updateMMCellPos : (Pos -> Pos) -> MMCell -> MMCell
+updateMMCellPos fn mmCell =
+    case mmCell of
+        Moved from val ->
+            Moved (fn from) val
 
-
-add =
-    (+)
-
-
-mul =
-    (*)
+        Merged from1 from2 val ->
+            Merged (fn from1) (fn from2) val
 
 
 rotatePosCCW : Pos -> Pos
-rotatePosCCW =
-    rotatePos 90
+rotatePosCCW ( x, y ) =
+    ( y, 3 - x )
 
 
-rotatePos : Float -> Pos -> Pos
-rotatePos angleInDegrees pos =
-    pos
-        |> mapBothWith (toFloat >> add -1.5)
-        |> toPolar
-        |> Tuple.mapSecond (mul (degrees angleInDegrees))
-        |> fromPolar
-        |> mapBothWith (add 1.5 >> round)
+rotatePosCW : Pos -> Pos
+rotatePosCW ( x, y ) =
+    ( 3 - y, x )
 
 
 type alias Acc =
@@ -767,3 +798,15 @@ noView =
 
 noAttr =
     class ""
+
+
+mapBothWith fn =
+    Tuple.mapBoth fn fn
+
+
+add =
+    (+)
+
+
+mul =
+    (*)
