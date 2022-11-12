@@ -63,7 +63,7 @@ init () =
 
 type Msg
     = Msg
-    | OnKeyPress String
+    | OnKeyDown String
 
 
 subscriptions : Model -> Sub Msg
@@ -71,9 +71,9 @@ subscriptions _ =
     Sub.batch
         [ Time.every 1000 (always Msg)
             |> always Sub.none
-        , Browser.Events.onKeyPress
+        , Browser.Events.onKeyDown
             (JD.field "key" JD.string
-                |> JD.map OnKeyPress
+                |> JD.map OnKeyDown
             )
         ]
 
@@ -81,8 +81,11 @@ subscriptions _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OnKeyPress str ->
+        OnKeyDown str ->
             let
+                _ =
+                    str |> Debug.log "Debug: "
+
                 mbDir =
                     case str of
                         "ArrowUp" ->
@@ -112,20 +115,19 @@ update msg model =
                                     move dir board
                             in
                             ( { model | transition = TMoveAndMerge a b }
-                            , Cmd.none
+                            , Cmd.batch
+                                [ Process.sleep allAnimDur
+                                    |> Task.perform (\_ -> Msg)
+                                ]
                             )
 
                         TMoveAndMerge board _ ->
                             let
                                 ( ( a, b ), seed ) =
-                                    Random.step
-                                        (addRandomEntries board
-                                            |> Random.map (Tuple.first >> move dir)
-                                        )
-                                        model.seed
+                                    Random.step (addRandomEntries board) model.seed
                             in
                             ( { model
-                                | transition = TMoveAndMerge a b
+                                | transition = TNew a b
                                 , seed = seed
                               }
                             , Cmd.none
@@ -159,6 +161,10 @@ update msg model =
                       }
                     , Cmd.none
                     )
+
+
+allAnimDur =
+    100
 
 
 globalStyles : Html msg
@@ -261,7 +267,7 @@ viewNewCell =
                       )
                     ]
                 )
-            , animationDuration (ms 600)
+            , animationDuration (ms allAnimDur)
             , property "animation-timing-function" "ease-out"
             , property "animation-fill-mode" "both"
             , zIndex (int 1)
@@ -277,7 +283,7 @@ viewMovedCell from to val =
                 (keyframes
                     [ ( 0, [ animTransformFromTo from to ] ) ]
                 )
-            , animationDuration (ms 600)
+            , animationDuration (ms allAnimDur)
             , property "animation-timing-function" "ease-in"
             , property "animation-fill-mode" "both"
             , zIndex (int 1)
@@ -302,7 +308,7 @@ viewExitCell from to val =
                       )
                     ]
                 )
-            , animationDuration (ms 600)
+            , animationDuration (ms allAnimDur)
             , property "animation-timing-function" "ease-in"
             , property "animation-fill-mode" "both"
             , zIndex (int 0)
