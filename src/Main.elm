@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Events
 import Css
     exposing
         ( animationDuration
@@ -19,6 +20,7 @@ import Html
 import Html.Styled exposing (Attribute, Html, a, div, text)
 import Html.Styled.Attributes exposing (class, css, style)
 import Html.Styled.Keyed
+import Json.Decode as JD
 import Process
 import Random exposing (Generator, Seed)
 import Set exposing (Set)
@@ -61,20 +63,74 @@ init () =
 
 type Msg
     = Msg
+    | OnKeyPress String
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Time.every 1000 (always Msg)
-
-        --|> always Sub.none
+            |> always Sub.none
+        , Browser.Events.onKeyPress
+            (JD.field "key" JD.string
+                |> JD.map OnKeyPress
+            )
         ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        OnKeyPress str ->
+            let
+                mbDir =
+                    case str of
+                        "ArrowUp" ->
+                            Just Up
+
+                        "ArrowDown" ->
+                            Just Down
+
+                        "ArrowLeft" ->
+                            Just Left
+
+                        "ArrowRight" ->
+                            Just Right
+
+                        _ ->
+                            Nothing
+            in
+            case mbDir of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just dir ->
+                    case model.transition of
+                        TNew board _ ->
+                            let
+                                ( a, b ) =
+                                    move dir board
+                            in
+                            ( { model | transition = TMoveAndMerge a b }
+                            , Cmd.none
+                            )
+
+                        TMoveAndMerge board _ ->
+                            let
+                                ( ( a, b ), seed ) =
+                                    Random.step
+                                        (addRandomEntries board
+                                            |> Random.map (Tuple.first >> move dir)
+                                        )
+                                        model.seed
+                            in
+                            ( { model
+                                | transition = TMoveAndMerge a b
+                                , seed = seed
+                              }
+                            , Cmd.none
+                            )
+
         Msg ->
             case model.transition of
                 TNew board _ ->
