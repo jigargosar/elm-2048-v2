@@ -2,7 +2,9 @@
 
 NEXT STEPS:
 * [x] move in other dirs.
-* arrow key handling
+* [x] arrow key handling
+* [ ] get rid of `Process.sleep` for triggering board updates.
+  preferably maintain entire board state after a move is performed.
 
 
 
