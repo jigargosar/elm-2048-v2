@@ -569,6 +569,11 @@ move dir =
             moveBoardHelp rotatePosCCW rotatePosCW
 
 
+type Rotation
+    = ClockWise
+    | CounterClockWise
+
+
 moveBoardHelp : (Pos -> Pos) -> (Pos -> Pos) -> Board -> ( Board, Grid MMCell )
 moveBoardHelp rotateFn inverseRotateFn board =
     board
