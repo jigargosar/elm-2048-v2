@@ -569,6 +569,7 @@ move dir =
             moveBoardHelp rotatePosCCW rotatePosCW
 
 
+moveBoardHelp : (Pos -> Pos) -> (Pos -> Pos) -> Board -> ( Board, Grid MMCell )
 moveBoardHelp rotateFn inverseRotateFn board =
     board
         |> boardToGrid
