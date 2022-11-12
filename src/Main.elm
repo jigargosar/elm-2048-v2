@@ -114,10 +114,18 @@ update msg model =
             case model.transition of
                 TNew board _ ->
                     let
+                        ( dir, seed ) =
+                            Random.step randomDir model.seed
+
                         ( a, b ) =
-                            move Down board
+                            move dir board
                     in
-                    ( { model | transition = TMoveAndMerge a b }, Cmd.none )
+                    ( { model
+                        | transition = TMoveAndMerge a b
+                        , seed = seed
+                      }
+                    , Cmd.none
+                    )
 
                 TMoveAndMerge board _ ->
                     let
@@ -557,9 +565,14 @@ moveUp =
 
 type Dir
     = Up
-    | Right
-    | Left
     | Down
+    | Left
+    | Right
+
+
+randomDir : Generator Dir
+randomDir =
+    Random.uniform Up [ Down, Left, Right ]
 
 
 move : Dir -> Board -> ( Board, Grid MMCell )
