@@ -560,42 +560,30 @@ type Dir
 
 
 move : Dir -> Board -> ( Board, Grid MMCell )
-move dir board =
+move dir =
     case dir of
         Up ->
-            board
-                |> boardToGrid
-                |> Dict.foldl moveBoardEntryUp initialAcc
-                |> .grid
-                |> boardWithMMGrid
+            moveBoardHelp identity identity
 
         Right ->
-            board
-                |> boardToGrid
-                |> rotateGridCCW
-                |> Dict.foldl moveBoardEntryUp initialAcc
-                |> .grid
-                |> rotateMMCellGridCW
-                |> boardWithMMGrid
+            moveBoardHelp rotatePosCCW rotatePosCW
 
 
-rotateGridCCW =
-    mapKeys rotatePosCCW
+moveBoardHelp rotateFn inverseRotateFn board =
+    board
+        |> boardToGrid
+        |> mapKeys rotateFn
+        |> Dict.foldl moveBoardEntryUp initialAcc
+        |> .grid
+        |> updateMMCellGridPositionsBy inverseRotateFn
+        |> boardWithMMGrid
 
 
-rotateMMCellGridCCW : Grid MMCell -> Grid MMCell
-rotateMMCellGridCCW =
+updateMMCellGridPositionsBy : (Pos -> Pos) -> Grid MMCell -> Grid MMCell
+updateMMCellGridPositionsBy rotatePosFn =
     mapEntries
         (\pos mmCell ->
-            ( rotatePosCCW pos, updateMMCellPos rotatePosCCW mmCell )
-        )
-
-
-rotateMMCellGridCW : Grid MMCell -> Grid MMCell
-rotateMMCellGridCW =
-    mapEntries
-        (\pos mmCell ->
-            ( rotatePosCW pos, updateMMCellPos rotatePosCW mmCell )
+            ( rotatePosFn pos, updateMMCellPos rotatePosFn mmCell )
         )
 
 
@@ -610,11 +598,6 @@ mapEntries fn =
             Dict.insert newPos newVal
         )
         Dict.empty
-
-
-rotateGridCW : Grid a -> Grid a
-rotateGridCW =
-    mapKeys rotatePosCW
 
 
 mapKeys : (a -> comparable) -> Dict a v -> Dict comparable v
@@ -800,12 +783,24 @@ noAttr =
     class ""
 
 
+
+--noinspection ElmUnusedSymbol
+
+
 mapBothWith fn =
     Tuple.mapBoth fn fn
 
 
+
+--noinspection ElmUnusedSymbol
+
+
 add =
     (+)
+
+
+
+--noinspection ElmUnusedSymbol
 
 
 mul =
