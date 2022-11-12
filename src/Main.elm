@@ -90,7 +90,7 @@ init () =
         |> always model1
     , Process.sleep 1000
         |> Task.perform (always Msg)
-      --|> always Cmd.none
+        |> always Cmd.none
     )
 
 
@@ -102,7 +102,8 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Time.every 1000 (always Msg)
-            |> always Sub.none
+
+        --|> always Sub.none
         ]
 
 
@@ -114,7 +115,7 @@ update msg model =
                 TNew board _ ->
                     let
                         ( a, b ) =
-                            move Right board
+                            move Down board
                     in
                     ( { model | transition = TMoveAndMerge a b }, Cmd.none )
 
@@ -557,6 +558,8 @@ moveUp =
 type Dir
     = Up
     | Right
+    | Left
+    | Down
 
 
 move : Dir -> Board -> ( Board, Grid MMCell )
@@ -565,8 +568,14 @@ move dir =
         Up ->
             moveBoardHelp 0 ClockWise
 
+        Down ->
+            moveBoardHelp 2 ClockWise
+
         Right ->
             moveBoardHelp 1 CounterClockWise
+
+        Left ->
+            moveBoardHelp 1 ClockWise
 
 
 moveBoardHelp : Int -> Rotation -> Board -> ( Board, Grid MMCell )
