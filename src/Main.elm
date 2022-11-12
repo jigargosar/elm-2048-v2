@@ -59,55 +59,6 @@ init () =
     )
 
 
-
---init : Flags -> ( Model, Cmd Msg )
---init () =
---    let
---        _ =
---            rotatePosCCW ( 0, 0 )
---                |> rotatePosCW
---                |> rotatePosCCW
---                |> Debug.log "Debug: "
---
---        ( board1, ps1 ) =
---            [ [ 0, 1, 0, 7 ]
---            , [ 0, 1, 3, 7 ]
---            , [ 0, 2, 3, 7 ]
---            , [ 1, 2, 0, 7 ]
---            ]
---                |> boardFromLists
---
---        model1 =
---            { transition = TNew board1 ps1
---            , seed = Random.initialSeed 0
---            }
---
---        ( board2, movedGrid2 ) =
---            moveUp board1
---
---        model2 =
---            { transition = TMoveAndMerge board2 movedGrid2
---            , seed = Random.initialSeed 0
---            }
---
---        ( ( board3, ps3 ), seed ) =
---            Random.step (addRandomEntries board2) (Random.initialSeed 0)
---
---        model3 =
---            { transition = TNew board3 ps3
---            , seed = seed
---            }
---    in
---    ( model2
---        |> always model3
---        |> always model2
---        |> always model1
---    , Process.sleep 1000
---        |> Task.perform (always Msg)
---        |> always Cmd.none
---    )
-
-
 type Msg
     = Msg
 
@@ -579,11 +530,6 @@ randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
         |> Random.map Val
-
-
-moveUp : Board -> ( Board, Grid MMCell )
-moveUp =
-    move Up
 
 
 type Dir
