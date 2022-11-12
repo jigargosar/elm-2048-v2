@@ -115,7 +115,7 @@ update msg model =
                 TNew board _ ->
                     let
                         ( a, b ) =
-                            move Down board
+                            move Left board
                     in
                     ( { model | transition = TMoveAndMerge a b }, Cmd.none )
 
