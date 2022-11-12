@@ -1,7 +1,32 @@
 ## RECORDING ON 11-11-22
 
 NEXT STEPS:
-* move in other dir.
+* [x] move in other dirs.
+* arrow key handling
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## ARCHIVED ON 11-11-22
