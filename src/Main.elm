@@ -563,14 +563,20 @@ move : Dir -> Board -> ( Board, Grid MMCell )
 move dir =
     case dir of
         Up ->
-            moveBoardHelp identity identity
+            moveBoardHelp 0 ClockWise
 
         Right ->
-            moveBoardHelp (rotatePos CounterClockWise) (rotatePos ClockWise)
+            moveBoardHelp 1 CounterClockWise
 
 
-moveBoardHelp : (Pos -> Pos) -> (Pos -> Pos) -> Board -> ( Board, Grid MMCell )
-moveBoardHelp rotateFn inverseRotateFn board =
+moveBoardHelp : Int -> Rotation -> Board -> ( Board, Grid MMCell )
+moveBoardHelp times rotationDir board =
+    let
+        ( rotateFn, inverseRotateFn ) =
+            ( applyN times (rotatePos rotationDir)
+            , applyN times (rotatePosReverse rotationDir)
+            )
+    in
     board
         |> boardToGrid
         |> mapKeys rotateFn
@@ -578,6 +584,15 @@ moveBoardHelp rotateFn inverseRotateFn board =
         |> .grid
         |> updateMMCellGridPositionsBy inverseRotateFn
         |> boardWithMMGrid
+
+
+applyN : number -> (a -> a) -> a -> a
+applyN n fn val =
+    if n <= 0 then
+        val
+
+    else
+        applyN (n - 1) fn (fn val)
 
 
 updateMMCellGridPositionsBy : (Pos -> Pos) -> Grid MMCell -> Grid MMCell
@@ -621,6 +636,16 @@ type Rotation
     | CounterClockWise
 
 
+reverseRotation : Rotation -> Rotation
+reverseRotation rotation =
+    case rotation of
+        ClockWise ->
+            CounterClockWise
+
+        CounterClockWise ->
+            ClockWise
+
+
 rotatePos : Rotation -> Pos -> Pos
 rotatePos rotation =
     case rotation of
@@ -629,6 +654,11 @@ rotatePos rotation =
 
         CounterClockWise ->
             rotatePosCCW
+
+
+rotatePosReverse : Rotation -> Pos -> Pos
+rotatePosReverse rotation =
+    rotatePos (reverseRotation rotation)
 
 
 rotatePosCCW : Pos -> Pos
