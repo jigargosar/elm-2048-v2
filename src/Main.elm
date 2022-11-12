@@ -49,49 +49,63 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init () =
     let
-        _ =
-            rotatePosCCW ( 0, 0 )
-                |> rotatePosCW
-                |> rotatePosCCW
-                |> Debug.log "Debug: "
-
-        ( board1, ps1 ) =
-            [ [ 0, 1, 0, 7 ]
-            , [ 0, 1, 3, 7 ]
-            , [ 0, 2, 3, 7 ]
-            , [ 1, 2, 0, 7 ]
-            ]
-                |> boardFromLists
-
-        model1 =
-            { transition = TNew board1 ps1
-            , seed = Random.initialSeed 0
-            }
-
-        ( board2, movedGrid2 ) =
-            moveUp board1
-
-        model2 =
-            { transition = TMoveAndMerge board2 movedGrid2
-            , seed = Random.initialSeed 0
-            }
-
-        ( ( board3, ps3 ), seed ) =
-            Random.step (addRandomEntries board2) (Random.initialSeed 0)
-
-        model3 =
-            { transition = TNew board3 ps3
-            , seed = seed
-            }
+        ( ( board, ps ), seed ) =
+            Random.step randomBoard (Random.initialSeed 0)
     in
-    ( model2
-        |> always model3
-        |> always model2
-        |> always model1
-    , Process.sleep 1000
-        |> Task.perform (always Msg)
-        |> always Cmd.none
+    ( { transition = TNew board ps
+      , seed = seed
+      }
+    , Cmd.none
     )
+
+
+
+--init : Flags -> ( Model, Cmd Msg )
+--init () =
+--    let
+--        _ =
+--            rotatePosCCW ( 0, 0 )
+--                |> rotatePosCW
+--                |> rotatePosCCW
+--                |> Debug.log "Debug: "
+--
+--        ( board1, ps1 ) =
+--            [ [ 0, 1, 0, 7 ]
+--            , [ 0, 1, 3, 7 ]
+--            , [ 0, 2, 3, 7 ]
+--            , [ 1, 2, 0, 7 ]
+--            ]
+--                |> boardFromLists
+--
+--        model1 =
+--            { transition = TNew board1 ps1
+--            , seed = Random.initialSeed 0
+--            }
+--
+--        ( board2, movedGrid2 ) =
+--            moveUp board1
+--
+--        model2 =
+--            { transition = TMoveAndMerge board2 movedGrid2
+--            , seed = Random.initialSeed 0
+--            }
+--
+--        ( ( board3, ps3 ), seed ) =
+--            Random.step (addRandomEntries board2) (Random.initialSeed 0)
+--
+--        model3 =
+--            { transition = TNew board3 ps3
+--            , seed = seed
+--            }
+--    in
+--    ( model2
+--        |> always model3
+--        |> always model2
+--        |> always model1
+--    , Process.sleep 1000
+--        |> Task.perform (always Msg)
+--        |> always Cmd.none
+--    )
 
 
 type Msg
@@ -456,6 +470,15 @@ valAsString =
                 String.fromInt (2 ^ i)
     in
     valAsInt >> displayStringFromInt
+
+
+randomBoard : Generator ( Board, Set Pos )
+randomBoard =
+    addRandomEntries (Board Dict.empty)
+
+
+
+--noinspection ElmUnusedSymbol
 
 
 boardFromLists : List (List Int) -> ( Board, Set Pos )
