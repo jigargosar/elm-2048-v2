@@ -115,7 +115,7 @@ update msg model =
                 TNew board _ ->
                     let
                         ( a, b ) =
-                            move Left board
+                            move Down board
                     in
                     ( { model | transition = TMoveAndMerge a b }, Cmd.none )
 
@@ -566,24 +566,24 @@ move : Dir -> Board -> ( Board, Grid MMCell )
 move dir =
     case dir of
         Up ->
-            moveBoardHelp 0 ClockWise
+            moveBoardHelp None
 
         Down ->
-            moveBoardHelp 2 ClockWise
+            moveBoardHelp R180
 
         Right ->
-            moveBoardHelp 1 CounterClockWise
+            moveBoardHelp CounterClockWise
 
         Left ->
-            moveBoardHelp 1 ClockWise
+            moveBoardHelp ClockWise
 
 
-moveBoardHelp : Int -> Rotation -> Board -> ( Board, Grid MMCell )
-moveBoardHelp times rotationDir board =
+moveBoardHelp : Rotation -> Board -> ( Board, Grid MMCell )
+moveBoardHelp rot board =
     let
         ( rotateFn, inverseRotateFn ) =
-            ( applyN times (rotatePos rotationDir)
-            , applyN times (rotatePosReverse rotationDir)
+            ( rotatePosBy rot
+            , rotatePosBy (inverseRotation rot)
             )
     in
     board
@@ -641,33 +641,42 @@ updateMMCellPos fn mmCell =
 
 
 type Rotation
-    = ClockWise
+    = None
+    | ClockWise
     | CounterClockWise
+    | R180
 
 
-reverseRotation : Rotation -> Rotation
-reverseRotation rotation =
-    case rotation of
+inverseRotation : Rotation -> Rotation
+inverseRotation rot =
+    case rot of
+        None ->
+            None
+
         ClockWise ->
             CounterClockWise
 
         CounterClockWise ->
             ClockWise
 
+        R180 ->
+            R180
 
-rotatePos : Rotation -> Pos -> Pos
-rotatePos rotation =
-    case rotation of
+
+rotatePosBy : Rotation -> Pos -> Pos
+rotatePosBy rot =
+    case rot of
+        None ->
+            identity
+
         ClockWise ->
             rotatePosCW
 
         CounterClockWise ->
             rotatePosCCW
 
-
-rotatePosReverse : Rotation -> Pos -> Pos
-rotatePosReverse rotation =
-    rotatePos (reverseRotation rotation)
+        R180 ->
+            rotatePosCW >> rotatePosCW
 
 
 rotatePosCCW : Pos -> Pos
