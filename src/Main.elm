@@ -566,12 +566,22 @@ move dir =
             moveBoardHelp identity identity
 
         Right ->
-            moveBoardHelp rotatePosCCW rotatePosCW
+            moveBoardHelp (rotatePos CounterClockWise) (rotatePos ClockWise)
 
 
 type Rotation
     = ClockWise
     | CounterClockWise
+
+
+rotatePos : Rotation -> Pos -> Pos
+rotatePos rotation =
+    case rotation of
+        ClockWise ->
+            rotatePosCW
+
+        CounterClockWise ->
+            rotatePosCCW
 
 
 moveBoardHelp : (Pos -> Pos) -> (Pos -> Pos) -> Board -> ( Board, Grid MMCell )
