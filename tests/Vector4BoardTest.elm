@@ -9,17 +9,17 @@ slideUpTest : Test
 slideUpTest =
     test "V4: slide up should move tiles up" <|
         \_ ->
-            [ [ 0, 1, 0, 0 ]
-            , [ 0, 0, 0, 0 ]
-            , [ 0, 1, 0, 0 ]
-            , [ 0, 0, 0, 0 ]
+            [ "0 1 0 0"
+            , "0 1 0 0"
+            , "0 0 0 0"
+            , "0 0 0 0"
             ]
                 |> slideUp
                 |> expectBoardEqual
-                    [ [ 0, 1, 0, 0 ]
-                    , [ 0, 1, 0, 0 ]
-                    , [ 0, 0, 0, 0 ]
-                    , [ 0, 0, 0, 0 ]
+                    [ "0 2 0 0"
+                    , "0 0 0 0"
+                    , "0 0 0 0"
+                    , "0 0 0 0"
                     ]
 
 
@@ -32,7 +32,7 @@ slideUp lists =
 expectBoardEqual expectedLists board =
     board
         |> toLists
-        |> Expect.equalLists expectedLists
+        |> Expect.equal expectedLists
 
 
 type alias Board =
@@ -44,19 +44,29 @@ type alias Row =
 
 
 type alias Lists =
-    List (List Int)
+    List String
 
 
 fromLists : Lists -> Board
 fromLists lists =
     lists
-        |> List.map rowFromList
+        |> List.map rowFromString
         |> fromRows
 
 
 fromRows : List Row -> Board
 fromRows =
     Vector4.fromListWithDefault emptyRow >> Tuple.second
+
+
+rowFromString : String -> Row
+rowFromString string =
+    string
+        |> String.split " "
+        |> List.map String.trim
+        |> List.filter (String.isEmpty >> not)
+        |> List.filterMap String.toInt
+        |> rowFromList
 
 
 rowFromList : List Int -> Row
@@ -71,4 +81,6 @@ emptyRow =
 
 toLists : Board -> Lists
 toLists =
-    Vector4.toList >> List.map Vector4.toList
+    Vector4.toList
+        >> List.map
+            (Vector4.toList >> List.map String.fromInt >> String.join " ")
