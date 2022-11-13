@@ -1,4 +1,4 @@
-module Vector4BoardTest exposing (slideTest)
+module Vector4BoardTest exposing (mergeTest, slideTest)
 
 import Expect
 import Test exposing (Test, describe, test)
@@ -11,16 +11,16 @@ slideTest =
         [ test "left" <|
             \_ ->
                 [ "0 1 0 0"
-                , "0 2 2 0"
-                , "0 3 0 3"
-                , "4 4 4 4"
+                , "0 1 2 0"
+                , "0 0 0 0"
+                , "0 3 0 4"
                 ]
                     |> slide Left
                     |> expectBoardEqual
                         [ "1 0 0 0"
-                        , "2 2 0 0"
-                        , "3 3 0 0"
-                        , "4 4 4 4"
+                        , "1 2 0 0"
+                        , "0 0 0 0"
+                        , "3 4 0 0"
                         ]
         , test "up" <|
             \_ ->
