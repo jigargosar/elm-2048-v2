@@ -31,7 +31,7 @@ slideUp strings =
 
 expectBoardEqual expectedLists board =
     board
-        |> toLists
+        |> toStrings
         |> Expect.equal expectedLists
 
 
@@ -59,16 +59,6 @@ fromRows =
     Vector4.fromListWithDefault emptyRow >> Tuple.second
 
 
-rowFromString : String -> Row
-rowFromString string =
-    string
-        |> String.split " "
-        |> List.map String.trim
-        |> List.filter (String.isEmpty >> not)
-        |> List.filterMap String.toInt
-        |> rowFromList
-
-
 rowFromList : List Int -> Row
 rowFromList =
     Vector4.fromListWithDefault 0 >> Tuple.second
@@ -79,8 +69,22 @@ emptyRow =
     Vector4.repeat 0
 
 
-toLists : Board -> Strings
-toLists =
+toStrings : Board -> Strings
+toStrings =
     Vector4.toList
-        >> List.map
-            (Vector4.toList >> List.map String.fromInt >> String.join " ")
+        >> List.map rowToString
+
+
+rowToString : Row -> String
+rowToString =
+    Vector4.toList >> List.map String.fromInt >> String.join " "
+
+
+rowFromString : String -> Row
+rowFromString string =
+    string
+        |> String.split " "
+        |> List.map String.trim
+        |> List.filter (String.isEmpty >> not)
+        |> List.filterMap String.toInt
+        |> rowFromList
