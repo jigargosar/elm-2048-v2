@@ -9,15 +9,15 @@ slideUpTest : Test
 slideUpTest =
     test "V4: slide up should move tiles up" <|
         \_ ->
-            [ [ 0, 0, 0, 0 ]
+            [ [ 0, 1, 0, 0 ]
             , [ 0, 0, 0, 0 ]
-            , [ 0, 0, 0, 0 ]
+            , [ 0, 1, 0, 0 ]
             , [ 0, 0, 0, 0 ]
             ]
                 |> slideUp
                 |> expectBoardEqual
-                    [ [ 0, 0, 0, 0 ]
-                    , [ 0, 0, 0, 0 ]
+                    [ [ 0, 1, 0, 0 ]
+                    , [ 0, 1, 0, 0 ]
                     , [ 0, 0, 0, 0 ]
                     , [ 0, 0, 0, 0 ]
                     ]
