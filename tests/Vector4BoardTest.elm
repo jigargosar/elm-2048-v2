@@ -2,7 +2,7 @@ module Vector4BoardTest exposing (slideTest)
 
 import Expect
 import Test exposing (Test, describe, test)
-import Vector4 exposing (Vector4)
+import Vector4Board as Board exposing (Board, Dir(..))
 
 
 slideTest : Test
@@ -15,7 +15,6 @@ slideTest =
                 , "0 0 0 0"
                 , "0 3 0 4"
                 ]
-                    |> fromStrings
                     |> slide Left
                     |> expectBoardEqual
                         [ "1 0 0 0"
@@ -30,7 +29,6 @@ slideTest =
                 , "0 0 0 4"
                 , "0 0 5 0"
                 ]
-                    |> fromStrings
                     |> slide Up
                     |> expectBoardEqual
                         [ "1 2 5 4"
@@ -45,7 +43,6 @@ slideTest =
                 , "0 0 0 4"
                 , "0 0 5 0"
                 ]
-                    |> fromStrings
                     |> slide Right
                     |> expectBoardEqual
                         [ "0 0 0 1"
@@ -60,7 +57,6 @@ slideTest =
                 , "0 0 0 4"
                 , "0 0 5 0"
                 ]
-                    |> fromStrings
                     |> slide Down
                     |> expectBoardEqual
                         [ "0 0 0 0"
@@ -71,122 +67,31 @@ slideTest =
         ]
 
 
-type Dir
-    = Left
-    | Right
-    | Up
-    | Down
-
-
-slide : Dir -> Board -> Board
-slide dir =
-    case dir of
-        Left ->
-            slideRowsLeft
-
-        Right ->
-            slideRowsRight
-
-        Up ->
-            mapTransposed slideRowsLeft
-
-        Down ->
-            mapTransposed slideRowsRight
-
-
-mapTransposed : (Board -> Board) -> Board -> Board
-mapTransposed fn =
-    let
-        transpose : Board -> Board
-        transpose board =
-            Vector4.map4 Vector4.from4
-                (Vector4.get Vector4.Index0 board)
-                (Vector4.get Vector4.Index1 board)
-                (Vector4.get Vector4.Index2 board)
-                (Vector4.get Vector4.Index3 board)
-    in
-    transpose >> fn >> transpose
-
-
-slideRowsLeft =
-    Vector4.map slideRowLeft
-
-
-slideRowsRight =
-    Vector4.map slideRowRight
-
-
-slideRowRight =
-    Vector4.reverse >> slideRowLeft >> Vector4.reverse
-
-
-slideRowLeft : Row -> Row
-slideRowLeft row =
-    Vector4.toList row
-        |> List.filter (\v -> v /= 0)
-        |> rowFromList
-
-
 expectBoardEqual expectedLists board =
     board
         |> toStrings
         |> Expect.equalLists expectedLists
 
 
-type alias Board =
-    Vector4 Row
-
-
-type alias Row =
-    Vector4 Int
-
-
-type alias Lists =
-    List (List Int)
-
-
-fromLists : Lists -> Board
-fromLists lists =
-    lists
-        |> List.map rowFromList
-        |> fromRows
-
-
-fromRows : List Row -> Board
-fromRows =
-    Vector4.fromListWithDefault emptyRow >> Tuple.second
-
-
-rowFromList : List Int -> Row
-rowFromList =
-    Vector4.fromListWithDefault 0 >> Tuple.second
-
-
-emptyRow : Row
-emptyRow =
-    Vector4.repeat 0
-
-
-toLists : Board -> Lists
-toLists =
-    Vector4.toList
-        >> List.map Vector4.toList
-
-
 type alias Strings =
     List String
+
+
+slide : Dir -> Strings -> Board
+slide dir =
+    fromStrings >> Board.slide dir
 
 
 fromStrings : Strings -> Board
 fromStrings strings =
     strings
         |> List.map listFromString
-        |> fromLists
+        |> Board.fromLists
 
 
 toStrings : Board -> Strings
 toStrings =
-    toLists
+    Board.toLists
         >> List.map listToString
 
 
