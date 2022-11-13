@@ -13,9 +13,25 @@ type Board
     = Board (Grid Int)
 
 
+type alias Pos =
+    ( Int, Int )
+
+
+type alias Grid a =
+    Dict Pos a
+
+
+type alias Entry =
+    ( Pos, Int )
+
+
+emptyBoard =
+    Board Dict.empty
+
+
 randomBoard : Generator Board
 randomBoard =
-    Board Dict.empty
+    emptyBoard
         |> withRollback addRandomEntry
         |> Random.andThen (withRollback addRandomEntry)
 
@@ -54,34 +70,40 @@ randomListElement ls =
             Just (Random.uniform h t)
 
 
-type alias Entry =
-    ( Pos, Int )
-
-
 toList : Board -> List Entry
 toList (Board grid) =
     Dict.toList grid
 
 
-fromListInternal : List ( Pos, Int ) -> Board
+fromListInternal : List Entry -> Board
 fromListInternal list =
     list
-        |> List.filter (Tuple.first >> isValidPos)
-        |> List.foldl (\( p, v ) -> Dict.insert p v) Dict.empty
-        |> Board
+        |> List.filter isValidEntry
+        |> List.foldl insertEntryIfValid emptyBoard
+
+
+insertEntryIfValid : Entry -> Board -> Board
+insertEntryIfValid entry (Board grid) =
+    if isValidEntry entry then
+        insertEntry entry grid |> Board
+
+    else
+        Board grid
+
+
+isValidEntry : ( Pos, Int ) -> Bool
+isValidEntry ( p, v ) =
+    isValidPos p && isValidVal v
+
+
+isValidVal : Int -> Bool
+isValidVal i =
+    i > 0
 
 
 isValidPos : Pos -> Bool
 isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
-
-
-type alias Pos =
-    ( Int, Int )
-
-
-type alias Grid a =
-    Dict Pos a
 
 
 
@@ -126,3 +148,7 @@ indicesOfLen len =
 reject : (a -> Bool) -> List a -> List a
 reject fn =
     List.filter (fn >> not)
+
+
+insertEntry ( k, v ) =
+    Dict.insert k v
