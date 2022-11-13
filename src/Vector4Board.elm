@@ -79,40 +79,33 @@ slideRowLeft row =
 
 
 type alias Acc =
-    ( Maybe Int, List Int )
+    ( Maybe Int, Q Int )
 
 
 emptyAcc : Acc
 emptyAcc =
-    ( Nothing, [] )
+    ( Nothing, emptyQ )
 
 
 merge : Int -> Acc -> Acc
-merge val ( mbHead, tail ) =
-    case mbHead of
+merge val ( mbLastUnmerged, q ) =
+    case mbLastUnmerged of
         Nothing ->
-            ( Just val, tail )
+            ( Just val, q )
 
-        Just head ->
-            if val == head then
-                ( Nothing, val + 1 :: tail )
+        Just lastUnmerged ->
+            if val == lastUnmerged then
+                ( Nothing, enqueue (val + 1) q )
 
             else
-                ( Just val, head :: tail )
+                ( Just val, enqueue lastUnmerged q )
 
 
 accToList : Acc -> List Int
-accToList ( mbHead, tail ) =
-    let
-        reversedList =
-            case mbHead of
-                Nothing ->
-                    tail
-
-                Just head ->
-                    head :: tail
-    in
-    List.reverse reversedList
+accToList ( mbLast, q ) =
+    q
+        |> enqueueMaybe mbLast
+        |> qToList
 
 
 type Q a
@@ -125,6 +118,15 @@ emptyQ =
 
 enqueue x (Q reverseList) =
     Q (x :: reverseList)
+
+
+enqueueMaybe mbx =
+    case mbx of
+        Nothing ->
+            identity
+
+        Just x ->
+            enqueue x
 
 
 qToList (Q reverseList) =
