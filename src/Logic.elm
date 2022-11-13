@@ -1,4 +1,4 @@
-module Logic exposing (Board, randomBoard, toList)
+module Logic exposing (Board, entryVal, randomBoard, toList)
 
 import Random
 
@@ -11,5 +11,13 @@ randomBoard =
     Random.constant Board
 
 
+type Entry
+    = Entry
+
+
 toList _ =
-    [ 1, 2 ]
+    [ Entry, Entry ]
+
+
+entryVal _ =
+    2

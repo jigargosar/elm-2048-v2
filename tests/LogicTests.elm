@@ -8,10 +8,12 @@ import Test exposing (Test)
 
 suite : Test
 suite =
-    Test.test "Initial random board should contain 2 entries" <|
-        \_ ->
-            Random.step Logic.randomBoard (Random.initialSeed 0)
-                |> Tuple.first
-                |> Logic.toList
-                |> List.length
-                |> Expect.equal 2
+    Test.describe "Initial random Board"
+        [ Test.test "should contain 2 entries" <|
+            \_ ->
+                Random.step Logic.randomBoard (Random.initialSeed 0)
+                    |> Tuple.first
+                    |> Logic.toList
+                    |> List.length
+                    |> Expect.equal 2
+        ]
