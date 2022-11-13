@@ -19,7 +19,7 @@ suite =
                     |> Board.toList
                     |> List.length
                     |> Expect.equal 0
-        , Test.test "can have single value of 2 at 0,0 position" <|
+        , Test.test "with single value of 2 at 0,0 position" <|
             \_ ->
                 Board.fromListsForTesting [ [ 2 ] ]
                     |> Board.toList
