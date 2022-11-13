@@ -1,6 +1,7 @@
 module Vector4Board exposing
     ( Board
     , Dir(..)
+    , Lists
     , fromLists
     , slide
     , toLists
