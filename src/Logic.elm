@@ -24,33 +24,10 @@ withRollback fn val =
     fn val |> Maybe.withDefault (Random.constant val)
 
 
-rangeWH : Int -> Int -> List ( Int, Int )
-rangeWH w h =
-    indicesOfLen h
-        |> List.concatMap
-            (\y ->
-                indicesOfLen w |> List.map (pairTo y)
-            )
-
-
-pairTo b a =
-    ( a, b )
-
-
-indicesOfLen : Int -> List Int
-indicesOfLen len =
-    List.range 0 (len - 1)
-
-
 emptyPositions : Board -> List Pos
 emptyPositions (Board grid) =
     rangeWH 4 4
         |> reject (\pos -> Dict.member pos grid)
-
-
-reject : (a -> Bool) -> List a -> List a
-reject fn =
-    List.filter (fn >> not)
 
 
 addRandomEntry : Board -> Maybe (Generator Board)
@@ -94,6 +71,7 @@ fromListInternal list =
         |> Board
 
 
+isValidPos : Pos -> Bool
 isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
 
@@ -106,22 +84,45 @@ type alias Grid a =
     Dict Pos a
 
 
-gridFromLists : List (List a) -> Grid a
-gridFromLists =
-    indexedFoldl
-        (\y ls acc ->
-            indexedFoldl
-                (\x val ->
-                    Dict.insert ( x, y ) val
-                )
-                acc
-                ls
-        )
-        Dict.empty
+
+--
+--gridFromLists : List (List a) -> Grid a
+--gridFromLists =
+--    indexedFoldl
+--        (\y ls acc ->
+--            indexedFoldl
+--                (\x val ->
+--                    Dict.insert ( x, y ) val
+--                )
+--                acc
+--                ls
+--        )
+--        Dict.empty
+--indexedFoldl : (Int -> b -> a -> a) -> a -> List b -> a
+--indexedFoldl fn acc ls =
+--    ls
+--        |> List.indexedMap Tuple.pair
+--        |> List.foldl (\( i, a ) -> fn i a) acc
 
 
-indexedFoldl : (Int -> b -> a -> a) -> a -> List b -> a
-indexedFoldl fn acc ls =
-    ls
-        |> List.indexedMap Tuple.pair
-        |> List.foldl (\( i, a ) -> fn i a) acc
+rangeWH : Int -> Int -> List ( Int, Int )
+rangeWH w h =
+    indicesOfLen h
+        |> List.concatMap
+            (\y ->
+                indicesOfLen w |> List.map (pairTo y)
+            )
+
+
+pairTo b a =
+    ( a, b )
+
+
+indicesOfLen : Int -> List Int
+indicesOfLen len =
+    List.range 0 (len - 1)
+
+
+reject : (a -> Bool) -> List a -> List a
+reject fn =
+    List.filter (fn >> not)
