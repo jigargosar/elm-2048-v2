@@ -78,8 +78,12 @@ slideRowLeft row =
 fromLists : Lists -> Board
 fromLists lists =
     lists
-        |> List.map rowFromList
+        |> List.map (List.map (atLeast 0) >> rowFromList)
         |> fromRows
+
+
+atLeast =
+    max
 
 
 fromRows : List Row -> Board
