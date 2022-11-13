@@ -1,12 +1,12 @@
-module Vector4BoardTest exposing (slideTest)
+module Vector4BoardTest exposing (slideUpTest)
 
 import Expect
 import Test exposing (Test, test)
 import Vector4 exposing (Vector4)
 
 
-slideTest : Test
-slideTest =
+slideUpTest : Test
+slideUpTest =
     test "V4: slide up should move tiles up" <|
         \_ ->
             [ [ 0, 0, 0, 0 ]
