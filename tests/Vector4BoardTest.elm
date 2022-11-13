@@ -11,19 +11,19 @@ slideTest =
         [ test "left" <|
             \_ ->
                 [ "0 1 0 0"
-                , "0 1 0 0"
+                , "0 1 2 0"
                 , "0 0 0 0"
-                , "0 0 0 0"
+                , "0 3 0 4"
                 ]
                     |> fromStrings
                     |> slide Left
                     |> expectBoardEqual
                         [ "1 0 0 0"
-                        , "1 0 0 0"
+                        , "1 2 0 0"
                         , "0 0 0 0"
-                        , "0 0 0 0"
+                        , "3 4 0 0"
                         ]
-        , test "up?" <|
+        , test "up" <|
             \_ ->
                 [ "1 0 0 0"
                 , "6 2 0 0"
@@ -38,11 +38,27 @@ slideTest =
                         , "0 0 0 0"
                         , "0 0 0 0"
                         ]
+        , test "right" <|
+            \_ ->
+                [ "1 0 0 0"
+                , "6 2 0 0"
+                , "0 0 0 4"
+                , "0 0 5 0"
+                ]
+                    |> fromStrings
+                    |> slide Right
+                    |> expectBoardEqual
+                        [ "0 0 0 1"
+                        , "0 0 6 2"
+                        , "0 0 0 4"
+                        , "0 0 0 5"
+                        ]
         ]
 
 
 type Dir
     = Left
+    | Right
     | Up
 
 
@@ -51,6 +67,11 @@ slide dir board =
     case dir of
         Left ->
             Vector4.map slideRowLeft board
+
+        Right ->
+            board
+                |> Vector4.map
+                    (Vector4.reverse >> slideRowLeft >> Vector4.reverse)
 
         Up ->
             board
