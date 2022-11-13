@@ -55,9 +55,7 @@ slide dir board =
         Up ->
             board
                 |> rotate
-                |> Debug.log "Debug: "
                 |> Vector4.map slideRowLeft
-                |> Debug.log "Debug: "
                 |> rotate
 
 
