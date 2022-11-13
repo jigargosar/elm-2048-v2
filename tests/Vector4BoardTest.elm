@@ -7,7 +7,7 @@ import Vector4 exposing (Vector4)
 
 slideUpTest : Test
 slideUpTest =
-    test "V4: slide up should move tiles up" <|
+    test "V4: slide" <|
         \_ ->
             [ "0 1 0 0"
             , "0 1 0 0"
@@ -15,24 +15,29 @@ slideUpTest =
             , "0 0 0 0"
             ]
                 |> fromStrings
-                |> slideUp
+                |> slide
                 |> expectBoardEqual
-                    [ "0 2 0 0"
-                    , "0 0 0 0"
+                    [ "1 0 0 0"
+                    , "1 0 0 0"
                     , "0 0 0 0"
                     , "0 0 0 0"
                     ]
 
 
-slideUp : Board -> Board
-slideUp strings =
-    Debug.todo "todo"
+slide : Board -> Board
+slide =
+    Vector4.map slideRow
+
+
+slideRow : Row -> Row
+slideRow row =
+    row
 
 
 expectBoardEqual expectedLists board =
     board
         |> toStrings
-        |> Expect.equal expectedLists
+        |> Expect.equalLists expectedLists
 
 
 type alias Board =
