@@ -24,10 +24,6 @@ fuzzInt2Set =
         |> Fuzz.map Set.fromList
 
 
-fuzzInvalidValue =
-    Fuzz.intAtMost 0
-
-
 isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
 
@@ -53,7 +49,7 @@ suite =
                     |> Board.fromListInternal
                     |> Board.toList
                     |> Expect.equalLists expectedEntries
-        , Test.fuzz fuzzInvalidValue "should not store invalid value" <|
+        , Test.fuzz (Fuzz.intAtMost 0) "should not store invalid value" <|
             \invalidValue ->
                 [ ( ( 0, 0 ), invalidValue ) ]
                     |> Board.fromListInternal
