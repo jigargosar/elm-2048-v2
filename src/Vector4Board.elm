@@ -32,16 +32,16 @@ slide : Dir -> Board -> Board
 slide dir =
     case dir of
         Left ->
-            slideRowsLeft
+            slideLeft
 
         Right ->
-            slideRowsRight
+            slideRight
 
         Up ->
-            mapTransposed slideRowsLeft
+            mapTransposed slideLeft
 
         Down ->
-            mapTransposed slideRowsRight
+            mapTransposed slideRight
 
 
 mapTransposed : (Board -> Board) -> Board -> Board
@@ -58,16 +58,12 @@ mapTransposed fn =
     transpose >> fn >> transpose
 
 
-slideRowsLeft =
+slideLeft =
     Vector4.map slideRowLeft
 
 
-slideRowsRight =
-    Vector4.map slideRowRight
-
-
-slideRowRight =
-    Vector4.reverse >> slideRowLeft >> Vector4.reverse
+slideRight =
+    Vector4.map (Vector4.reverse >> slideRowLeft >> Vector4.reverse)
 
 
 slideRowLeft : Row -> Row
