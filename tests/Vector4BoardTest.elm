@@ -141,14 +141,14 @@ type alias Row =
     Vector4 Int
 
 
-type alias Strings =
-    List String
+type alias Lists =
+    List (List Int)
 
 
-fromStrings : Strings -> Board
-fromStrings strings =
-    strings
-        |> List.map rowFromString
+fromLists : Lists -> Board
+fromLists lists =
+    lists
+        |> List.map rowFromList
         |> fromRows
 
 
@@ -167,22 +167,32 @@ emptyRow =
     Vector4.repeat 0
 
 
+toLists : Board -> Lists
+toLists =
+    Vector4.toList
+        >> List.map Vector4.toList
+
+
+type alias Strings =
+    List String
+
+
+fromStrings : Strings -> Board
+fromStrings strings =
+    strings
+        |> List.map listFromString
+        |> fromLists
+
+
 toStrings : Board -> Strings
 toStrings =
-    Vector4.toList
-        >> List.map rowToString
+    toLists
+        >> List.map listToString
 
 
-rowToString : Row -> String
-rowToString =
-    Vector4.toList >> List.map String.fromInt >> String.join " "
-
-
-rowFromString : String -> Row
-rowFromString string =
-    string
-        |> listFromString
-        |> rowFromList
+listToString : List Int -> String
+listToString =
+    List.map String.fromInt >> String.join " "
 
 
 listFromString : String -> List Int
