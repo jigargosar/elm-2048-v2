@@ -46,7 +46,7 @@ suite =
                             |> List.filter (Tuple.first >> isValidPos)
                 in
                 entries
-                    |> Board.fromListForTesting
+                    |> Board.fromListInternal
                     |> Board.toList
                     |> Expect.equalLists expectedEntries
         ]
