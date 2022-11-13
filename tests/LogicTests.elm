@@ -30,7 +30,7 @@ isValidPos ( x, y ) =
 
 suite : Test
 suite =
-    Test.describe "Manually constructed board for testing"
+    Test.describe "Manually constructed board"
         [ Test.fuzz fuzzInt2Set "should only store valid positions" <|
             \positionSet ->
                 let
@@ -56,13 +56,14 @@ initialBoardTest : Test
 initialBoardTest =
     Test.describe "Initial random Board"
         [ Test.fuzz fuzzBoard
-            "should have exactly 2 values each equal to either 2 or 4"
+            "should have exactly 2 tiles having value equal to 2 or 4"
           <|
             \board ->
                 board
                     |> Board.toList
                     |> List.filter
                         (Tuple.second
+                            >> (\v -> 2 ^ v)
                             >> (\v -> List.member v [ 2, 4 ])
                         )
                     |> List.length

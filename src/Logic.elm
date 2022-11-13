@@ -41,7 +41,7 @@ addRandomEntry ((Board grid) as board) =
 
 randomVal : Generator Int
 randomVal =
-    Random.weighted ( 80, 2 ) [ ( 20, 4 ) ]
+    Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
 
 
 randomListElement : List a -> Maybe (Generator a)
