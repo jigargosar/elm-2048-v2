@@ -26,12 +26,14 @@ slideUpTest =
 
 slide : Board -> Board
 slide =
-    Vector4.map slideRow
+    Vector4.map slideRowLeft
 
 
-slideRow : Row -> Row
-slideRow row =
-    row
+slideRowLeft : Row -> Row
+slideRowLeft row =
+    Vector4.toList row
+        |> List.filter (\v -> v /= 0)
+        |> rowFromList
 
 
 expectBoardEqual expectedLists board =
