@@ -71,7 +71,7 @@ slideRight =
 slideRowLeft : Row -> Row
 slideRowLeft row =
     Vector4.toList row
-        |> List.filter (\v -> v /= 0)
+        |> List.filter (\v -> v > 0)
         |> rowFromList
 
 
