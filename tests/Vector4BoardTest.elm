@@ -70,21 +70,20 @@ slideTest =
 mergeTest : Test
 mergeTest =
     describe "Vector4Board SlideAndMerge"
-        [ Test.skip <|
-            test "left" <|
-                \_ ->
-                    [ "0 1 0 0"
-                    , "0 2 2 0"
-                    , "0 3 0 3"
-                    , "4 4 4 4"
-                    ]
-                        |> slide Left
-                        |> expectBoardEqual
-                            [ "1 0 0 0"
-                            , "3 0 0 0"
-                            , "4 0 0 0"
-                            , "5 5 0 0"
-                            ]
+        [ test "left" <|
+            \_ ->
+                [ "0 1 0 0"
+                , "0 2 2 0"
+                , "0 3 0 3"
+                , "4 4 4 4"
+                ]
+                    |> slide Left
+                    |> expectBoardEqual
+                        [ "1 0 0 0"
+                        , "3 0 0 0"
+                        , "4 0 0 0"
+                        , "5 5 0 0"
+                        ]
         , test "up" <|
             \_ ->
                 [ "1 0 0 0"
