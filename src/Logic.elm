@@ -1,4 +1,10 @@
-module Logic exposing (Board, fromListsForTesting, randomBoard, toList)
+module Logic exposing
+    ( Board
+    , fromListForTesting
+    , fromListsForTesting
+    , randomBoard
+    , toList
+    )
 
 import Dict exposing (Dict)
 import Random
@@ -19,6 +25,18 @@ type alias Entry =
 toList : Board -> List Entry
 toList (Board grid) =
     Dict.toList grid
+
+
+fromListForTesting : List ( Pos, Int ) -> Board
+fromListForTesting list =
+    list
+        |> List.filter (Tuple.first >> isValidPos)
+        |> List.foldl (\( p, v ) -> Dict.insert p v) Dict.empty
+        |> Board
+
+
+isValidPos ( x, y ) =
+    clamp 0 3 x == x && clamp 0 3 y == y
 
 
 fromListsForTesting : List (List Int) -> Board
