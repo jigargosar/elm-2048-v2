@@ -93,7 +93,11 @@ merge val ( mbHead, tail ) =
             ( Just val, tail )
 
         Just head ->
-            ( Just val, head :: tail )
+            if val == head then
+                ( Nothing, val + 1 :: tail )
+
+            else
+                ( Just val, head :: tail )
 
 
 accToList : Acc -> List Int
