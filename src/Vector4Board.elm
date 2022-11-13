@@ -58,10 +58,12 @@ mapTransposed fn =
     transpose >> fn >> transpose
 
 
+slideLeft : Board -> Board
 slideLeft =
     Vector4.map slideRowLeft
 
 
+slideRight : Board -> Board
 slideRight =
     Vector4.map (Vector4.reverse >> slideRowLeft >> Vector4.reverse)
 
@@ -97,5 +99,4 @@ emptyRow =
 
 toLists : Board -> Lists
 toLists =
-    Vector4.toList
-        >> List.map Vector4.toList
+    Vector4.toList >> List.map Vector4.toList
