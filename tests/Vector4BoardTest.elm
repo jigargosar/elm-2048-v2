@@ -90,22 +90,22 @@ slide dir board =
 
         Up ->
             board
-                |> rotate
+                |> transpose
                 |> Vector4.map slideRowLeft
-                |> rotate
+                |> transpose
 
         Down ->
             board
-                |> rotate
+                |> transpose
                 |> Vector4.map slideRowRight
-                |> rotate
+                |> transpose
 
 
 slideRowRight =
     Vector4.reverse >> slideRowLeft >> Vector4.reverse
 
 
-rotate board =
+transpose board =
     Vector4.map4 Vector4.from4
         (Vector4.get Vector4.Index0 board)
         (Vector4.get Vector4.Index1 board)
