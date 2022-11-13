@@ -26,7 +26,7 @@ slideUpTest =
 slideUp : Strings -> Board
 slideUp strings =
     strings
-        |> fromLists
+        |> fromStrings
 
 
 expectBoardEqual expectedLists board =
@@ -47,8 +47,8 @@ type alias Strings =
     List String
 
 
-fromLists : Strings -> Board
-fromLists strings =
+fromStrings : Strings -> Board
+fromStrings strings =
     strings
         |> List.map rowFromString
         |> fromRows
