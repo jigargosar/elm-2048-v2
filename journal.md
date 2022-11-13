@@ -3,6 +3,8 @@
 NEXT STEPS:
 * [x] move in other dirs.
 * [x] arrow key handling
+* [ ] create 2 implementations one only with core logic
+      another for transition.
 * [ ] get rid of `Process.sleep` for triggering board updates.
   preferably maintain entire board state after a move is performed.
 
