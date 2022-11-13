@@ -14,6 +14,7 @@ slideUpTest =
             , "0 0 0 0"
             , "0 0 0 0"
             ]
+                |> fromStrings
                 |> slideUp
                 |> expectBoardEqual
                     [ "0 2 0 0"
@@ -23,10 +24,9 @@ slideUpTest =
                     ]
 
 
-slideUp : Strings -> Board
+slideUp : Board -> Board
 slideUp strings =
-    strings
-        |> fromStrings
+    Debug.todo "todo"
 
 
 expectBoardEqual expectedLists board =
