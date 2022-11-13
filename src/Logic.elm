@@ -1,7 +1,6 @@
 module Logic exposing
     ( Board
     , fromListForTesting
-    , fromListsForTesting
     , randomBoard
     , toList
     )

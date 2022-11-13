@@ -31,29 +31,7 @@ isValidPos ( x, y ) =
 suite : Test
 suite =
     Test.describe "Manually constructed board for testing"
-        [ Test.test "can be empty" <|
-            \_ ->
-                Board.fromListsForTesting []
-                    |> Board.toList
-                    |> List.length
-                    |> Expect.equal 0
-        , Test.test "with single value of 2 at 0,0 position" <|
-            \_ ->
-                Board.fromListsForTesting [ [ 2 ] ]
-                    |> Board.toList
-                    |> Expect.equalLists [ ( ( 0, 0 ), 2 ) ]
-        , Test.fuzz fuzzInt2 "with single value at any position" <|
-            \pos ->
-                Board.fromListForTesting [ ( pos, 2 ) ]
-                    |> Board.toList
-                    |> Expect.equalLists
-                        (if isValidPos pos then
-                            [ ( pos, 2 ) ]
-
-                         else
-                            []
-                        )
-        , Test.fuzz fuzzInt2Set "with arbitrary positions" <|
+        [ Test.fuzz fuzzInt2Set "with arbitrary positions but single value" <|
             \positionSet ->
                 let
                     positions =
