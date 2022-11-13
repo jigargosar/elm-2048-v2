@@ -1,4 +1,10 @@
-module Vector4Board exposing (Board, Dir(..), fromLists, slide, toLists)
+module Vector4Board exposing
+    ( Board
+    , Dir(..)
+    , fromLists
+    , slide
+    , toLists
+    )
 
 import Vector4 exposing (Vector4)
 
