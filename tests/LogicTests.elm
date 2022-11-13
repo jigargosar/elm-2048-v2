@@ -8,6 +8,25 @@ import Set
 import Test exposing (Test)
 
 
+slideTest : Test
+slideTest =
+    Test.test "slide up should move tiles up" <|
+        \_ ->
+            [ [ 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0 ]
+            ]
+                |> boardFromLists
+                |> Board.slideUp
+                |> expectBoardEqual
+                    [ [ 0, 0, 0, 0 ]
+                    , [ 0, 0, 0, 0 ]
+                    , [ 0, 0, 0, 0 ]
+                    , [ 0, 0, 0, 0 ]
+                    ]
+
+
 pairTo b a =
     ( a, b )
 
@@ -27,25 +46,6 @@ fuzzInt2Set =
 
 isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
-
-
-slideTest : Test
-slideTest =
-    Test.test "slide up should move tiles up" <|
-        \_ ->
-            [ [ 0, 0, 0, 0 ]
-            , [ 0, 0, 0, 0 ]
-            , [ 0, 0, 0, 0 ]
-            , [ 0, 0, 0, 0 ]
-            ]
-                |> boardFromLists
-                |> Board.slideUp
-                |> expectBoardEqual
-                    [ [ 0, 0, 0, 0 ]
-                    , [ 0, 0, 0, 0 ]
-                    , [ 0, 0, 0, 0 ]
-                    , [ 0, 0, 0, 0 ]
-                    ]
 
 
 expectBoardEqual lists board =
