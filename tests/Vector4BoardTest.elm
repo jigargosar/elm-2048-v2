@@ -181,8 +181,14 @@ rowToString =
 rowFromString : String -> Row
 rowFromString string =
     string
+        |> listFromString
+        |> rowFromList
+
+
+listFromString : String -> List Int
+listFromString string =
+    string
         |> String.split " "
         |> List.map String.trim
         |> List.filter (String.isEmpty >> not)
         |> List.filterMap String.toInt
-        |> rowFromList
