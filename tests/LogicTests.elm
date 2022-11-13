@@ -28,8 +28,8 @@ isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
 
 
-suite : Test
-suite =
+manuallyConstructedBoardTest : Test
+manuallyConstructedBoardTest =
     Test.describe "Manually constructed board"
         [ Test.fuzz fuzzInt2Set "should only store valid positions" <|
             \positionSet ->
