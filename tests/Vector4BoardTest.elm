@@ -82,23 +82,31 @@ slide : Dir -> Board -> Board
 slide dir board =
     case dir of
         Left ->
-            Vector4.map slideRowLeft board
+            slideRowsLeft board
 
         Right ->
             board
-                |> Vector4.map slideRowRight
+                |> slideRowsRight
 
         Up ->
             board
                 |> transpose
-                |> Vector4.map slideRowLeft
+                |> slideRowsLeft
                 |> transpose
 
         Down ->
             board
                 |> transpose
-                |> Vector4.map slideRowRight
+                |> slideRowsRight
                 |> transpose
+
+
+slideRowsLeft =
+    Vector4.map slideRowLeft
+
+
+slideRowsRight =
+    Vector4.map slideRowRight
 
 
 slideRowRight =
