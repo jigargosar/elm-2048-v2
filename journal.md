@@ -10,6 +10,20 @@ NEXT STEPS:
   preferably maintain entire board state after a move is performed.
 
 
+Problem-Solving:
+
+How to implement transitions on top of Vector4Board?
+* what do we need inorder to implement transitions?
+  * if we are going to use css transitions, then we need a unique key
+    associated with each tile.
+  * merge and slide logic needs to return states of each tile.
+* Can we implement merge and slide without requiring a key?
+  very likely
+* BLOCKER: We haven't implemented adding random entries.
+* Do we really need board to add random entries?
+* perhaps we can implement it outside board.
+* What about separating core logic and animation?
+* How much can we actually separate?
 
 
 
