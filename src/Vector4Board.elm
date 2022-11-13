@@ -9,6 +9,18 @@ module Vector4Board exposing
 import Vector4 exposing (Vector4)
 
 
+type alias Board =
+    Vector4 Row
+
+
+type alias Row =
+    Vector4 Int
+
+
+type alias Lists =
+    List (List Int)
+
+
 type Dir
     = Left
     | Right
@@ -63,18 +75,6 @@ slideRowLeft row =
     Vector4.toList row
         |> List.filter (\v -> v /= 0)
         |> rowFromList
-
-
-type alias Board =
-    Vector4 Row
-
-
-type alias Row =
-    Vector4 Int
-
-
-type alias Lists =
-    List (List Int)
 
 
 fromLists : Lists -> Board
