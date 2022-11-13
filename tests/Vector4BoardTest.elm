@@ -23,9 +23,9 @@ slideUpTest =
                     ]
 
 
-slideUp : Lists -> Board
-slideUp lists =
-    lists
+slideUp : Strings -> Board
+slideUp strings =
+    strings
         |> fromLists
 
 
@@ -43,13 +43,13 @@ type alias Row =
     Vector4 Int
 
 
-type alias Lists =
+type alias Strings =
     List String
 
 
-fromLists : Lists -> Board
-fromLists lists =
-    lists
+fromLists : Strings -> Board
+fromLists strings =
+    strings
         |> List.map rowFromString
         |> fromRows
 
@@ -79,7 +79,7 @@ emptyRow =
     Vector4.repeat 0
 
 
-toLists : Board -> Lists
+toLists : Board -> Strings
 toLists =
     Vector4.toList
         >> List.map
