@@ -23,6 +23,7 @@
     },
     "test-dependencies": {
         "direct": {
+            "Chadtech/elm-vector": "3.0.2",
             "elm-explorations/test": "2.0.1"
         },
         "indirect": {

@@ -1,4 +1,4 @@
-module LogicTests exposing (..)
+module LogicTests exposing (initialBoardTest, manuallyConstructedBoardTest, slideTest)
 
 import Dict
 import Expect
