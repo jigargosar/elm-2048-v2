@@ -12,6 +12,21 @@ NEXT STEPS:
 
 Problem-Solving:
 
+How to model transitions and board tile logic together?
+* Board can be list of Tiles
+* type Tile/State = TNew Pos Val | TMoved Pos Val | TExit Pos Val | TMerged Pos Val
+* above representation will make it very easy to render a tile.
+* type alias Tile = {pos:Pos,val:Val,state:State}
+* Dict Key Tile
+* initially there will be new, let val contain key.
+* Slide: 
+* Reset
+* List / Dict Tile 
+      -> Mat4 (Input (Pos,Val) | None) 
+      -> Mat4 (Stayed (Pos, Val) | Merged (Pos,Val) (Pos, Val) | None)
+      -> List / Dict Tile
+* this seems feasible
+
 How to implement transitions on top of Vector4Board?
 * what do we need inorder to implement transitions?
   * if we are going to use css transitions, then we need a unique key
@@ -24,6 +39,8 @@ How to implement transitions on top of Vector4Board?
 * perhaps we can implement it outside board.
 * What about separating core logic and animation?
 * How much can we actually separate?
+* Well this line of thought is moot. 
+* For now lets implement without thinking about reuse.
 
 
 
