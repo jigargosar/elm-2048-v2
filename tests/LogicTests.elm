@@ -12,12 +12,19 @@ fuzzBoard =
 
 suite : Test
 suite =
-    Test.test "constructing empty board for manual testing should be empty" <|
-        \_ ->
-            Board.fromListsForTesting []
-                |> Board.toList
-                |> List.length
-                |> Expect.equal 0
+    Test.describe "Manually constructed board for testing"
+        [ Test.test "can be empty" <|
+            \_ ->
+                Board.fromListsForTesting []
+                    |> Board.toList
+                    |> List.length
+                    |> Expect.equal 0
+        , Test.test "can have single value of 2 at 0,0 position" <|
+            \_ ->
+                Board.fromListsForTesting [ [ 2 ] ]
+                    |> Board.toList
+                    |> Expect.equalLists [ ( ( 0, 0 ), 2 ) ]
+        ]
 
 
 initialBoardTest : Test
@@ -30,8 +37,8 @@ initialBoardTest =
                 board
                     |> Board.toList
                     |> List.filter
-                        (Board.entryVal
-                            >> (\val -> val == 2 || val == 4)
+                        (Tuple.second
+                            >> (\v -> List.member v [ 2, 4 ])
                         )
                     |> List.length
                     |> Expect.equal 2

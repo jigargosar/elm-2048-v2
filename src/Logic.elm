@@ -1,31 +1,30 @@
-module Logic exposing (Board, entryVal, fromListsForTesting, randomBoard, toList)
+module Logic exposing (Board, fromListsForTesting, randomBoard, toList)
 
 import Dict exposing (Dict)
 import Random
 
 
 type Board
-    = Board
+    = Board (Grid Int)
 
 
 randomBoard =
-    Random.constant Board
+    Random.constant (Board (gridFromLists [ [ 2, 2 ] ]))
 
 
-type Entry
-    = Entry
+type alias Entry =
+    ( Pos, Int )
 
 
-toList _ =
-    [ Entry, Entry ]
+toList : Board -> List Entry
+toList (Board grid) =
+    Dict.toList grid
 
 
-entryVal _ =
-    2
-
-
+fromListsForTesting : List (List Int) -> Board
 fromListsForTesting lists =
     gridFromLists lists
+        |> Board
 
 
 type alias Pos =
