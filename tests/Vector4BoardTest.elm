@@ -1,12 +1,13 @@
 module Vector4BoardTest exposing (slideTest)
 
+import Expect
 import Test exposing (Test, test)
 import Vector4 exposing (Vector4)
 
 
 slideTest : Test
 slideTest =
-    test "slide up should move tiles up" <|
+    test "V4: slide up should move tiles up" <|
         \_ ->
             [ [ 0, 0, 0, 0 ]
             , [ 0, 0, 0, 0 ]
@@ -22,6 +23,18 @@ slideTest =
                     ]
 
 
+slideUp : Lists -> Board
+slideUp lists =
+    lists
+        |> fromLists
+
+
+expectBoardEqual expectedLists board =
+    board
+        |> toLists
+        |> Expect.equalLists expectedLists
+
+
 type alias Board =
     Vector4 Row
 
@@ -32,12 +45,6 @@ type alias Row =
 
 type alias Lists =
     List (List Int)
-
-
-slideUp : Lists -> Board
-slideUp lists =
-    lists
-        |> fromLists
 
 
 fromLists : Lists -> Board
@@ -62,5 +69,6 @@ emptyRow =
     Vector4.repeat 0
 
 
-expectBoardEqual =
-    Debug.todo "todo"
+toLists : Board -> Lists
+toLists =
+    Vector4.toList >> List.map Vector4.toList
