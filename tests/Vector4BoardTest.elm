@@ -79,26 +79,33 @@ type Dir
 
 
 slide : Dir -> Board -> Board
-slide dir board =
+slide dir =
     case dir of
         Left ->
-            slideRowsLeft board
+            slideRowsLeft
 
         Right ->
-            board
-                |> slideRowsRight
+            slideRowsRight
 
         Up ->
-            board
-                |> transpose
-                |> slideRowsLeft
-                |> transpose
+            mapTransposed slideRowsLeft
 
         Down ->
-            board
-                |> transpose
-                |> slideRowsRight
-                |> transpose
+            mapTransposed slideRowsRight
+
+
+mapTransposed : (Board -> Board) -> Board -> Board
+mapTransposed fn =
+    let
+        transpose : Board -> Board
+        transpose board =
+            Vector4.map4 Vector4.from4
+                (Vector4.get Vector4.Index0 board)
+                (Vector4.get Vector4.Index1 board)
+                (Vector4.get Vector4.Index2 board)
+                (Vector4.get Vector4.Index3 board)
+    in
+    transpose >> fn >> transpose
 
 
 slideRowsLeft =
@@ -111,14 +118,6 @@ slideRowsRight =
 
 slideRowRight =
     Vector4.reverse >> slideRowLeft >> Vector4.reverse
-
-
-transpose board =
-    Vector4.map4 Vector4.from4
-        (Vector4.get Vector4.Index0 board)
-        (Vector4.get Vector4.Index1 board)
-        (Vector4.get Vector4.Index2 board)
-        (Vector4.get Vector4.Index3 board)
 
 
 slideRowLeft : Row -> Row
