@@ -2,6 +2,7 @@ module Logic exposing
     ( Board
     , fromListInternal
     , randomBoard
+    , slideUp
     , toList
     )
 
@@ -104,6 +105,10 @@ isValidVal i =
 isValidPos : Pos -> Bool
 isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
+
+
+slideUp =
+    identity
 
 
 

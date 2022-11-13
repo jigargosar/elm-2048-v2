@@ -1,5 +1,6 @@
 module LogicTests exposing (..)
 
+import Dict
 import Expect
 import Fuzz
 import Logic as Board
@@ -26,6 +27,81 @@ fuzzInt2Set =
 
 isValidPos ( x, y ) =
     clamp 0 3 x == x && clamp 0 3 y == y
+
+
+slideTest : Test
+slideTest =
+    Test.test "slide up should move tiles up" <|
+        \_ ->
+            [ [ 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0 ]
+            , [ 0, 0, 0, 0 ]
+            ]
+                |> boardFromLists
+                |> Board.slideUp
+                |> expectBoardEqual
+                    [ [ 0, 0, 0, 0 ]
+                    , [ 0, 0, 0, 0 ]
+                    , [ 0, 0, 0, 0 ]
+                    , [ 0, 0, 0, 0 ]
+                    ]
+
+
+expectBoardEqual lists board =
+    Board.toList board
+        |> entriesToLists
+        |> Expect.equal lists
+
+
+boardFromLists lists =
+    entriesFromLists lists
+        |> Board.fromListInternal
+
+
+entriesToLists entries =
+    let
+        grid =
+            Dict.fromList entries
+
+        valAt x y =
+            Dict.get ( x, y ) grid |> Maybe.withDefault 0
+    in
+    indicesOfLen 4
+        |> List.map
+            (\y ->
+                indicesOfLen 4 |> List.map (\x -> valAt x y)
+            )
+
+
+indicesOfLen : Int -> List Int
+indicesOfLen len =
+    List.range 0 (len - 1)
+
+
+entriesFromLists lists =
+    lists
+        |> indexedFoldl
+            (\y ls acc ->
+                indexedFoldl
+                    (\x val ->
+                        cons ( ( x, y ), val )
+                    )
+                    acc
+                    ls
+            )
+            []
+
+
+cons =
+    (::)
+
+
+indexedFoldl : (Int -> b -> a -> a) -> a -> List b -> a
+indexedFoldl fn acc ls =
+    ls
+        |> List.indexedMap Tuple.pair
+        |> List.foldl (\( i, a ) -> fn i a) acc
 
 
 manuallyConstructedBoardTest : Test
