@@ -15,7 +15,7 @@ slideUpTest =
             , "0 0 0 0"
             ]
                 |> fromStrings
-                |> slide
+                |> slide Left
                 |> expectBoardEqual
                     [ "1 0 0 0"
                     , "1 0 0 0"
@@ -24,9 +24,15 @@ slideUpTest =
                     ]
 
 
-slide : Board -> Board
-slide =
-    Vector4.map slideRowLeft
+type Dir
+    = Left
+
+
+slide : Dir -> Board -> Board
+slide dir =
+    case dir of
+        Left ->
+            Vector4.map slideRowLeft
 
 
 slideRowLeft : Row -> Row
