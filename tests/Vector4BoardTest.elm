@@ -7,7 +7,7 @@ import Vector4Board as Board exposing (Board, Dir(..))
 
 slideTest : Test
 slideTest =
-    describe "Vector4 Slide"
+    describe "Vector4Board Slide"
         [ test "left" <|
             \_ ->
                 [ "0 1 0 0"
@@ -18,10 +18,73 @@ slideTest =
                     |> slide Left
                     |> expectBoardEqual
                         [ "1 0 0 0"
-                        , "3 0 0 0"
-                        , "4 0 0 0"
-                        , "5 5 0 0"
+                        , "2 2 0 0"
+                        , "3 3 0 0"
+                        , "4 4 4 4"
                         ]
+        , test "up" <|
+            \_ ->
+                [ "1 0 0 0"
+                , "6 2 0 0"
+                , "0 0 0 4"
+                , "0 0 5 0"
+                ]
+                    |> slide Up
+                    |> expectBoardEqual
+                        [ "1 2 5 4"
+                        , "6 0 0 0"
+                        , "0 0 0 0"
+                        , "0 0 0 0"
+                        ]
+        , test "right" <|
+            \_ ->
+                [ "1 0 0 0"
+                , "6 2 0 0"
+                , "0 0 0 4"
+                , "0 0 5 0"
+                ]
+                    |> slide Right
+                    |> expectBoardEqual
+                        [ "0 0 0 1"
+                        , "0 0 6 2"
+                        , "0 0 0 4"
+                        , "0 0 0 5"
+                        ]
+        , test "down" <|
+            \_ ->
+                [ "1 0 0 0"
+                , "6 2 0 0"
+                , "0 0 0 4"
+                , "0 0 5 0"
+                ]
+                    |> slide Down
+                    |> expectBoardEqual
+                        [ "0 0 0 0"
+                        , "0 0 0 0"
+                        , "1 0 0 0"
+                        , "6 2 5 4"
+                        ]
+        ]
+
+
+mergeTest : Test
+mergeTest =
+    describe "Vector4Board SlideAndMerge"
+        [ Test.skip <|
+            test "left" <|
+                \_ ->
+                    [ "0 1 0 0"
+                    , "0 2 2 0"
+                    , "0 3 0 3"
+                    , "4 4 4 4"
+                    ]
+                        |> slide Left
+                        |> expectBoardEqual
+                            [ "1 0 0 0"
+                            , "3 0 0 0"
+                            , "4 0 0 0"
+                            , "5 5 0 0"
+                            ]
         , test "up" <|
             \_ ->
                 [ "1 0 0 0"
