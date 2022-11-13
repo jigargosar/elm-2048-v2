@@ -72,7 +72,58 @@ slideRowLeft : Row -> Row
 slideRowLeft row =
     Vector4.toList row
         |> List.filter (\v -> v > 0)
+        |> List.foldl merge emptyAcc
+        |> accToList
         |> rowFromList
+
+
+type alias Acc =
+    ( Maybe Int, List Int )
+
+
+emptyAcc : Acc
+emptyAcc =
+    ( Nothing, [] )
+
+
+merge : Int -> Acc -> Acc
+merge val ( mbHead, tail ) =
+    case mbHead of
+        Nothing ->
+            ( Just val, tail )
+
+        Just head ->
+            ( Just val, head :: tail )
+
+
+accToList : Acc -> List Int
+accToList ( mbHead, tail ) =
+    let
+        reversedList =
+            case mbHead of
+                Nothing ->
+                    tail
+
+                Just head ->
+                    head :: tail
+    in
+    List.reverse reversedList
+
+
+type Q a
+    = Q (List a)
+
+
+emptyQ =
+    Q []
+
+
+enqueue x (Q reverseList) =
+    Q (x :: reverseList)
+
+
+qToList (Q reverseList) =
+    List.reverse reverseList
 
 
 fromLists : Lists -> Board
