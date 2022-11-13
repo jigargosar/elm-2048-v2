@@ -53,6 +53,21 @@ slideTest =
                         , "0 0 0 4"
                         , "0 0 0 5"
                         ]
+        , test "down" <|
+            \_ ->
+                [ "1 0 0 0"
+                , "6 2 0 0"
+                , "0 0 0 4"
+                , "0 0 5 0"
+                ]
+                    |> fromStrings
+                    |> slide Down
+                    |> expectBoardEqual
+                        [ "0 0 0 0"
+                        , "0 0 0 0"
+                        , "1 0 0 0"
+                        , "6 2 5 4"
+                        ]
         ]
 
 
@@ -60,6 +75,7 @@ type Dir
     = Left
     | Right
     | Up
+    | Down
 
 
 slide : Dir -> Board -> Board
@@ -70,14 +86,23 @@ slide dir board =
 
         Right ->
             board
-                |> Vector4.map
-                    (Vector4.reverse >> slideRowLeft >> Vector4.reverse)
+                |> Vector4.map slideRowRight
 
         Up ->
             board
                 |> rotate
                 |> Vector4.map slideRowLeft
                 |> rotate
+
+        Down ->
+            board
+                |> rotate
+                |> Vector4.map slideRowRight
+                |> rotate
+
+
+slideRowRight =
+    Vector4.reverse >> slideRowLeft >> Vector4.reverse
 
 
 rotate board =
