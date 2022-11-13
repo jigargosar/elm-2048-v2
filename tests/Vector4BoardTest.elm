@@ -1,37 +1,58 @@
-module Vector4BoardTest exposing (slideUpTest)
+module Vector4BoardTest exposing (slideTest)
 
 import Expect
-import Test exposing (Test, test)
+import Test exposing (Test, describe, test)
 import Vector4 exposing (Vector4)
 
 
-slideUpTest : Test
-slideUpTest =
-    test "V4: slide" <|
-        \_ ->
-            [ "0 1 0 0"
-            , "0 1 0 0"
-            , "0 0 0 0"
-            , "0 0 0 0"
-            ]
-                |> fromStrings
-                |> slide Left
-                |> expectBoardEqual
-                    [ "1 0 0 0"
-                    , "1 0 0 0"
-                    , "0 0 0 0"
-                    , "0 0 0 0"
-                    ]
+slideTest : Test
+slideTest =
+    describe "Vector4 Slide"
+        [ test "left" <|
+            \_ ->
+                [ "0 1 0 0"
+                , "0 1 0 0"
+                , "0 0 0 0"
+                , "0 0 0 0"
+                ]
+                    |> fromStrings
+                    |> slide Left
+                    |> expectBoardEqual
+                        [ "1 0 0 0"
+                        , "1 0 0 0"
+                        , "0 0 0 0"
+                        , "0 0 0 0"
+                        ]
+        , test "up?" <|
+            \_ ->
+                [ "0 0 0 0"
+                , "0 1 0 0"
+                , "0 0 1 0"
+                , "0 0 0 0"
+                ]
+                    |> fromStrings
+                    |> slide Up
+                    |> expectBoardEqual
+                        [ "0 1 1 0"
+                        , "0 0 0 0"
+                        , "0 0 0 0"
+                        , "0 0 0 0"
+                        ]
+        ]
 
 
 type Dir
     = Left
+    | Up
 
 
 slide : Dir -> Board -> Board
 slide dir =
     case dir of
         Left ->
+            Vector4.map slideRowLeft
+
+        Up ->
             Vector4.map slideRowLeft
 
 
