@@ -7,6 +7,7 @@ module Vector4Board exposing
     , toLists
     )
 
+import Fifo as Q exposing (Fifo)
 import Vector4 exposing (Vector4)
 
 
@@ -79,12 +80,12 @@ slideRowLeft row =
 
 
 type alias Acc =
-    ( Maybe Int, Q Int )
+    ( Maybe Int, Fifo Int )
 
 
 emptyAcc : Acc
 emptyAcc =
-    ( Nothing, emptyQ )
+    ( Nothing, Q.empty )
 
 
 merge : Int -> Acc -> Acc
@@ -95,42 +96,17 @@ merge val ( mbLastUnmerged, q ) =
 
         Just lastUnmerged ->
             if val == lastUnmerged then
-                ( Nothing, enqueue (val + 1) q )
+                ( Nothing, Q.enqueue (val + 1) q )
 
             else
-                ( Just val, enqueue lastUnmerged q )
+                ( Just val, Q.enqueue lastUnmerged q )
 
 
 accToList : Acc -> List Int
 accToList ( mbLast, q ) =
     q
-        |> enqueueMaybe mbLast
-        |> qToList
-
-
-type Q a
-    = Q (List a)
-
-
-emptyQ =
-    Q []
-
-
-enqueue x (Q reverseList) =
-    Q (x :: reverseList)
-
-
-enqueueMaybe mbx =
-    case mbx of
-        Nothing ->
-            identity
-
-        Just x ->
-            enqueue x
-
-
-qToList (Q reverseList) =
-    List.reverse reverseList
+        |> Q.enqueueMaybe mbLast
+        |> Q.toList
 
 
 fromLists : Lists -> Board
