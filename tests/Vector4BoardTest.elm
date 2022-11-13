@@ -25,16 +25,16 @@ slideTest =
                         ]
         , test "up?" <|
             \_ ->
-                [ "0 0 0 0"
-                , "0 1 0 0"
-                , "0 0 1 0"
-                , "0 0 0 0"
+                [ "1 0 0 0"
+                , "6 2 0 0"
+                , "0 0 0 4"
+                , "0 0 5 0"
                 ]
                     |> fromStrings
                     |> slide Up
                     |> expectBoardEqual
-                        [ "0 1 1 0"
-                        , "0 0 0 0"
+                        [ "1 2 5 4"
+                        , "6 0 0 0"
                         , "0 0 0 0"
                         , "0 0 0 0"
                         ]
@@ -47,13 +47,26 @@ type Dir
 
 
 slide : Dir -> Board -> Board
-slide dir =
+slide dir board =
     case dir of
         Left ->
-            Vector4.map slideRowLeft
+            Vector4.map slideRowLeft board
 
         Up ->
-            Vector4.map slideRowLeft
+            board
+                |> rotate
+                |> Debug.log "Debug: "
+                |> Vector4.map slideRowLeft
+                |> Debug.log "Debug: "
+                |> rotate
+
+
+rotate board =
+    Vector4.map4 Vector4.from4
+        (Vector4.get Vector4.Index0 board)
+        (Vector4.get Vector4.Index1 board)
+        (Vector4.get Vector4.Index2 board)
+        (Vector4.get Vector4.Index3 board)
 
 
 slideRowLeft : Row -> Row
