@@ -31,7 +31,7 @@ isValidPos ( x, y ) =
 suite : Test
 suite =
     Test.describe "Manually constructed board for testing"
-        [ Test.fuzz fuzzInt2Set "with arbitrary positions but single value" <|
+        [ Test.fuzz fuzzInt2Set "should only store valid positions" <|
             \positionSet ->
                 let
                     positions =
