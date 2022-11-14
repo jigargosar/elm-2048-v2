@@ -5,8 +5,9 @@ import Css exposing (absolute, backgroundColor, borderBox, boxSizing, color, col
 import Css.Global as Global
 import Css.Media exposing (grid)
 import Html
-import Html.Styled exposing (Html, div, text)
+import Html.Styled exposing (Html, button, div, text)
 import Html.Styled.Attributes exposing (css)
+import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
 
 
@@ -43,11 +44,13 @@ initItem i =
 
 
 type Msg
-    = Msg
+    = Shuffle
 
 
 update msg model =
-    model
+    case msg of
+        Shuffle ->
+            model
 
 
 view : Model -> Html.Html Msg
@@ -67,7 +70,18 @@ view model =
                     , color (hsl 0 0 0.8)
                     ]
                 ]
-            , viewList model.list
+            , div
+                [ css
+                    [ padding <| px 20
+                    , displayFlexColumn
+                    , gap "20px"
+                    ]
+                ]
+                [ div [ css [ displayFlex ] ]
+                    [ button [ onClick Shuffle ] [ text "SHUFFLE" ]
+                    ]
+                , viewList model.list
+                ]
             ]
 
 
@@ -77,7 +91,6 @@ viewList list =
         [ css
             [ displayGrid
             , position relative
-            , padding <| px 20
             ]
         ]
         (List.indexedMap viewKeyedItem list)
@@ -113,3 +126,7 @@ displayFlexColumn =
 
 h100 =
     height (pct 100)
+
+
+gap =
+    property "gap"
