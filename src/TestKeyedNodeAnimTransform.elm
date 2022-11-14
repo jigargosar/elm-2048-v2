@@ -66,8 +66,16 @@ update msg model =
 
 
 shuffleList2 list =
-    List.reverse list
+    list
+        |> List.indexedMap Tuple.pair
+        |> List.filter (Tuple.first >> modBy 4 >> eq 0 >> not)
+        |> List.map Tuple.second
+        |> List.reverse
         |> List.indexedMap setSortIndex
+
+
+eq =
+    (==)
 
 
 shuffleList list =
