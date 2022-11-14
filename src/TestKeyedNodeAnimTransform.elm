@@ -62,7 +62,7 @@ viewList list =
         [ css
             [ displayGrid
             , position relative
-            , padding <| px 10
+            , padding <| px 20
             ]
         ]
         (List.map viewKeyedItem list)
@@ -80,9 +80,8 @@ viewKeyedItem i =
             [ backgroundColor <| hsl 0 0 0.3
             , padding <| px 10
             , position relative
-            , Css.margin2 zero (px 10)
             , property "grid-area" "1/1"
-            , Css.transform <| Css.translateY <| pct <| 100 * toFloat (i - 1)
+            , Css.transform <| Css.translateY <| pct <| 120 * toFloat (i - 1)
             ]
         ]
         [ text string ]
