@@ -21,6 +21,7 @@ NEXT STEPS:
     * Complex Shit.
 * [ ] React: figure out how keyed v-dom nodes behave
       when their dom order is shuffled
+      * same issues!!!
 * [ ]create 2 implementations 
   * [x] one only with core logic
   * [ ] another for transition.
