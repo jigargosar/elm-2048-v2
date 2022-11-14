@@ -15,26 +15,43 @@
 <script type="text/babel">
 
   function MyApp() {
-    const [list, setList] = React.useState(//
-      Array(10)
-      .fill(0)
-      .map((_, i) => ({title: `${i + 1}`, sortIndex: i})), //
+    const [state, setState] = React.useState(//
+      () => ({
+        list: Array(10)
+        .fill(0)
+        .map((_, i) => ({title: `${i + 1}`, index: i})),
+      }), //
     )
+
+    React.useEffect(() => {
+      const id = setInterval(() => {
+        setState(state => ({
+          list: state.list.sort(() => Math.random() - 0.5)
+          .map(({title}, index) => ({title, index})),
+        }))
+
+      }, 1000)
+      return (() => clearInterval(id))
+    }, [])
+
     return <>
       <h1>Hello, world!</h1>
       <h2>
         <div style={{//
           display: 'grid', position: 'relative', padding: '10px',
         }}>
-          {list.map(//
-            item =>// 
+          {state.list //
+          .sort((a, b) => a.title.localeCompare(b.title, [], {numeric: true}))//
+          .map(//
+            (item) =>// 
               <div key={item.title}
                    style={{
                      gridArea: '1/1',// 
                      padding: '10px',//
                      background: 'hsl(0deg 0% 70%)',// 
                      position: 'relative',//
-                     transform: `translateY(${item.sortIndex * 120}%)`,
+                     transform: `translateY(${item.index * 120}%)`,
+                     transition: 'transform 500ms ease',
                    }}>
                 {item.title}
               </div>)}
