@@ -10,6 +10,8 @@ import Html.Styled exposing (Html, button, div, text)
 import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
+import Random exposing (Seed)
+import Random.List
 
 
 main : Program () Model Msg
@@ -22,15 +24,20 @@ main =
 
 
 type alias Model =
-    { list : List Item }
+    { list : List Item
+    , seed : Seed
+    }
 
 
+init : Model
 init =
-    { list = List.range 0 9 |> List.map initItem }
+    { list = List.range 0 9 |> List.map initItem
+    , seed = Random.initialSeed 0
+    }
 
 
 type alias Item =
-    { key : String
+    { domSortIndex : Int
     , title : String
     , sortIndex : Int
     }
@@ -47,7 +54,7 @@ initItem i =
         string =
             String.fromInt (i + 1)
     in
-    { key = string, title = string, sortIndex = i }
+    { domSortIndex = i, title = string, sortIndex = i }
 
 
 type Msg
@@ -57,11 +64,15 @@ type Msg
 update msg model =
     case msg of
         Shuffle ->
+            let
+                ( list, seed ) =
+                    Random.step
+                        (Random.List.shuffle model.list)
+                        model.seed
+            in
             { model
-                | list =
-                    shuffleList model.list
-                        |> always (List.reverse model.list)
-                        |> always (shuffleList2 model.list)
+                | list = List.indexedMap setSortIndex list
+                , seed = seed
             }
 
 
@@ -128,14 +139,14 @@ viewList list =
             ]
         ]
         (list
-            --|> List.sortBy .key
+            |> List.sortBy .domSortIndex
             |> List.map viewKeyedItem
         )
 
 
 viewKeyedItem : Item -> ( String, Html msg )
 viewKeyedItem item =
-    ( item.key
+    ( item.title
     , div
         [ css
             [ backgroundColor <| hsl 0 0 0.3
@@ -143,7 +154,7 @@ viewKeyedItem item =
             , position relative
             , property "grid-area" "1/1"
             , Css.transform <| Css.translateY <| pct <| 120 * toFloat item.sortIndex
-            , transition [ Transitions.transform3 500 0 Transitions.easeIn ]
+            , transition [ Transitions.transform3 500 0 Transitions.ease ]
             ]
         ]
         [ text item.title ]
