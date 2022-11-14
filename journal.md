@@ -13,6 +13,12 @@ NEXT STEPS:
     * For example, if the list is reversed.
     * Item deletions will also cause problems, when combined with shuffling of
     * items.
+    * when new nodes are mapped to existing items
+    * transitions end abruptly, and animations are reapplied.
+    * and when nodes get reused because of lack of key
+    * unforeseen transitions are carried over. 
+    * And animations don't start if they were shared with previous node.
+    * Complex Shit.
 * [ ]create 2 implementations 
   * [x] one only with core logic
   * [ ] another for transition.
