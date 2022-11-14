@@ -26,11 +26,7 @@ update msg model =
 
 view model =
     Html.Styled.toUnstyled <|
-        div
-            [ css
-                [ padding (px 20)
-                ]
-            ]
+        div []
             [ Global.global
                 [ Global.body
                     [ displayGrid
@@ -41,7 +37,13 @@ view model =
                     , color (hsl 0 0 0.8)
                     ]
                 ]
-            , text "HW"
+            , div
+                [ css
+                    [ padding (px 20)
+                    ]
+                ]
+                [ text "HW"
+                ]
             ]
 
 
