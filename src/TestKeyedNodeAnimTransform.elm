@@ -6,6 +6,7 @@ import Css.Global as Global
 import Css.Media exposing (grid)
 import Html.Styled exposing (div, text)
 import Html.Styled.Attributes exposing (css)
+import Html.Styled.Keyed as Keyed
 
 
 main =
@@ -37,14 +38,30 @@ view model =
                     , color (hsl 0 0 0.8)
                     ]
                 ]
-            , div
-                [ css
-                    [ padding (px 20)
-                    ]
-                ]
-                [ text "HW"
-                ]
+            , viewList model.list
             ]
+
+
+viewList list =
+    Keyed.ol
+        [ css
+            [ padding (px 20)
+            , displayFlexColumn
+            ]
+        ]
+        (List.map viewKeyedItem list)
+
+
+viewKeyedItem string =
+    ( string
+    , div
+        [ css
+            [ padding <| px 10
+            , backgroundColor <| hsl 0 0 0.3
+            ]
+        ]
+        [ text string ]
+    )
 
 
 displayGrid =
