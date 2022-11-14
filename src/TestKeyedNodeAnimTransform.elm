@@ -1,7 +1,7 @@
 module TestKeyedNodeAnimTransform exposing (main)
 
 import Browser
-import Css exposing (backgroundColor, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, margin, minHeight, monospace, padding, pct, property, px, rgb, row, vh)
+import Css exposing (absolute, backgroundColor, borderBox, boxSizing, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, margin, minHeight, monospace, padding, pct, position, property, px, relative, rgb, row, vh, width)
 import Css.Global as Global
 import Css.Media exposing (grid)
 import Html
@@ -40,7 +40,10 @@ view model =
     Html.Styled.toUnstyled <|
         div []
             [ Global.global
-                [ Global.body
+                [ Global.everything
+                    [ boxSizing borderBox
+                    ]
+                , Global.body
                     [ displayGrid
                     , h100
                     , fontSize (px 20)
@@ -55,10 +58,10 @@ view model =
 
 viewList : List Int -> Html Msg
 viewList list =
-    Keyed.ol
+    Keyed.node "div"
         [ css
-            [ padding (px 20)
-            , displayFlexColumn
+            [ displayGrid
+            , position relative
             ]
         ]
         (List.map viewKeyedItem list)
@@ -73,13 +76,21 @@ viewKeyedItem i =
     ( string
     , div
         [ css
-            [ padding <| px 10
-            , margin <| px 3
-            , backgroundColor <| hsl 0 0 0.3
+            [ backgroundColor <| hsl 0 0 0.3
+            , padding <| px 10
+            , position relative
+            , property "grid-area" "1/1"
+
+            --, w100
+            , Css.transform <| Css.translateY <| pct <| 100 * toFloat (i - 1)
             ]
         ]
         [ text string ]
     )
+
+
+w100 =
+    width <| pct 100
 
 
 displayGrid =
