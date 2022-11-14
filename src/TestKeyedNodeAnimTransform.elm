@@ -50,7 +50,16 @@ type Msg
 update msg model =
     case msg of
         Shuffle ->
-            model
+            { model | list = shuffleList model.list }
+
+
+shuffleList list =
+    case list of
+        [] ->
+            []
+
+        h :: t ->
+            t ++ [ h ]
 
 
 view : Model -> Html.Html Msg
