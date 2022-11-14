@@ -11,7 +11,8 @@ NEXT STEPS:
     * item order needs to be maintained, or else new nodes might get
     * created, even for keyed items. if they move too much in the list.
     * For example, if the list is reversed.
-    * Item deletions will also cause problems??
+    * Item deletions will also cause problems, when combined with shuffling of
+    * items.
 * [ ]create 2 implementations 
   * [x] one only with core logic
   * [ ] another for transition.

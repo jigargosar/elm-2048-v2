@@ -128,7 +128,7 @@ viewList list =
             ]
         ]
         (list
-            |> List.sortBy .key
+            --|> List.sortBy .key
             |> List.map viewKeyedItem
         )
 
