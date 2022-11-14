@@ -1,7 +1,7 @@
 module TestKeyedNodeAnimTransform exposing (main)
 
 import Browser
-import Css exposing (absolute, backgroundColor, borderBox, boxSizing, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, margin, minHeight, monospace, padding, pct, position, property, px, relative, rgb, row, vh, width)
+import Css exposing (absolute, backgroundColor, borderBox, boxSizing, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, margin, minHeight, monospace, padding, pct, position, property, px, relative, rgb, row, vh, width, zero)
 import Css.Global as Global
 import Css.Media exposing (grid)
 import Html
@@ -62,6 +62,7 @@ viewList list =
         [ css
             [ displayGrid
             , position relative
+            , padding <| px 10
             ]
         ]
         (List.map viewKeyedItem list)
@@ -79,9 +80,8 @@ viewKeyedItem i =
             [ backgroundColor <| hsl 0 0 0.3
             , padding <| px 10
             , position relative
+            , Css.margin2 zero (px 10)
             , property "grid-area" "1/1"
-
-            --, w100
             , Css.transform <| Css.translateY <| pct <| 100 * toFloat (i - 1)
             ]
         ]
