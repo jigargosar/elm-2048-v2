@@ -1,14 +1,16 @@
 module TestKeyedNodeAnimTransform exposing (main)
 
 import Browser
-import Css exposing (backgroundColor, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, minHeight, monospace, padding, pct, property, px, rgb, row, vh)
+import Css exposing (backgroundColor, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, margin, minHeight, monospace, padding, pct, property, px, rgb, row, vh)
 import Css.Global as Global
 import Css.Media exposing (grid)
-import Html.Styled exposing (div, text)
+import Html
+import Html.Styled exposing (Html, div, text)
 import Html.Styled.Attributes exposing (css)
 import Html.Styled.Keyed as Keyed
 
 
+main : Program () Model Msg
 main =
     Browser.sandbox
         { init = init
@@ -17,14 +19,23 @@ main =
         }
 
 
+type alias Model =
+    { list : List Int }
+
+
 init =
-    { list = List.range 1 10 |> List.map String.fromInt }
+    { list = List.range 1 10 }
+
+
+type Msg
+    = Msg
 
 
 update msg model =
     model
 
 
+view : Model -> Html.Html Msg
 view model =
     Html.Styled.toUnstyled <|
         div []
@@ -42,6 +53,7 @@ view model =
             ]
 
 
+viewList : List Int -> Html Msg
 viewList list =
     Keyed.ol
         [ css
@@ -52,11 +64,17 @@ viewList list =
         (List.map viewKeyedItem list)
 
 
-viewKeyedItem string =
+viewKeyedItem : Int -> ( String, Html msg )
+viewKeyedItem i =
+    let
+        string =
+            String.fromInt i
+    in
     ( string
     , div
         [ css
             [ padding <| px 10
+            , margin <| px 3
             , backgroundColor <| hsl 0 0 0.3
             ]
         ]
