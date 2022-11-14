@@ -20,11 +20,26 @@ main =
 
 
 type alias Model =
-    { list : List Int }
+    { list : List Item }
 
 
 init =
-    { list = List.range 1 10 }
+    { list = List.range 0 9 |> List.map initItem }
+
+
+type alias Item =
+    { key : String
+    , title : String
+    }
+
+
+initItem : Int -> Item
+initItem i =
+    let
+        string =
+            String.fromInt (i + 1)
+    in
+    { key = string, title = string }
 
 
 type Msg
@@ -56,7 +71,7 @@ view model =
             ]
 
 
-viewList : List Int -> Html Msg
+viewList : List Item -> Html Msg
 viewList list =
     Keyed.node "div"
         [ css
@@ -65,26 +80,22 @@ viewList list =
             , padding <| px 20
             ]
         ]
-        (List.map viewKeyedItem list)
+        (List.indexedMap viewKeyedItem list)
 
 
-viewKeyedItem : Int -> ( String, Html msg )
-viewKeyedItem i =
-    let
-        string =
-            String.fromInt i
-    in
-    ( string
+viewKeyedItem : Int -> Item -> ( String, Html msg )
+viewKeyedItem sortIndex item =
+    ( item.key
     , div
         [ css
             [ backgroundColor <| hsl 0 0 0.3
             , padding <| px 10
             , position relative
             , property "grid-area" "1/1"
-            , Css.transform <| Css.translateY <| pct <| 120 * toFloat (i - 1)
+            , Css.transform <| Css.translateY <| pct <| 120 * toFloat sortIndex
             ]
         ]
-        [ text string ]
+        [ text item.title ]
     )
 
 
