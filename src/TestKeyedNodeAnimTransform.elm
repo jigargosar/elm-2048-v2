@@ -31,8 +31,7 @@ view model =
                 [ padding (px 20)
                 ]
             ]
-            [ text "HW"
-            , Global.global
+            [ Global.global
                 [ Global.body
                     [ displayGrid
                     , h100
@@ -42,6 +41,7 @@ view model =
                     , color (hsl 0 0 0.8)
                     ]
                 ]
+            , text "HW"
             ]
 
 
