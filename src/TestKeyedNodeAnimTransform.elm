@@ -4,6 +4,7 @@ import Browser
 import Css exposing (absolute, backgroundColor, borderBox, boxSizing, color, column, display, displayFlex, flexDirection, fontFamily, fontSize, height, hsl, margin, minHeight, monospace, padding, pct, position, property, px, relative, rgb, row, vh, width, zero)
 import Css.Global as Global
 import Css.Media exposing (grid)
+import Css.Transitions as Transitions exposing (transition)
 import Html
 import Html.Styled exposing (Html, button, div, text)
 import Html.Styled.Attributes exposing (css)
@@ -50,7 +51,11 @@ type Msg
 update msg model =
     case msg of
         Shuffle ->
-            { model | list = shuffleList model.list }
+            { model
+                | list =
+                    shuffleList model.list
+                        |> always (List.reverse model.list)
+            }
 
 
 shuffleList list =
@@ -115,6 +120,7 @@ viewKeyedItem sortIndex item =
             , position relative
             , property "grid-area" "1/1"
             , Css.transform <| Css.translateY <| pct <| 120 * toFloat sortIndex
+            , transition [ Transitions.transform 500 ]
             ]
         ]
         [ text item.title ]
