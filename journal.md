@@ -3,7 +3,7 @@
 NEXT STEPS:
 * [x] move in other dirs.
 * [x] arrow key handling
-* [ ] figure out how keyed v-dom nodes behave
+* [x] figure out how keyed v-dom nodes behave
   when their dom order is shuffled.
     * what happens to their transforms/animations.
     * Answer: 
