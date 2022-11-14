@@ -32,7 +32,13 @@ init =
 type alias Item =
     { key : String
     , title : String
+    , sortIndex : Int
     }
+
+
+setSortIndex : Int -> Item -> Item
+setSortIndex sortIndex item =
+    { item | sortIndex = sortIndex }
 
 
 initItem : Int -> Item
@@ -41,7 +47,7 @@ initItem i =
         string =
             String.fromInt (i + 1)
     in
-    { key = string, title = string }
+    { key = string, title = string, sortIndex = i }
 
 
 type Msg
@@ -55,7 +61,13 @@ update msg model =
                 | list =
                     shuffleList model.list
                         |> always (List.reverse model.list)
+                        |> always (shuffleList2 model.list)
             }
+
+
+shuffleList2 list =
+    List.reverse list
+        |> List.indexedMap setSortIndex
 
 
 shuffleList list =
@@ -107,11 +119,14 @@ viewList list =
             , position relative
             ]
         ]
-        (List.indexedMap viewKeyedItem list)
+        (list
+            |> List.sortBy .key
+            |> List.map viewKeyedItem
+        )
 
 
-viewKeyedItem : Int -> Item -> ( String, Html msg )
-viewKeyedItem sortIndex item =
+viewKeyedItem : Item -> ( String, Html msg )
+viewKeyedItem item =
     ( item.key
     , div
         [ css
@@ -119,8 +134,8 @@ viewKeyedItem sortIndex item =
             , padding <| px 10
             , position relative
             , property "grid-area" "1/1"
-            , Css.transform <| Css.translateY <| pct <| 120 * toFloat sortIndex
-            , transition [ Transitions.transform 500 ]
+            , Css.transform <| Css.translateY <| pct <| 120 * toFloat item.sortIndex
+            , transition [ Transitions.transform3 500 0 Transitions.easeIn ]
             ]
         ]
         [ text item.title ]
