@@ -19,7 +19,7 @@ NEXT STEPS:
     * unforeseen transitions are carried over. 
     * And animations don't start if they were shared with previous node.
     * Complex Shit.
-* [ ] React: figure out how keyed v-dom nodes behave
+* [x] React: figure out how keyed v-dom nodes behave
       when their dom order is shuffled
       * same issues!!!
 * [ ]create 2 implementations 
