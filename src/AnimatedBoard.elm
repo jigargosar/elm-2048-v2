@@ -2,6 +2,7 @@ module AnimatedBoard exposing (main)
 
 import Browser
 import Css exposing (absolute, backgroundColor, hsl, margin, padding, pct, position, property, px, relative, transforms, translate2, translateY)
+import Css.Transitions as T exposing (transition)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
@@ -101,6 +102,7 @@ viewTile t =
     , div
         [ css
             [ transforms [ translate2 dx dy ]
+            , transition [ T.transform3 300 0 T.easeOut ]
             , property "grid-area" "1/1"
             , displayGrid
             ]
