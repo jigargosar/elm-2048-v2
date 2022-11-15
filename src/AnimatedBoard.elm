@@ -27,7 +27,8 @@ type alias Model =
 
 
 type Msg
-    = SlideUp
+    = Move1SlideUp
+    | Move2SlideRight
 
 
 type alias Flags =
@@ -41,8 +42,12 @@ init _ =
             , { pos = ( 1, 3 ), id = "1", val = 2, anim = InitialEnter }
             ]
       }
-    , Process.sleep 1000
-        |> Task.perform (always SlideUp)
+    , Cmd.batch
+        [ Process.sleep 1000
+            |> Task.perform (always Move1SlideUp)
+        , Process.sleep 2000
+            |> Task.perform (always Move2SlideRight)
+        ]
     )
 
 
@@ -54,13 +59,28 @@ subscriptions _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SlideUp ->
+        Move1SlideUp ->
             ( { model
                 | tiles =
                     [ { pos = ( 1, 0 ), id = "0", val = 2, anim = Exit }
                     , { pos = ( 1, 0 ), id = "1", val = 2, anim = Exit }
                     , { pos = ( 1, 0 ), id = "2", val = 4, anim = MergeEnter }
                     , { pos = ( 3, 0 ), id = "3", val = 4, anim = NewDelayedEnter }
+                    , { pos = ( 3, 3 ), id = "4", val = 2, anim = NewDelayedEnter }
+                    ]
+              }
+            , Cmd.none
+            )
+
+        Move2SlideRight ->
+            ( { model
+                | tiles =
+                    [ { pos = ( 1, 0 ), id = "0", val = 2, anim = Exit }
+                    , { pos = ( 1, 0 ), id = "1", val = 2, anim = Exit }
+                    , { pos = ( 3, 0 ), id = "2", val = 4, anim = Exit }
+                    , { pos = ( 3, 0 ), id = "3", val = 4, anim = Exit }
+                    , { pos = ( 3, 0 ), id = "4", val = 8, anim = MergeEnter }
+                    , { pos = ( 3, 3 ), id = "4", val = 2, anim = Stayed }
                     ]
               }
             , Cmd.none
@@ -101,6 +121,7 @@ type Anim
     | Exit
     | MergeEnter
     | NewDelayedEnter
+    | Stayed
 
 
 type alias Int2 =
