@@ -166,6 +166,7 @@ viewTile t =
         [ css
             [ transforms [ translate2 dx dy ]
             , transition [ T.transform3 300 0 T.easeOut ]
+            , animToStyle t.anim
             , property "grid-area" "1/1"
             , displayGrid
             ]
