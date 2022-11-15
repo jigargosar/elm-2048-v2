@@ -24,7 +24,7 @@ NEXT STEPS:
       * same issues!!!
 * [ ]create 2 implementations 
   * [x] one only with core logic
-  * [ ] another for transition.
+  * [x] another for transition.
 * [ ] get rid of `Process.sleep` for triggering board updates.
   preferably maintain entire board state after a move is performed.
 
@@ -37,7 +37,7 @@ Modeling animations.
 * both will slide and merge into new tile.
 * two more will appear.
 * let slide up be a single scheduled event.
-
+* Wow! done
 
 How to model transitions and board tile logic together?
 * Board can be list of Tiles
