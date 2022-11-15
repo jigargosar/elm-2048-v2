@@ -32,7 +32,9 @@ type alias Tile =
 * Before starting board updates.
 * there are 3 primary types enter/exit/stayed.
 * And a new board will be composed of either an `enter` or a `stayed` tile.
-
+* So with dict of tiles and grid4x4 we can solve this problem.
+* although all the states that are modeled are not ideal.
+* we can get back to modeling after the implementation is complete.
 
 
 
