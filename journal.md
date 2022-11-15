@@ -20,6 +20,7 @@ type alias Tile =
     , anim : Anim
     }
 ```
+* new position
 
 
 
