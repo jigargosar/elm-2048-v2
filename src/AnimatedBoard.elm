@@ -1,7 +1,7 @@
 module AnimatedBoard exposing (main)
 
 import Browser
-import Css exposing (property)
+import Css exposing (absolute, pct, position, property, relative, transforms, translate2, translateY)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes exposing (css)
@@ -57,10 +57,15 @@ viewBoard =
     Keyed.node "div"
         [ css
             [ displayGrid
+            , position relative
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
-        (List.map viewTile [ { pos = ( 0, 0 ), id = "0", val = 2 } ])
+        (List.map viewTile
+            [ { pos = ( 0, 0 ), id = "0", val = 2 }
+            , { pos = ( 0, 0 ), id = "1", val = 4 }
+            ]
+        )
 
 
 type alias Tile =
@@ -74,9 +79,29 @@ type alias Int2 =
     ( Int, Int )
 
 
+mapBothWith fn =
+    Tuple.mapBoth fn fn
+
+
+mul =
+    (*)
+
+
 viewTile : Tile -> ( String, Html Msg )
 viewTile t =
-    ( t.id, div [] [ text <| String.fromInt t.val ] )
+    let
+        ( dx, dy ) =
+            t.pos |> mapBothWith (toFloat >> mul 100 >> pct)
+    in
+    ( t.id
+    , div
+        [ css
+            [ transforms [ translate2 dx dy ]
+            , position absolute
+            ]
+        ]
+        [ text <| String.fromInt t.val ]
+    )
 
 
 displayGrid =
