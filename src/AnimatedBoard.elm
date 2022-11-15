@@ -1,7 +1,7 @@
 module AnimatedBoard exposing (main)
 
 import Browser
-import Css exposing (Style, absolute, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, transforms, translate2, translateY)
+import Css exposing (Style, absolute, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, translateY, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Html
@@ -135,7 +135,7 @@ animToStyle anim =
             batch
                 [ animationName <|
                     keyframes
-                        [ ( 100, [ A.opacity (num 0) ] )
+                        [ ( 100, [ A.opacity zero, A.transform [ scale 0 ] ] )
                         ]
                 , animationDuration <| ms 300
                 , property "animation-fill-mode" "both"
@@ -174,7 +174,6 @@ viewTile t =
         [ css
             [ transforms [ translate2 dx dy ]
             , transition [ T.transform3 300 0 T.easeOut ]
-            , animToStyle t.anim
             , property "grid-area" "1/1"
             , displayGrid
             ]
@@ -185,6 +184,7 @@ viewTile t =
                 , backgroundColor <| hsl 0 0 0.8
                 , displayGrid
                 , placeContentCenter
+                , animToStyle t.anim
                 ]
             , HA.title <| Debug.toString t
             ]
