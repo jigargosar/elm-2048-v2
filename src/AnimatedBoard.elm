@@ -1,7 +1,7 @@
 module AnimatedBoard exposing (main)
 
 import Browser
-import Css exposing (absolute, backgroundColor, hsl, margin, padding, pct, position, property, px, relative, transforms, translate2, translateY)
+import Css exposing (Style, absolute, backgroundColor, batch, hsl, margin, padding, pct, position, property, px, relative, transforms, translate2, translateY)
 import Css.Transitions as T exposing (transition)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
@@ -122,6 +122,25 @@ type Anim
     | MergeEnter
     | NewDelayedEnter
     | Stayed
+
+
+animToStyle : Anim -> Style
+animToStyle anim =
+    case anim of
+        InitialEnter ->
+            batch []
+
+        Exit ->
+            batch []
+
+        MergeEnter ->
+            batch []
+
+        NewDelayedEnter ->
+            batch []
+
+        Stayed ->
+            batch []
 
 
 type alias Int2 =
