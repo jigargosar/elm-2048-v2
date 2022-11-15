@@ -57,13 +57,12 @@ viewBoard =
     Keyed.node "div"
         [ css
             [ displayGrid
-            , position relative
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
         (List.map viewTile
-            [ { pos = ( 0, 0 ), id = "0", val = 2 }
-            , { pos = ( 0, 0 ), id = "1", val = 4 }
+            [ { pos = ( 1, 3 ), id = "0", val = 2 }
+            , { pos = ( 1, 4 ), id = "1", val = 4 }
             ]
         )
 
@@ -97,7 +96,7 @@ viewTile t =
     , div
         [ css
             [ transforms [ translate2 dx dy ]
-            , position absolute
+            , property "grid-area" "1/1"
             ]
         ]
         [ text <| String.fromInt t.val ]
