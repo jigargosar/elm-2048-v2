@@ -1,7 +1,7 @@
 module AnimatedBoard exposing (main)
 
 import Browser
-import Css exposing (absolute, backgroundColor, hsl, pct, position, property, relative, transforms, translate2, translateY)
+import Css exposing (absolute, backgroundColor, hsl, margin, padding, pct, position, property, px, relative, transforms, translate2, translateY)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes exposing (css)
@@ -97,12 +97,25 @@ viewTile t =
         [ css
             [ transforms [ translate2 dx dy ]
             , property "grid-area" "1/1"
-            , backgroundColor <| hsl 0 0 0.8
+            , displayGrid
             ]
         ]
-        [ text <| String.fromInt t.val ]
+        [ div
+            [ css
+                [ margin <| px 3
+                , backgroundColor <| hsl 0 0 0.8
+                , displayGrid
+                , placeContentCenter
+                ]
+            ]
+            [ text <| String.fromInt t.val ]
+        ]
     )
 
 
 displayGrid =
     property "display" "grid"
+
+
+placeContentCenter =
+    property "place-content" "center"
