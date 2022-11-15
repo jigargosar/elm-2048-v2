@@ -85,8 +85,8 @@ type alias Tile =
 
 type Anim
     = InitialEnter
-    | Exit
-    | MergeEnter
+    | MergedExit
+    | MergedEnter
     | NewDelayedEnter
     | Stayed
 
@@ -113,7 +113,7 @@ animToStyle anim =
                 , animFillBoth
                 ]
 
-        Exit ->
+        MergedExit ->
             batch
                 [ animationName <|
                     keyframes
@@ -123,7 +123,7 @@ animToStyle anim =
                 , animFillBoth
                 ]
 
-        MergeEnter ->
+        MergedEnter ->
             batch
                 [ animationNameEnter
                 , animDurationDefault
