@@ -49,6 +49,7 @@ init _ =
         , Process.sleep 2000
             |> Task.perform (always Move2SlideRight)
         ]
+        |> always Cmd.none
     )
 
 
@@ -137,7 +138,15 @@ animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
         InitialEnter ->
-            batch []
+            batch
+                [ animationName <|
+                    keyframes
+                        [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
+                        , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+                        ]
+                , animDurationDefault
+                , animFillBoth
+                ]
 
         Exit ->
             batch
