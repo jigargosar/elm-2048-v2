@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Attempt1 exposing (main)
 
 import Browser
 import Browser.Events
