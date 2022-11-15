@@ -37,8 +37,8 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { tiles =
-            [ { pos = ( 1, 2 ), id = "0", val = 2 }
-            , { pos = ( 1, 3 ), id = "1", val = 2 }
+            [ { pos = ( 1, 2 ), id = "0", val = 2, anim = InitialEnter }
+            , { pos = ( 1, 3 ), id = "1", val = 2, anim = InitialEnter }
             ]
       }
     , Process.sleep 1000
@@ -57,8 +57,8 @@ update msg model =
         SlideUp ->
             ( { model
                 | tiles =
-                    [ { pos = ( 1, 0 ), id = "0", val = 2 }
-                    , { pos = ( 1, 1 ), id = "1", val = 2 }
+                    [ { pos = ( 1, 0 ), id = "0", val = 2, anim = Exit }
+                    , { pos = ( 1, 1 ), id = "1", val = 2, anim = Exit }
                     ]
               }
             , Cmd.none
@@ -90,7 +90,15 @@ type alias Tile =
     { pos : Int2
     , id : String
     , val : Int
+    , anim : Anim
     }
+
+
+type Anim
+    = InitialEnter
+    | Exit
+    | MergeEnter
+    | New
 
 
 type alias Int2 =
