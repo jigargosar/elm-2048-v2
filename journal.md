@@ -20,8 +20,18 @@ type alias Tile =
     , anim : Anim
     }
 ```
-* new position
-
+* position & anim updates for existing tiles,
+  as well as new tiles can be derived from grid.
+* input grid cell : {id,val}
+* intermediate cell: `Merged id id val | Updated id val`.
+* update exit tiles from merged  
+  and stayed tiles from updated.
+* at this point no tiles should be in state of:
+  InitialEnter, MergedEnter, NewEnter
+* i.e. all enter `anims` should be changed to `stayed`.
+* Before starting board updates.
+* there are 3 primary types enter/exit/stayed.
+* And a new board will be composed of either an `enter` or a `stayed` tile.
 
 
 
