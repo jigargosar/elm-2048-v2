@@ -68,7 +68,7 @@ viewBoard =
         ]
         (List.map viewTile
             [ { pos = ( 1, 2 ), id = "0", val = 2 }
-            , { pos = ( 1, 3 ), id = "1", val = 4 }
+            , { pos = ( 1, 3 ), id = "1", val = 2 }
             ]
         )
 
