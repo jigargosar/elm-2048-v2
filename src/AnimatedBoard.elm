@@ -19,8 +19,9 @@ main =
         }
 
 
-type Model
-    = Model
+type alias Model =
+    { tiles : List Tile
+    }
 
 
 type Msg
@@ -33,7 +34,13 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd msg )
 init _ =
-    ( Model, Cmd.none )
+    ( { tiles =
+            [ { pos = ( 1, 2 ), id = "0", val = 2 }
+            , { pos = ( 1, 3 ), id = "1", val = 2 }
+            ]
+      }
+    , Cmd.none
+    )
 
 
 subscriptions : Model -> Sub Msg
@@ -49,16 +56,16 @@ update msg model =
 
 
 view : Model -> Html.Html Msg
-view _ =
+view model =
     toUnstyled <|
-        div [] [ viewBoard ]
+        div [] [ viewBoard model.tiles ]
 
 
 attrId =
     HA.id
 
 
-viewBoard =
+viewBoard tiles =
     Keyed.node "div"
         [ attrId "mainBoard"
         , css
@@ -66,11 +73,7 @@ viewBoard =
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
-        (List.map viewTile
-            [ { pos = ( 1, 2 ), id = "0", val = 2 }
-            , { pos = ( 1, 3 ), id = "1", val = 2 }
-            ]
-        )
+        (List.map viewTile tiles)
 
 
 type alias Tile =
