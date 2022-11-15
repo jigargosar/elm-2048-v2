@@ -49,7 +49,7 @@ init _ =
         , Process.sleep 2000
             |> Task.perform (always Move2SlideRight)
         ]
-        |> always Cmd.none
+      --|> always Cmd.none
     )
 
 
@@ -139,11 +139,7 @@ animToStyle anim =
     case anim of
         InitialEnter ->
             batch
-                [ animationName <|
-                    keyframes
-                        [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
-                        , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-                        ]
+                [ animationNameEnter
                 , animDurationDefault
                 , animFillBoth
                 ]
@@ -159,13 +155,25 @@ animToStyle anim =
                 ]
 
         MergeEnter ->
-            batch []
+            batch
+                [ animationNameEnter
+                , animDurationDefault
+                , animFillBoth
+                ]
 
         NewDelayedEnter ->
             batch []
 
         Stayed ->
             batch []
+
+
+animationNameEnter =
+    animationName <|
+        keyframes
+            [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
+            , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+            ]
 
 
 type alias Int2 =
