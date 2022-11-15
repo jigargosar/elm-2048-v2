@@ -125,6 +125,14 @@ type Anim
     | Stayed
 
 
+animDurationDefault =
+    animationDuration <| ms 300
+
+
+animFillBoth =
+    property "animation-fill-mode" "both"
+
+
 animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
@@ -137,8 +145,8 @@ animToStyle anim =
                     keyframes
                         [ ( 100, [ A.opacity zero, A.transform [ scale 0 ] ] )
                         ]
-                , animationDuration <| ms 300
-                , property "animation-fill-mode" "both"
+                , animDurationDefault
+                , animFillBoth
                 ]
 
         MergeEnter ->
