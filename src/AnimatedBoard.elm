@@ -58,7 +58,9 @@ update msg model =
             ( { model
                 | tiles =
                     [ { pos = ( 1, 0 ), id = "0", val = 2, anim = Exit }
-                    , { pos = ( 1, 1 ), id = "1", val = 2, anim = Exit }
+                    , { pos = ( 1, 0 ), id = "1", val = 2, anim = Exit }
+                    , { pos = ( 1, 0 ), id = "2", val = 4, anim = MergeEnter }
+                    , { pos = ( 3, 0 ), id = "3", val = 4, anim = NewDelayedEnter }
                     ]
               }
             , Cmd.none
@@ -98,7 +100,7 @@ type Anim
     = InitialEnter
     | Exit
     | MergeEnter
-    | New
+    | NewDelayedEnter
 
 
 type alias Int2 =
