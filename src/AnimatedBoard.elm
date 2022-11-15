@@ -1,7 +1,8 @@
 module AnimatedBoard exposing (main)
 
 import Browser
-import Css exposing (Style, absolute, backgroundColor, batch, hsl, margin, padding, pct, position, property, px, relative, transforms, translate2, translateY)
+import Css exposing (Style, absolute, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, transforms, translate2, translateY)
+import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
@@ -131,7 +132,14 @@ animToStyle anim =
             batch []
 
         Exit ->
-            batch []
+            batch
+                [ animationName <|
+                    keyframes
+                        [ ( 100, [ A.opacity (num 0) ] )
+                        ]
+                , animationDuration <| ms 300
+                , property "animation-fill-mode" "both"
+                ]
 
         MergeEnter ->
             batch []
