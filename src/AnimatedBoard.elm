@@ -168,6 +168,7 @@ animToStyle anim =
             batch []
 
 
+animationNameEnter : Style
 animationNameEnter =
     animationName <|
         keyframes
