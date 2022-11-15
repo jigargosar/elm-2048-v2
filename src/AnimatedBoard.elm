@@ -158,8 +158,12 @@ viewTile t =
                 , displayGrid
                 , placeContentCenter
                 ]
+            , HA.title <| Debug.toString t
             ]
-            [ text <| String.fromInt t.val ]
+            [ text <| String.fromInt t.val
+
+            --, div [css []] [text <| Debug.toString t
+            ]
         ]
     )
 
