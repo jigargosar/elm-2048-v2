@@ -1,8 +1,11 @@
 module AnimatedBoard exposing (main)
 
 import Browser
+import Css exposing (property)
 import Html
-import Html.Styled exposing (div, text, toUnstyled)
+import Html.Styled exposing (Html, div, text, toUnstyled)
+import Html.Styled.Attributes exposing (css)
+import Html.Styled.Keyed as Keyed
 
 
 main : Program Flags Model Msg
@@ -47,4 +50,30 @@ update msg model =
 view : Model -> Html.Html Msg
 view _ =
     toUnstyled <|
-        div [] [ text "HW" ]
+        div [] [ viewBoard ]
+
+
+viewBoard =
+    Keyed.node "div"
+        [ css [ displayGrid, property "grid-area" "4fr/4fr" ] ]
+        (List.map viewTile [ { pos = ( 0, 0 ), id = "0", val = 2 } ])
+
+
+type alias Tile =
+    { pos : Int2
+    , id : String
+    , val : Int
+    }
+
+
+type alias Int2 =
+    ( Int, Int )
+
+
+viewTile : Tile -> ( String, Html Msg )
+viewTile t =
+    ( t.id, div [] [ text <| String.fromInt t.val ] )
+
+
+displayGrid =
+    property "display" "grid"
