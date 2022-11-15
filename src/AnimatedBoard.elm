@@ -4,7 +4,7 @@ import Browser
 import Css exposing (absolute, backgroundColor, hsl, margin, padding, pct, position, property, px, relative, transforms, translate2, translateY)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
-import Html.Styled.Attributes exposing (css)
+import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
 
 
@@ -53,9 +53,14 @@ view _ =
         div [] [ viewBoard ]
 
 
+attrId =
+    HA.id
+
+
 viewBoard =
     Keyed.node "div"
-        [ css
+        [ attrId "mainBoard"
+        , css
             [ displayGrid
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
