@@ -10,6 +10,10 @@ NEXT STEPS:
 
 Problem-Solving:
 
+What will be initial state?
+* {tiles: Dict Id Tile, grid: Grid Id}
+* what is id? val? idVal? why should they be separate?
+* 
 How to merge implementations?
 * List Tile `<->` Grid4x4 Int
 ```
