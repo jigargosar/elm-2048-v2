@@ -57,7 +57,7 @@ viewBoard =
     Keyed.node "div"
         [ css
             [ displayGrid
-            , property "grid-template" "repeat(4, 30px)/repeat(4, 30px)"
+            , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
         (List.map viewTile [ { pos = ( 0, 0 ), id = "0", val = 2 } ])
