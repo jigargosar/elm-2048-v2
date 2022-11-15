@@ -1,7 +1,7 @@
 module AnimatedBoard exposing (main)
 
 import Browser
-import Css exposing (Style, absolute, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, translateY, zero)
+import Css exposing (Style, absolute, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, translateY, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Html
@@ -46,8 +46,9 @@ init _ =
     , Cmd.batch
         [ Process.sleep 1000
             |> Task.perform (always Move1SlideUp)
-        , Process.sleep 2000
-            |> Task.perform (always Move2SlideRight)
+
+        --, Process.sleep 2000
+        --    |> Task.perform (always Move2SlideRight)
         ]
       --|> always Cmd.none
     )
@@ -81,8 +82,8 @@ update msg model =
                     , { pos = ( 1, 0 ), id = "1", val = 2, anim = Exit }
                     , { pos = ( 3, 0 ), id = "2", val = 4, anim = Exit }
                     , { pos = ( 3, 0 ), id = "3", val = 4, anim = Exit }
-                    , { pos = ( 3, 0 ), id = "4", val = 8, anim = MergeEnter }
                     , { pos = ( 3, 3 ), id = "4", val = 2, anim = Stayed }
+                    , { pos = ( 3, 0 ), id = "5", val = 8, anim = MergeEnter }
                     ]
               }
             , Cmd.none
@@ -130,6 +131,10 @@ animDurationDefault =
     animationDuration <| ms 300
 
 
+animationDelayForNew =
+    animationDelay <| ms 400
+
+
 animFillBoth =
     property "animation-fill-mode" "both"
 
@@ -162,7 +167,12 @@ animToStyle anim =
                 ]
 
         NewDelayedEnter ->
-            batch []
+            batch
+                [ animationNameEnter
+                , animDurationDefault
+                , animFillBoth
+                , animationDelayForNew
+                ]
 
         Stayed ->
             batch []
