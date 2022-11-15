@@ -46,9 +46,8 @@ init _ =
     , Cmd.batch
         [ Process.sleep 1000
             |> Task.perform (always Move1SlideUp)
-
-        --, Process.sleep 2000
-        --    |> Task.perform (always Move2SlideRight)
+        , Process.sleep 2000
+            |> Task.perform (always Move2SlideRight)
         ]
       --|> always Cmd.none
     )
