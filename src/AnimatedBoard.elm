@@ -7,6 +7,8 @@ import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
+import Process
+import Task
 
 
 main : Program Flags Model Msg
@@ -25,21 +27,22 @@ type alias Model =
 
 
 type Msg
-    = Msg
+    = SlideUp
 
 
 type alias Flags =
     ()
 
 
-init : Flags -> ( Model, Cmd msg )
+init : Flags -> ( Model, Cmd Msg )
 init _ =
     ( { tiles =
             [ { pos = ( 1, 2 ), id = "0", val = 2 }
             , { pos = ( 1, 3 ), id = "1", val = 2 }
             ]
       }
-    , Cmd.none
+    , Process.sleep 1000
+        |> Task.perform (always SlideUp)
     )
 
 
@@ -51,7 +54,7 @@ subscriptions _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Msg ->
+        SlideUp ->
             ( model, Cmd.none )
 
 
