@@ -55,7 +55,14 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SlideUp ->
-            ( model, Cmd.none )
+            ( { model
+                | tiles =
+                    [ { pos = ( 1, 0 ), id = "0", val = 2 }
+                    , { pos = ( 1, 1 ), id = "1", val = 2 }
+                    ]
+              }
+            , Cmd.none
+            )
 
 
 view : Model -> Html.Html Msg
