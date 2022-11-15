@@ -31,6 +31,14 @@ NEXT STEPS:
 
 Problem-Solving:
 
+Modeling animations.
+* let's focus on animations, without worrying about core game logic.
+* two tiles will appear.
+* both will slide and merge into new tile.
+* two more will appear.
+* let slide up be a single scheduled event.
+
+
 How to model transitions and board tile logic together?
 * Board can be list of Tiles
 * type Tile/State = TNew Pos Val | TMoved Pos Val | TExit Pos Val | TMerged Pos Val
