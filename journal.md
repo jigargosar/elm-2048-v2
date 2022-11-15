@@ -1,4 +1,40 @@
-## RECORDING ON 11-11-22
+## RECORDING ON 15-11-22
+
+CURRENT STATE:
+* We have 2 implementations with and without animations.
+
+NEXT STEPS:
+* Merge implementations. (with and without animation)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## RECORDING ON 11-11-22, ARCHIVED ON 15-11-22
 
 NEXT STEPS:
 * [x] move in other dirs.
