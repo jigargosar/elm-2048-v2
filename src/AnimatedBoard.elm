@@ -64,8 +64,8 @@ update msg model =
         Move1SlideUp ->
             ( { model
                 | tiles =
-                    [ { pos = ( 1, 0 ), id = "0", val = 2, anim = Exit }
-                    , { pos = ( 1, 0 ), id = "1", val = 2, anim = Exit }
+                    [ { pos = ( 1, 0 ), id = "0", val = 2, anim = MergedExit }
+                    , { pos = ( 1, 0 ), id = "1", val = 2, anim = MergedExit }
                     , { pos = ( 1, 0 ), id = "2", val = 4, anim = MergedEnter }
                     , { pos = ( 3, 0 ), id = "3", val = 4, anim = NewDelayedEnter }
                     , { pos = ( 3, 3 ), id = "4", val = 2, anim = NewDelayedEnter }
@@ -77,10 +77,10 @@ update msg model =
         Move2SlideRight ->
             ( { model
                 | tiles =
-                    [ { pos = ( 1, 0 ), id = "0", val = 2, anim = Exit }
-                    , { pos = ( 1, 0 ), id = "1", val = 2, anim = Exit }
-                    , { pos = ( 3, 0 ), id = "2", val = 4, anim = Exit }
-                    , { pos = ( 3, 0 ), id = "3", val = 4, anim = Exit }
+                    [ { pos = ( 1, 0 ), id = "0", val = 2, anim = MergedExit }
+                    , { pos = ( 1, 0 ), id = "1", val = 2, anim = MergedExit }
+                    , { pos = ( 3, 0 ), id = "2", val = 4, anim = MergedExit }
+                    , { pos = ( 3, 0 ), id = "3", val = 4, anim = MergedExit }
                     , { pos = ( 3, 3 ), id = "4", val = 2, anim = Stayed }
                     , { pos = ( 3, 0 ), id = "5", val = 8, anim = MergedEnter }
                     ]
@@ -120,7 +120,7 @@ type alias Tile =
 
 type Anim
     = InitialEnter
-    | Exit
+    | MergedExit
     | MergedEnter
     | NewDelayedEnter
     | Stayed
@@ -148,7 +148,7 @@ animToStyle anim =
                 , animFillBoth
                 ]
 
-        Exit ->
+        MergedExit ->
             batch
                 [ animationName <|
                     keyframes
