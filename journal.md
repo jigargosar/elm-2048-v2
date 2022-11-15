@@ -11,7 +11,15 @@ NEXT STEPS:
 Problem-Solving:
 
 How to merge implementations?
-* 
+* List Tile `<->` Grid4x4 Int
+```
+type alias Tile =
+    { pos : Int2
+    , id : String
+    , val : Int
+    , anim : Anim
+    }
+```
 
 
 
