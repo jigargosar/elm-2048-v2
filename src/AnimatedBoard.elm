@@ -107,7 +107,7 @@ viewTile t =
         ]
         [ div
             [ css
-                [ margin <| px 3
+                [ margin <| px 1
                 , backgroundColor <| hsl 0 0 0.8
                 , displayGrid
                 , placeContentCenter
