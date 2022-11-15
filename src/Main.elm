@@ -4,11 +4,14 @@ import Browser
 import Css exposing (Style, absolute, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, translateY, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
+import Grid4x4 as Grid exposing (Grid)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
 import Process
+import Random exposing (Generator)
+import Random.List
 import Task
 
 
@@ -25,6 +28,64 @@ main =
 type alias Model =
     { tiles : List Tile
     }
+
+
+type Val
+    = Val Int
+
+
+type KeyGen
+    = KeyGen Int
+
+
+initIdGen : KeyGen
+initIdGen =
+    Debug.todo "todo"
+
+
+generateNKKeys : Int -> KeyGen -> ( List String, KeyGen )
+generateNKKeys count (KeyGen prevId) =
+    Debug.todo "todo"
+
+
+type alias Board =
+    { idGen : KeyGen, grid : Grid { id : String, val : Val } }
+
+
+randomVal : Generator Val
+randomVal =
+    Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
+        |> Random.map Val
+
+
+
+--randomBoard : Generator Board
+--randomBoard =
+--    let
+--        randomEmptyPositions =
+--            Grid.emptyPositions Grid.empty
+--                |> Random.List.choices 2
+--                |> Random.map Tuple.first
+--
+--        randomValues =
+--            Random.map2 (\a b -> [a,b])
+--                randomVal
+--                randomVal
+--
+--        randomEntries =
+--            Random.map2 (List.map2 Tuple.pair)
+--                randomEmptyPositions
+--                randomValues
+--                |> Random.map (insertNewEntriesIn emptyBoard)
+--
+--
+--        emptyBoard =
+--            { idGen = initIdGen, grid = Grid.empty }
+--    in
+--    Random.constant emptyBoard
+--
+--insertEntry (pos, val) board =
+--    next
 
 
 type Msg
