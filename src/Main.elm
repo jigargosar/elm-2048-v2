@@ -64,12 +64,12 @@ type alias Tiles =
 
 
 type alias NewTile =
-    ( Grid.Pos, Val )
+    { anim : Anim, pos : Grid.Pos, val : Val }
 
 
-initNewTile : Grid.Pos -> Val -> NewTile
+initNewTile : Anim -> Grid.Pos -> Val -> NewTile
 initNewTile =
-    Tuple.pair
+    NewTile
 
 
 randomTake : Int -> List a -> Generator (List a)
@@ -80,34 +80,21 @@ randomTake n list =
 
 randomBoard : Generator Board
 randomBoard =
+    randomAddNewTiles InitialEnter Grid.allPositions (Board 0 Dict.empty)
+
+
+insertNewTile : NewTile -> Board -> Board
+insertNewTile t (Board prevId tiles) =
     let
-        emptyBoard : Board
-        emptyBoard =
-            Board 0 Dict.empty
-
-        addInitialTiles : List NewTile -> Board -> Board
-        addInitialTiles list board =
-            List.foldl addInitialTile board list
-
-        addInitialTile : NewTile -> Board -> Board
-        addInitialTile newTile (Board prevId tiles) =
-            let
-                id =
-                    prevId + 1
-            in
-            Dict.insert id (initInitialTile newTile id) tiles
-                |> Board id
-
-        initInitialTile : NewTile -> Id -> Tile
-        initInitialTile ( pos, val ) id =
-            Tile pos id val InitialEnter
+        id =
+            prevId + 1
     in
-    randomNewTiles Grid.allPositions
-        |> Random.map (\list -> addInitialTiles list emptyBoard)
+    Dict.insert id (Tile t.pos id t.val t.anim) tiles
+        |> Board id
 
 
-randomNewTiles : List Grid.Pos -> Generator (List NewTile)
-randomNewTiles emptyPositions =
+randomNewTiles : Anim -> List Grid.Pos -> Generator (List NewTile)
+randomNewTiles anim emptyPositions =
     let
         randomEmptyPositions : Generator (List Grid.Pos)
         randomEmptyPositions =
@@ -117,29 +104,15 @@ randomNewTiles emptyPositions =
         randomValues =
             Random.map2 (\a b -> [ a, b ]) randomVal randomVal
     in
-    Random.map2 (List.map2 initNewTile)
+    Random.map2 (List.map2 (initNewTile anim))
         randomEmptyPositions
         randomValues
 
 
-randomAddNewTiles : List Grid.Pos -> Board -> Generator Board
-randomAddNewTiles emptyPositions initialBoard =
-    let
-        addNewTiles : List NewTile -> Board -> Board
-        addNewTiles list board =
-            List.foldl addNewTile board list
-
-        addNewTile : NewTile -> Board -> Board
-        addNewTile ( pos, val ) (Board prevId tiles) =
-            let
-                id =
-                    prevId + 1
-            in
-            Dict.insert id (Tile pos id val NewDelayedEnter) tiles
-                |> Board id
-    in
-    randomNewTiles emptyPositions
-        |> Random.map (\list -> addNewTiles list initialBoard)
+randomAddNewTiles : Anim -> List Grid.Pos -> Board -> Generator Board
+randomAddNewTiles anim emptyPositions initialBoard =
+    randomNewTiles anim emptyPositions
+        |> Random.map (List.foldl insertNewTile initialBoard)
 
 
 type Msg
