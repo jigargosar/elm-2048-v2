@@ -55,6 +55,10 @@ type Board
     = Board Id Tiles
 
 
+type alias Tiles =
+    Dict Id Tile
+
+
 type alias Id =
     Int
 
@@ -73,10 +77,6 @@ type Anim
     | MergedEnter
     | NewDelayedEnter
     | Stayed
-
-
-type alias Tiles =
-    Dict Id Tile
 
 
 type Val
