@@ -183,6 +183,21 @@ slideBoardRight (Board prevId tiles) =
     Board prevId tiles
 
 
+boardToIdValGrid : Board -> IdValGrid
+boardToIdValGrid (Board _ tiles) =
+    let
+        insertTile : Tile -> IdValGrid -> IdValGrid
+        insertTile t =
+            case tileToIdValGridEntry t of
+                Just entry ->
+                    Grid.insertEntry entry
+
+                Nothing ->
+                    identity
+    in
+    Dict.foldl (\_ -> insertTile) Grid.empty tiles
+
+
 boardToTiles : Board -> List Tile
 boardToTiles (Board _ tiles) =
     Dict.values tiles
