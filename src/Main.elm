@@ -316,11 +316,6 @@ tileToIdValGridEntry t =
             Just ( t.pos, ( t.id, t.val ) )
 
 
-boardToTiles : Board -> List Tile
-boardToTiles (Board _ tiles) =
-    Dict.values tiles
-
-
 view : Model -> Html.Html Msg
 view model =
     toUnstyled <|
@@ -328,14 +323,14 @@ view model =
 
 
 viewBoard : Board -> Html Msg
-viewBoard board =
+viewBoard (Board _ tiles) =
     Keyed.node "div"
         [ css
             [ displayGrid
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
-        (boardToTiles board |> List.map viewTile)
+        (Dict.values tiles |> List.map viewTile)
 
 
 type alias Tile =
