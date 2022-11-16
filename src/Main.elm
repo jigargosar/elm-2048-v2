@@ -174,6 +174,21 @@ update msg model =
                     ( model, Cmd.none )
 
 
+type Dir
+    = Left
+    | Right
+
+
+slideBoard : Dir -> Board -> Generator Board
+slideBoard dir =
+    case dir of
+        Left ->
+            slideBoardHelp Grid.mapRowsAsReversedLists
+
+        Right ->
+            slideBoardHelp Grid.mapRowsAsReversedLists
+
+
 slideBoardRight : Board -> Generator Board
 slideBoardRight board =
     let
@@ -181,6 +196,25 @@ slideBoardRight board =
         mergedIdValGrid =
             boardToIdValGrid board
                 |> Grid.mapRowsAsReversedLists
+                    (List.foldl slideAndMerge [] >> List.reverse)
+
+        mergedBoard : Board
+        mergedBoard =
+            updateBoardFromMergedIdValGrid mergedIdValGrid board
+    in
+    randomAddNewTiles NewDelayedEnter (Grid.emptyPositions mergedIdValGrid) mergedBoard
+
+
+slideBoardHelp :
+    ((List IdVal -> List MergedIdVal) -> IdValGrid -> MergedIdValGrid)
+    -> Board
+    -> Generator Board
+slideBoardHelp fn board =
+    let
+        mergedIdValGrid : MergedIdValGrid
+        mergedIdValGrid =
+            boardToIdValGrid board
+                |> fn
                     (List.foldl slideAndMerge [] >> List.reverse)
 
         mergedBoard : Board
