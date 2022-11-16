@@ -225,21 +225,20 @@ slideAndMergeGrid dir =
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
 slideLeftAndMerge =
-    List.foldl slideAndMerge [] >> List.reverse
+    let
+        step (( id, val ) as idVal) mergedIdValues =
+            case mergedIdValues of
+                (Unmerged ( lastId, lastVal )) :: beforeLast ->
+                    if val == lastVal then
+                        Merged id lastId val :: beforeLast
 
+                    else
+                        Unmerged idVal :: mergedIdValues
 
-slideAndMerge : IdVal -> List MergedIdVal -> List MergedIdVal
-slideAndMerge (( id, val ) as idVal) mergedIdValues =
-    case mergedIdValues of
-        (Unmerged ( lastId, lastVal )) :: beforeLast ->
-            if val == lastVal then
-                Merged id lastId val :: beforeLast
-
-            else
-                Unmerged idVal :: mergedIdValues
-
-        _ ->
-            Unmerged idVal :: mergedIdValues
+                _ ->
+                    Unmerged idVal :: mergedIdValues
+    in
+    List.foldl step [] >> List.reverse
 
 
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
