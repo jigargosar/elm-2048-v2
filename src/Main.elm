@@ -76,9 +76,7 @@ randomBoard =
 
         randomValues : Generator (List Val)
         randomValues =
-            Random.map2 (\a b -> [ a, b ])
-                randomVal
-                randomVal
+            Random.map2 (\a b -> [ a, b ]) randomVal randomVal
 
         randomNewInitialTileArgs : Generator (List NewTileArgs)
         randomNewInitialTileArgs =
