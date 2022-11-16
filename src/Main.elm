@@ -51,7 +51,11 @@ type alias Id =
 
 
 type Board
-    = Board Id (Dict Id Tile)
+    = Board Id Tiles
+
+
+type alias Tiles =
+    Dict Id Tile
 
 
 type alias NewTileArgs =
@@ -151,6 +155,16 @@ update msg model =
                     ( model, Cmd.none )
 
 
+slideBoardRight : Board -> Board
+slideBoardRight (Board prevId tiles) =
+    let
+        grid : IdValGrid
+        grid =
+            tilesToIdValGrid tiles
+    in
+    Board prevId tiles
+
+
 type alias IdVal =
     ( Id, Val )
 
@@ -164,27 +178,8 @@ tileToIdValGridEntry tile =
     Debug.todo "todo"
 
 
-slideBoardRight : Board -> Board
-slideBoardRight (Board prevId tiles) =
-    let
-        grid : IdValGrid
-        grid =
-            Dict.foldl (\_ -> insertTile) Grid.empty tiles
-
-        insertTile : Tile -> IdValGrid -> IdValGrid
-        insertTile t =
-            case tileToIdValGridEntry t of
-                Just entry ->
-                    Grid.insertEntry entry
-
-                Nothing ->
-                    identity
-    in
-    Board prevId tiles
-
-
-boardToIdValGrid : Board -> IdValGrid
-boardToIdValGrid (Board _ tiles) =
+tilesToIdValGrid : Tiles -> IdValGrid
+tilesToIdValGrid tiles =
     let
         insertTile : Tile -> IdValGrid -> IdValGrid
         insertTile t =
