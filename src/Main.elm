@@ -138,8 +138,8 @@ init _ =
         ( board, seed ) =
             Random.step
                 (randomBoard
-                    |> Random.andThen slideBoardRight
-                    |> Random.andThen slideBoardRight
+                    |> Random.andThen (slideBoard Right)
+                    |> Random.andThen (slideBoard Right)
                 )
                 (Random.initialSeed 0)
     in
@@ -166,7 +166,7 @@ update msg model =
                 "ArrowRight" ->
                     let
                         ( board, seed ) =
-                            Random.step (slideBoardRight model.board) model.seed
+                            Random.step (slideBoard Right model.board) model.seed
                     in
                     ( { model | board = board, seed = seed }, Cmd.none )
 
@@ -187,22 +187,6 @@ slideBoard dir =
 
         Right ->
             slideBoardHelp Grid.mapRowsAsReversedLists
-
-
-slideBoardRight : Board -> Generator Board
-slideBoardRight board =
-    let
-        mergedIdValGrid : MergedIdValGrid
-        mergedIdValGrid =
-            boardToIdValGrid board
-                |> Grid.mapRowsAsReversedLists
-                    (List.foldl slideAndMerge [] >> List.reverse)
-
-        mergedBoard : Board
-        mergedBoard =
-            updateBoardFromMergedIdValGrid mergedIdValGrid board
-    in
-    randomAddNewTiles NewDelayedEnter (Grid.emptyPositions mergedIdValGrid) mergedBoard
 
 
 slideBoardHelp :
