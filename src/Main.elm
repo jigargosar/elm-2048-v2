@@ -136,10 +136,14 @@ init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
         ( board, seed ) =
-            Random.step randomBoard (Random.initialSeed 0)
+            Random.step
+                (randomBoard
+                    |> Random.andThen slideBoardRight
+                    |> Random.andThen slideBoardRight
+                )
+                (Random.initialSeed 0)
     in
-    ( { board =
-            board
+    ( { board = board
       , seed = seed
       }
     , Cmd.none
