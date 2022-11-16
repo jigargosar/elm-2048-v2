@@ -81,20 +81,6 @@ randomTake n list =
 randomBoard : Generator Board
 randomBoard =
     let
-        randomAllPositions : Generator (List Grid.Pos)
-        randomAllPositions =
-            Grid.allPositions |> randomTake 2
-
-        randomValues : Generator (List Val)
-        randomValues =
-            Random.map2 (\a b -> [ a, b ]) randomVal randomVal
-
-        randomNewInitialTileArgs : Generator (List NewTileArgs)
-        randomNewInitialTileArgs =
-            Random.map2 (List.map2 initNewTileArgs)
-                randomAllPositions
-                randomValues
-
         emptyBoard : Board
         emptyBoard =
             Board 0 Dict.empty
@@ -116,8 +102,48 @@ randomBoard =
         initInitialTile ( pos, val ) id =
             Tile pos id val InitialEnter
     in
-    randomNewInitialTileArgs
+    randomNewTileArgs Grid.allPositions
         |> Random.map (\list -> addInitialTiles list emptyBoard)
+
+
+randomNewTileArgs : List Grid.Pos -> Generator (List NewTileArgs)
+randomNewTileArgs emptyPositions =
+    let
+        randomEmptyPositions : Generator (List Grid.Pos)
+        randomEmptyPositions =
+            randomTake 2 emptyPositions
+
+        randomValues : Generator (List Val)
+        randomValues =
+            Random.map2 (\a b -> [ a, b ]) randomVal randomVal
+
+        randomNewTileArgs_ : Generator (List NewTileArgs)
+        randomNewTileArgs_ =
+            Random.map2 (List.map2 initNewTileArgs)
+                randomEmptyPositions
+                randomValues
+    in
+    randomNewTileArgs_
+
+
+randomAddNewTiles : List Grid.Pos -> Board -> Generator Board
+randomAddNewTiles emptyPositions initialBoard =
+    let
+        addNewTiles : List NewTileArgs -> Board -> Board
+        addNewTiles list board =
+            List.foldl addNewTile board list
+
+        addNewTile : NewTileArgs -> Board -> Board
+        addNewTile ( pos, val ) (Board prevId tiles) =
+            let
+                id =
+                    prevId + 1
+            in
+            Dict.insert id (Tile pos id val NewDelayedEnter) tiles
+                |> Board id
+    in
+    randomNewTileArgs emptyPositions
+        |> Random.map (\list -> addNewTiles list initialBoard)
 
 
 type Msg

@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, insertEntry, mapRows, posAsInt2, reversedRowFromList, rowToList, toEntries)
+module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, emptyPositions, insertEntry, mapRows, posAsInt2, reversedRowFromList, rowToList, toEntries)
 
 import Vector4 exposing (Index(..), Vector4)
 
@@ -48,6 +48,11 @@ allPositions : List Pos
 allPositions =
     indices
         |> List.concatMap (\yIndex -> indices |> List.map (\xIndex -> ( xIndex, yIndex )))
+
+
+emptyPositions : Grid a -> List Pos
+emptyPositions =
+    Debug.todo "todo"
 
 
 indices =
