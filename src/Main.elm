@@ -93,8 +93,8 @@ insertNewTile t (Board prevId tiles) =
         |> Board id
 
 
-randomNewTiles : Anim -> List Grid.Pos -> Generator (List NewTile)
-randomNewTiles anim emptyPositions =
+randomAddNewTiles : Anim -> List Grid.Pos -> Board -> Generator Board
+randomAddNewTiles anim emptyPositions initialBoard =
     let
         randomEmptyPositions : Generator (List Grid.Pos)
         randomEmptyPositions =
@@ -103,15 +103,13 @@ randomNewTiles anim emptyPositions =
         randomValues : Generator (List Val)
         randomValues =
             Random.map2 (\a b -> [ a, b ]) randomVal randomVal
+
+        randomNewTiles =
+            Random.map2 (List.map2 (initNewTile anim))
+                randomEmptyPositions
+                randomValues
     in
-    Random.map2 (List.map2 (initNewTile anim))
-        randomEmptyPositions
-        randomValues
-
-
-randomAddNewTiles : Anim -> List Grid.Pos -> Board -> Generator Board
-randomAddNewTiles anim emptyPositions initialBoard =
-    randomNewTiles anim emptyPositions
+    randomNewTiles
         |> Random.map (List.foldl insertNewTile initialBoard)
 
 
