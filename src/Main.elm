@@ -105,7 +105,6 @@ randomBoard =
         initInitialTile ( pos, val ) id =
             Tile pos id val InitialEnter
     in
-    --Random.constant emptyBoard
     randomNewInitialTileArgs
         |> Random.map (\list -> addInitialTiles list emptyBoard)
 
