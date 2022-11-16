@@ -99,12 +99,6 @@ randomVal =
         |> Random.map Val
 
 
-randomTake : Int -> List a -> Generator (List a)
-randomTake n list =
-    Random.List.choices n list
-        |> Random.map Tuple.first
-
-
 randomBoard : Generator Board
 randomBoard =
     addNewRandomTiles InitialEnter Grid.allPositions (Board 0 Dict.empty)
@@ -113,6 +107,11 @@ randomBoard =
 addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Generator Board
 addNewRandomTiles anim emptyPositions initialBoard =
     let
+        randomTake : Int -> List a -> Generator (List a)
+        randomTake n list =
+            Random.List.choices n list
+                |> Random.map Tuple.first
+
         randomEmptyPositions : Generator (List Grid.Pos)
         randomEmptyPositions =
             randomTake 2 emptyPositions
