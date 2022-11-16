@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, foldrEachRowAsList, insertEntry, posAsInt2)
+module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, insertEntry, mapRowsAsList, posAsInt2, toEntries)
 
 import Vector4 exposing (Index(..), Vector4)
 
@@ -58,6 +58,11 @@ posAsInt2 =
     Tuple.mapBoth Vector4.indexToInt Vector4.indexToInt
 
 
-foldrEachRowAsList : (List a -> List a) -> Grid a -> Grid a
-foldrEachRowAsList _ _ =
+mapRowsAsList : (List a -> List b) -> Grid a -> Grid b
+mapRowsAsList _ _ =
+    Debug.todo "todo"
+
+
+toEntries : Grid a -> List (Entry a)
+toEntries (Grid rows) =
     Debug.todo "todo"

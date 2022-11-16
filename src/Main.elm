@@ -35,6 +35,11 @@ type Val
     = Val Int
 
 
+nextVal : Val -> Val
+nextVal (Val i) =
+    Val (i + 1)
+
+
 valDisplayString : Val -> String
 valDisplayString (Val i) =
     2 ^ i |> String.fromInt
@@ -156,20 +161,53 @@ update msg model =
 
 
 slideBoardRight : Board -> Board
-slideBoardRight (Board prevId tiles) =
+slideBoardRight board =
     let
-        grid : IdValGrid
-        grid =
-            tilesToIdValGrid tiles
-
-        fn : List IdVal -> List IdVal
-        fn list =
-            Debug.todo "todo"
-
-        _ =
-            Grid.foldrEachRowAsList fn grid
+        mergedIdValGrid : MergedIdValGrid
+        mergedIdValGrid =
+            boardToIdValGrid board
+                |> Grid.mapRowsAsList (List.foldr slideAndMerge [] >> List.reverse)
     in
-    Board prevId tiles
+    updateBoardFromMergedIdValGrid mergedIdValGrid board
+
+
+updateBoardFromMergedIdValGrid : MergedIdValGrid -> Board -> Board
+updateBoardFromMergedIdValGrid grid board =
+    Grid.toEntries grid
+        |> List.foldl updateBoardFromMergedIdValEntry board
+
+
+updateBoardFromMergedIdValEntry : Grid.Entry MergedIdVal -> Board -> Board
+updateBoardFromMergedIdValEntry ( pos, mergedIdVal ) (Board prevId tiles) =
+    case mergedIdVal of
+        Merged id1 id2 val ->
+            let
+                newId =
+                    prevId + 1
+            in
+            Board newId
+                (tiles
+                    |> Dict.insert id1 (Tile pos id1 val MergedExit)
+                    |> Dict.insert id2 (Tile pos id2 val MergedExit)
+                    |> Dict.insert newId (Tile pos newId (nextVal val) MergedEnter)
+                )
+
+        Unmerged ( id, val ) ->
+            Board prevId (Dict.insert id (Tile pos id val Stayed) tiles)
+
+
+slideAndMerge : IdVal -> List MergedIdVal -> List MergedIdVal
+slideAndMerge (( id, val ) as idVal) mergedIdValues =
+    case mergedIdValues of
+        (Unmerged ( lastId, lastVal )) :: beforeLast ->
+            if val == lastVal then
+                Merged id lastId val :: beforeLast
+
+            else
+                Unmerged idVal :: mergedIdValues
+
+        _ ->
+            Unmerged idVal :: mergedIdValues
 
 
 type alias IdVal =
@@ -178,6 +216,20 @@ type alias IdVal =
 
 type alias IdValGrid =
     Grid IdVal
+
+
+type MergedIdVal
+    = Merged Id Id Val
+    | Unmerged IdVal
+
+
+type alias MergedIdValGrid =
+    Grid MergedIdVal
+
+
+boardToIdValGrid : Board -> IdValGrid
+boardToIdValGrid (Board _ tiles) =
+    tilesToIdValGrid tiles
 
 
 tileToIdValGridEntry : Tile -> Maybe ( Grid.Pos, IdVal )
