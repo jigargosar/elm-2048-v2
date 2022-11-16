@@ -169,6 +169,12 @@ update msg model =
                 "ArrowLeft" ->
                     ( updateBoard Left model, Cmd.none )
 
+                "ArrowUp" ->
+                    ( updateBoard Up model, Cmd.none )
+
+                "ArrowDown" ->
+                    ( updateBoard Down model, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -186,6 +192,7 @@ type Dir
     = Left
     | Right
     | Up
+    | Down
 
 
 slideBoard : Dir -> Board -> Generator Board
@@ -199,6 +206,9 @@ slideBoard dir =
 
         Up ->
             slideBoardHelp Grid.mapColumnsAsLists
+
+        Down ->
+            slideBoardHelp Grid.mapColumnsAsReversedLists
 
 
 slideBoardHelp :

@@ -7,6 +7,7 @@ module Grid4x4 exposing
     , emptyPositions
     , insertEntry
     , mapColumnsAsLists
+    , mapColumnsAsReversedLists
     , mapRows
     , mapRowsAsLists
     , mapRowsAsReversedLists
@@ -102,6 +103,11 @@ mapRowsAsReversedLists fn =
     mapRows (rowReverse >> rowToList >> fn >> rowFromList >> rowReverse)
 
 
+mapColumnsAsReversedLists : (List a -> List b) -> Grid a -> Grid b
+mapColumnsAsReversedLists fn =
+    mapColumns (rowReverse >> rowToList >> fn >> rowFromList >> rowReverse)
+
+
 mapRowsAsLists : (List a -> List b) -> Grid a -> Grid b
 mapRowsAsLists fn =
     mapRows (rowToList >> fn >> rowFromList)
@@ -109,7 +115,24 @@ mapRowsAsLists fn =
 
 mapColumnsAsLists : (List a -> List b) -> Grid a -> Grid b
 mapColumnsAsLists fn =
-    mapRows (rowToList >> fn >> rowFromList)
+    mapColumns (rowToList >> fn >> rowFromList)
+
+
+mapColumns : (Row a -> Row b) -> Grid a -> Grid b
+mapColumns fn (Grid rows) =
+    mapTransposed (Vector4.map fn) rows |> Grid
+
+
+mapTransposed fn =
+    let
+        transpose rows =
+            Vector4.map4 Vector4.from4
+                (Vector4.get Vector4.Index0 rows)
+                (Vector4.get Vector4.Index1 rows)
+                (Vector4.get Vector4.Index2 rows)
+                (Vector4.get Vector4.Index3 rows)
+    in
+    transpose >> fn >> transpose
 
 
 rowToList : Row a -> List a
