@@ -102,12 +102,12 @@ randomBoard =
         initInitialTile ( pos, val ) id =
             Tile pos id val InitialEnter
     in
-    randomNewTile Grid.allPositions
+    randomNewTiles Grid.allPositions
         |> Random.map (\list -> addInitialTiles list emptyBoard)
 
 
-randomNewTile : List Grid.Pos -> Generator (List NewTile)
-randomNewTile emptyPositions =
+randomNewTiles : List Grid.Pos -> Generator (List NewTile)
+randomNewTiles emptyPositions =
     let
         randomEmptyPositions : Generator (List Grid.Pos)
         randomEmptyPositions =
@@ -142,7 +142,7 @@ randomAddNewTiles emptyPositions initialBoard =
             Dict.insert id (Tile pos id val NewDelayedEnter) tiles
                 |> Board id
     in
-    randomNewTile emptyPositions
+    randomNewTiles emptyPositions
         |> Random.map (\list -> addNewTiles list initialBoard)
 
 
