@@ -6,6 +6,7 @@ module Grid4x4 exposing
     , empty
     , emptyPositions
     , insertEntry
+    , mapColumnsAsLists
     , mapRows
     , mapRowsAsLists
     , mapRowsAsReversedLists
@@ -103,6 +104,11 @@ mapRowsAsReversedLists fn =
 
 mapRowsAsLists : (List a -> List b) -> Grid a -> Grid b
 mapRowsAsLists fn =
+    mapRows (rowToList >> fn >> rowFromList)
+
+
+mapColumnsAsLists : (List a -> List b) -> Grid a -> Grid b
+mapColumnsAsLists fn =
     mapRows (rowToList >> fn >> rowFromList)
 
 

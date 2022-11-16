@@ -185,6 +185,7 @@ updateBoard dir model =
 type Dir
     = Left
     | Right
+    | Up
 
 
 slideBoard : Dir -> Board -> Generator Board
@@ -195,6 +196,9 @@ slideBoard dir =
 
         Right ->
             slideBoardHelp Grid.mapRowsAsReversedLists
+
+        Up ->
+            slideBoardHelp Grid.mapColumnsAsLists
 
 
 slideBoardHelp :
