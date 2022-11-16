@@ -136,7 +136,8 @@ init _ =
     in
     ( { board =
             board
-                |> slideBoardRight
+
+      --|> slideBoardRight
       }
     , Cmd.none
     )
