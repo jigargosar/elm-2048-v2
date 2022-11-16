@@ -217,17 +217,22 @@ slideBoardHelp :
     -> Generator Board
 slideBoardHelp fn board =
     let
-        mergedIdValGrid : MergedIdValGrid
-        mergedIdValGrid =
+        grid =
             boardToIdValGrid board
-                |> fn
-                    (List.foldl slideAndMerge [] >> List.reverse)
+                |> fn (List.foldl slideAndMerge [] >> List.reverse)
+
+        emptyPositions =
+            Grid.emptyPositions grid
+
+        entries =
+            Grid.toEntries grid
 
         mergedBoard : Board
         mergedBoard =
-            updateBoardFromMergedIdValGrid mergedIdValGrid board
+            entries
+                |> List.foldl updateBoardFromMergedIdValEntry board
     in
-    randomAddNewTiles NewDelayedEnter (Grid.emptyPositions mergedIdValGrid) mergedBoard
+    randomAddNewTiles NewDelayedEnter emptyPositions mergedBoard
 
 
 updateBoardFromMergedIdValGrid : MergedIdValGrid -> Board -> Board
