@@ -209,8 +209,26 @@ slideAndMergeBoard dir board =
 
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
+    let
+        updateFromMergedEntry ( pos, mergedIdVal ) (Board prevId tiles) =
+            case mergedIdVal of
+                Merged id1 id2 val ->
+                    let
+                        newId =
+                            prevId + 1
+                    in
+                    Board newId
+                        (tiles
+                            |> Dict.insert id1 (Tile pos id1 val MergedExit)
+                            |> Dict.insert id2 (Tile pos id2 val MergedExit)
+                            |> Dict.insert newId (Tile pos newId (nextVal val) MergedEnter)
+                        )
+
+                Unmerged ( id, val ) ->
+                    Board prevId (Dict.insert id (Tile pos id val Stayed) tiles)
+    in
     Grid.toEntries grid
-        |> List.foldl updateBoardFromMergedIdValEntry board
+        |> List.foldl updateFromMergedEntry board
 
 
 slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
@@ -232,46 +250,6 @@ slideAndMergeGrid dir =
 slideLeftAndMerge : List IdVal -> List MergedIdVal
 slideLeftAndMerge =
     List.foldl slideAndMerge [] >> List.reverse
-
-
-slideBoardHelp :
-    ((List IdVal -> List MergedIdVal) -> IdValGrid -> MergedIdValGrid)
-    -> Board
-    -> Generator Board
-slideBoardHelp fn board =
-    let
-        grid =
-            boardToIdValGrid board
-                |> fn (List.foldl slideAndMerge [] >> List.reverse)
-
-        emptyPositions =
-            Grid.emptyPositions grid
-
-        entries =
-            Grid.toEntries grid
-    in
-    entries
-        |> List.foldl updateBoardFromMergedIdValEntry board
-        |> randomAddNewTiles NewDelayedEnter emptyPositions
-
-
-updateBoardFromMergedIdValEntry : Grid.Entry MergedIdVal -> Board -> Board
-updateBoardFromMergedIdValEntry ( pos, mergedIdVal ) (Board prevId tiles) =
-    case mergedIdVal of
-        Merged id1 id2 val ->
-            let
-                newId =
-                    prevId + 1
-            in
-            Board newId
-                (tiles
-                    |> Dict.insert id1 (Tile pos id1 val MergedExit)
-                    |> Dict.insert id2 (Tile pos id2 val MergedExit)
-                    |> Dict.insert newId (Tile pos newId (nextVal val) MergedEnter)
-                )
-
-        Unmerged ( id, val ) ->
-            Board prevId (Dict.insert id (Tile pos id val Stayed) tiles)
 
 
 slideAndMerge : IdVal -> List MergedIdVal -> List MergedIdVal
