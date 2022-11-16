@@ -424,7 +424,7 @@ viewTile : Tile -> ( String, Html Msg )
 viewTile t =
     let
         ( dx, dy ) =
-            t.pos |> Grid.posAsInt2 |> mapBothWith (toFloat >> mul 100 >> pct)
+            t.pos |> Grid.posToInt2 |> mapBothWith (toFloat >> mul 100 >> pct)
     in
     ( tileKey t
     , div
