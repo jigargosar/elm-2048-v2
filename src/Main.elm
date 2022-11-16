@@ -183,6 +183,7 @@ slideBoardRight board =
                 |> Grid.mapRows
                     (Grid.rowToList
                         >> List.foldr slideAndMerge []
+                        >> List.reverse
                         >> Grid.reversedRowFromList
                     )
 
