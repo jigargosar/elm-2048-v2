@@ -61,14 +61,18 @@ initNewTileArgs =
     Tuple.pair
 
 
+randomTake : Int -> List a -> Generator (List a)
+randomTake n list =
+    Random.List.choices n list
+        |> Random.map Tuple.first
+
+
 randomBoard : Generator Board
 randomBoard =
     let
         randomAllPositions : Generator (List Grid.Pos)
         randomAllPositions =
-            Grid.allPositions
-                |> Random.List.choices 2
-                |> Random.map Tuple.first
+            Grid.allPositions |> randomTake 2
 
         randomValues : Generator (List Val)
         randomValues =
