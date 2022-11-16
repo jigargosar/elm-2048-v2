@@ -211,6 +211,44 @@ slideBoard dir =
             slideBoardHelp Grid.mapColumnsAsReversedLists
 
 
+slideAndMergeBoard : Dir -> Board -> Generator Board
+slideAndMergeBoard dir board =
+    let
+        grid =
+            boardToIdValGrid board
+                |> slideAndMergeGrid dir
+    in
+    updateBoardFromGrid
+        grid
+        board
+
+
+updateBoardFromGrid : MergedIdValGrid -> Board -> Generator Board
+updateBoardFromGrid grid board =
+    Debug.todo "todo"
+
+
+slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
+slideAndMergeGrid dir =
+    case dir of
+        Left ->
+            Grid.mapRowsAsLists slideLeftAndMerge
+
+        Right ->
+            Grid.mapRowsAsReversedLists slideLeftAndMerge
+
+        Up ->
+            Grid.mapColumnsAsLists slideLeftAndMerge
+
+        Down ->
+            Grid.mapColumnsAsReversedLists slideLeftAndMerge
+
+
+slideLeftAndMerge : List IdVal -> List MergedIdVal
+slideLeftAndMerge =
+    List.foldl slideAndMerge [] >> List.reverse
+
+
 slideBoardHelp :
     ((List IdVal -> List MergedIdVal) -> IdValGrid -> MergedIdValGrid)
     -> Board
@@ -226,19 +264,10 @@ slideBoardHelp fn board =
 
         entries =
             Grid.toEntries grid
-
-        mergedBoard : Board
-        mergedBoard =
-            entries
-                |> List.foldl updateBoardFromMergedIdValEntry board
     in
-    randomAddNewTiles NewDelayedEnter emptyPositions mergedBoard
-
-
-updateBoardFromMergedIdValGrid : MergedIdValGrid -> Board -> Board
-updateBoardFromMergedIdValGrid grid board =
-    Grid.toEntries grid
+    entries
         |> List.foldl updateBoardFromMergedIdValEntry board
+        |> randomAddNewTiles NewDelayedEnter emptyPositions
 
 
 updateBoardFromMergedIdValEntry : Grid.Entry MergedIdVal -> Board -> Board
