@@ -226,17 +226,17 @@ slideAndMergeGrid dir =
 slideLeftAndMerge : List IdVal -> List MergedIdVal
 slideLeftAndMerge =
     let
-        step (( id, val ) as idVal) mergedIdValues =
-            case mergedIdValues of
-                (Unmerged ( lastId, lastVal )) :: beforeLast ->
+        step (( id, val ) as idVal) acc =
+            case acc of
+                (Unmerged ( lastId, lastVal )) :: rest ->
                     if val == lastVal then
-                        Merged id lastId val :: beforeLast
+                        Merged id lastId val :: rest
 
                     else
-                        Unmerged idVal :: mergedIdValues
+                        Unmerged idVal :: acc
 
                 _ ->
-                    Unmerged idVal :: mergedIdValues
+                    Unmerged idVal :: acc
     in
     List.foldl step [] >> List.reverse
 
