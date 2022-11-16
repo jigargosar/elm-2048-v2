@@ -63,15 +63,6 @@ type alias Tiles =
     Dict Id Tile
 
 
-type alias NewTile =
-    { pos : Grid.Pos, val : Val }
-
-
-initNewTile : Grid.Pos -> Val -> NewTile
-initNewTile =
-    NewTile
-
-
 randomTake : Int -> List a -> Generator (List a)
 randomTake n list =
     Random.List.choices n list
