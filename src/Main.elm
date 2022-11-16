@@ -172,13 +172,13 @@ slideBoardRight (Board prevId tiles) =
             Dict.foldl (\_ -> insertTile) Grid.empty tiles
 
         insertTile : Tile -> IdValGrid -> IdValGrid
-        insertTile t grid =
+        insertTile t =
             case tileToIdValGridEntry t of
                 Just entry ->
-                    Grid.insertEntry entry grid
+                    Grid.insertEntry entry
 
                 Nothing ->
-                    grid
+                    identity
     in
     Board prevId tiles
 
