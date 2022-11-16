@@ -50,6 +50,10 @@ allPositions =
         |> List.concatMap (\yIndex -> indices |> List.map (\xIndex -> ( xIndex, yIndex )))
 
 
+indices =
+    Vector4.indices |> Vector4.toList
+
+
 emptyPositions : Grid a -> List Pos
 emptyPositions (Grid rows) =
     Vector4.toIndexedList rows
@@ -67,10 +71,6 @@ emptyPositions (Grid rows) =
                                     Just ( x, y )
                         )
             )
-
-
-indices =
-    Vector4.indices |> Vector4.toList
 
 
 posAsInt2 : Pos -> ( Int, Int )
