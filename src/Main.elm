@@ -138,8 +138,8 @@ init _ =
         ( board, seed ) =
             Random.step
                 (randomBoard
-                    |> Random.andThen (slideBoard Right)
-                    |> Random.andThen (slideBoard Right)
+                    |> Random.andThen (slideAndMergeBoard Right)
+                    |> Random.andThen (slideAndMergeBoard Right)
                 )
                 (Random.initialSeed 0)
     in
@@ -183,7 +183,7 @@ updateBoard : Dir -> Model -> Model
 updateBoard dir model =
     let
         ( board, seed ) =
-            Random.step (slideBoard dir model.board) model.seed
+            Random.step (slideAndMergeBoard dir model.board) model.seed
     in
     { model | board = board, seed = seed }
 
@@ -195,22 +195,6 @@ type Dir
     | Down
 
 
-slideBoard : Dir -> Board -> Generator Board
-slideBoard dir =
-    case dir of
-        Left ->
-            slideBoardHelp Grid.mapRowsAsLists
-
-        Right ->
-            slideBoardHelp Grid.mapRowsAsReversedLists
-
-        Up ->
-            slideBoardHelp Grid.mapColumnsAsLists
-
-        Down ->
-            slideBoardHelp Grid.mapColumnsAsReversedLists
-
-
 slideAndMergeBoard : Dir -> Board -> Generator Board
 slideAndMergeBoard dir board =
     let
@@ -218,14 +202,15 @@ slideAndMergeBoard dir board =
             boardToIdValGrid board
                 |> slideAndMergeGrid dir
     in
-    updateBoardFromGrid
-        grid
-        board
+    board
+        |> updateBoardFromGrid grid
+        |> randomAddNewTiles NewDelayedEnter (Grid.emptyPositions grid)
 
 
-updateBoardFromGrid : MergedIdValGrid -> Board -> Generator Board
+updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
-    Debug.todo "todo"
+    Grid.toEntries grid
+        |> List.foldl updateBoardFromMergedIdValEntry board
 
 
 slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
