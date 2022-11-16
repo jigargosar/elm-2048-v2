@@ -1,18 +1,17 @@
 module Main exposing (main)
 
 import Browser
-import Css exposing (Style, absolute, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, translateY, zero)
+import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, pct, property, px, scale, transforms, translate2, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
+import Dict exposing (Dict)
 import Grid4x4 as Grid exposing (Grid)
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
-import Process
 import Random exposing (Generator)
 import Random.List
-import Task
 
 
 main : Program Flags Model Msg
@@ -34,58 +33,73 @@ type Val
     = Val Int
 
 
-type KeyGen
-    = KeyGen Int
-
-
-initIdGen : KeyGen
-initIdGen =
-    Debug.todo "todo"
-
-
-generateNKKeys : Int -> KeyGen -> ( List String, KeyGen )
-generateNKKeys count (KeyGen prevId) =
-    Debug.todo "todo"
-
-
-type alias Board =
-    { idGen : KeyGen, grid : Grid { id : String, val : Val } }
-
-
 randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
         |> Random.map Val
 
 
+type alias Id =
+    Int
 
---randomBoard : Generator Board
---randomBoard =
---    let
---        randomEmptyPositions =
---            Grid.emptyPositions Grid.empty
---                |> Random.List.choices 2
---                |> Random.map Tuple.first
---
---        randomValues =
---            Random.map2 (\a b -> [a,b])
---                randomVal
---                randomVal
---
---        randomEntries =
---            Random.map2 (List.map2 Tuple.pair)
---                randomEmptyPositions
---                randomValues
---                |> Random.map (insertNewEntriesIn emptyBoard)
---
---
---        emptyBoard =
---            { idGen = initIdGen, grid = Grid.empty }
---    in
---    Random.constant emptyBoard
---
---insertEntry (pos, val) board =
---    next
+
+type Board
+    = Board Id (Dict Id Tile)
+
+
+type alias NewTileArgs =
+    ( Grid.Pos, Val )
+
+
+initNewTileArgs : Grid.Pos -> Val -> NewTileArgs
+initNewTileArgs =
+    Tuple.pair
+
+
+randomBoard : Generator Board
+randomBoard =
+    let
+        randomEmptyPositions : Generator (List Grid.Pos)
+        randomEmptyPositions =
+            Grid.emptyPositions Grid.empty
+                |> Random.List.choices 2
+                |> Random.map Tuple.first
+
+        randomValues : Generator (List Val)
+        randomValues =
+            Random.map2 (\a b -> [ a, b ])
+                randomVal
+                randomVal
+
+        randomNewInitialTileArgs : Generator (List NewTileArgs)
+        randomNewInitialTileArgs =
+            Random.map2 (List.map2 initNewTileArgs)
+                randomEmptyPositions
+                randomValues
+
+        emptyBoard =
+            Board 0 Dict.empty
+
+        addInitialTiles : List NewTileArgs -> Board -> Board
+        addInitialTiles list board =
+            List.foldl addInitialTile board list
+
+        addInitialTile : NewTileArgs -> Board -> Board
+        addInitialTile newTileArgs (Board prevId tiles) =
+            let
+                id =
+                    prevId + 1
+            in
+            Dict.insert id (initInitialTile newTileArgs id) tiles
+                |> Board id
+
+        initInitialTile : NewTileArgs -> Id -> Tile
+        initInitialTile ( pos, val ) id =
+            Tile pos id val InitialEnter
+    in
+    --Random.constant emptyBoard
+    randomNewInitialTileArgs
+        |> Random.map (\list -> addInitialTiles list emptyBoard)
 
 
 type Msg
@@ -98,10 +112,11 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { tiles =
-            [ { pos = ( 1, 2 ), id = "0", val = 2, anim = InitialEnter }
-            , { pos = ( 1, 3 ), id = "1", val = 2, anim = InitialEnter }
-            ]
+    ( { tiles = []
+
+      --[ { pos = ( 1, 2 ), id = "0", val = 2, anim = InitialEnter }
+      --, { pos = ( 1, 3 ), id = "1", val = 2, anim = InitialEnter }
+      --]
       }
     , Cmd.none
     )
@@ -137,9 +152,9 @@ viewBoard tiles =
 
 
 type alias Tile =
-    { pos : Int2
-    , id : String
-    , val : Int
+    { pos : Grid.Pos
+    , id : Id
+    , val : Val
     , anim : Anim
     }
 
@@ -224,13 +239,23 @@ mul =
     (*)
 
 
+tileKey : Tile -> String
+tileKey _ =
+    Debug.todo "todo"
+
+
+tileDisplayString : Tile -> String
+tileDisplayString _ =
+    Debug.todo "todo"
+
+
 viewTile : Tile -> ( String, Html Msg )
 viewTile t =
     let
         ( dx, dy ) =
-            t.pos |> mapBothWith (toFloat >> mul 100 >> pct)
+            t.pos |> Grid.posAsInt2 |> mapBothWith (toFloat >> mul 100 >> pct)
     in
-    ( t.id
+    ( tileKey t
     , div
         [ css
             [ transforms [ translate2 dx dy ]
@@ -249,7 +274,7 @@ viewTile t =
                 ]
             , HA.title <| Debug.toString t
             ]
-            [ text <| String.fromInt t.val
+            [ text <| tileDisplayString t
             ]
         ]
     )

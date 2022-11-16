@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Grid, Pos, empty, emptyPositions)
+module Grid4x4 exposing (Grid, Pos, empty, emptyPositions, posAsInt2)
 
 import Vector4 exposing (Vector4)
 
@@ -36,4 +36,9 @@ type alias Pos =
 
 emptyPositions : Grid a -> List Pos
 emptyPositions (Grid rows) =
+    Debug.todo "todo"
+
+
+posAsInt2 : Pos -> ( Int, Int )
+posAsInt2 pos =
     Debug.todo "todo"
