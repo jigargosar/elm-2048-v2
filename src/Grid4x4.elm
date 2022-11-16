@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, insertEntry, mapRowsAsList, posAsInt2, toEntries)
+module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, insertEntry, mapRows, mapRowsAsList, posAsInt2, rowFromList, rowReverse, rowToList, toEntries)
 
 import Vector4 exposing (Index(..), Vector4)
 
@@ -57,6 +57,26 @@ indices =
 posAsInt2 : Pos -> ( Int, Int )
 posAsInt2 =
     Tuple.mapBoth Vector4.indexToInt Vector4.indexToInt
+
+
+mapRows : (Row a -> Row b) -> Grid a -> Grid b
+mapRows fn (Grid rows) =
+    Vector4.map fn rows |> Grid
+
+
+rowToList : Row a -> List a
+rowToList =
+    Vector4.toList >> List.filterMap identity
+
+
+rowFromList : List a -> Row a
+rowFromList =
+    List.map Just >> Vector4.fromListWithDefault Nothing >> Tuple.second
+
+
+rowReverse : Row a -> Row a
+rowReverse =
+    Vector4.reverse
 
 
 mapRowsAsList : (List a -> List b) -> Grid a -> Grid b
