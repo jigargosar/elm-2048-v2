@@ -134,7 +134,9 @@ init _ =
         ( board, _ ) =
             Random.step randomBoard (Random.initialSeed 0)
     in
-    ( { board = board
+    ( { board =
+            board
+                |> slideBoardRight
       }
     , Cmd.none
     )
@@ -233,8 +235,22 @@ boardToIdValGrid (Board _ tiles) =
 
 
 tileToIdValGridEntry : Tile -> Maybe ( Grid.Pos, IdVal )
-tileToIdValGridEntry tile =
-    Debug.todo "todo"
+tileToIdValGridEntry t =
+    case t.anim of
+        InitialEnter ->
+            Just ( t.pos, ( t.id, t.val ) )
+
+        MergedExit ->
+            Nothing
+
+        MergedEnter ->
+            Just ( t.pos, ( t.id, t.val ) )
+
+        NewDelayedEnter ->
+            Just ( t.pos, ( t.id, t.val ) )
+
+        Stayed ->
+            Just ( t.pos, ( t.id, t.val ) )
 
 
 tilesToIdValGrid : Tiles -> IdValGrid

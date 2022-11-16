@@ -20,8 +20,9 @@ type alias Entry a =
 
 
 insertEntry : Entry a -> Grid a -> Grid a
-insertEntry ( pos, a ) grid =
-    Debug.todo "todo"
+insertEntry ( ( x, y ), a ) (Grid rows) =
+    Vector4.mapItem y (Vector4.mapItem x (always (Just a))) rows
+        |> Grid
 
 
 empty : Grid a
@@ -59,10 +60,30 @@ posAsInt2 =
 
 
 mapRowsAsList : (List a -> List b) -> Grid a -> Grid b
-mapRowsAsList _ _ =
-    Debug.todo "todo"
+mapRowsAsList fn (Grid rows) =
+    Vector4.map (updateRowAsList fn) rows
+        |> Grid
+
+
+updateRowAsList : (List a -> List b) -> Row a -> Row b
+updateRowAsList fn row =
+    Vector4.toList row
+        |> List.filterMap identity
+        |> fn
+        |> List.map Just
+        |> Vector4.fromListWithDefault Nothing
+        |> Tuple.second
 
 
 toEntries : Grid a -> List (Entry a)
 toEntries (Grid rows) =
-    Debug.todo "todo"
+    Vector4.toIndexedList rows
+        |> List.concatMap
+            (\( y, row ) ->
+                row
+                    |> Vector4.toIndexedList
+                    |> List.filterMap
+                        (\( x, mba ) ->
+                            mba |> Maybe.map (\a -> ( ( x, y ), a ))
+                        )
+            )
