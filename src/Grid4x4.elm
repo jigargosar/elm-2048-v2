@@ -1,6 +1,6 @@
-module Grid4x4 exposing (Grid, Pos, empty, emptyPositions, posAsInt2)
+module Grid4x4 exposing (Grid, Pos, allPositions, empty, posAsInt2)
 
-import Vector4 exposing (Vector4)
+import Vector4 exposing (Index(..), Vector4)
 
 
 type Grid a
@@ -34,11 +34,16 @@ type alias Pos =
     ( Index, Index )
 
 
-emptyPositions : Grid a -> List Pos
-emptyPositions (Grid rows) =
-    Debug.todo "todo"
+allPositions : List Pos
+allPositions =
+    indices
+        |> List.concatMap (\yIndex -> indices |> List.map (\xIndex -> ( xIndex, yIndex )))
+
+
+indices =
+    Vector4.indices |> Vector4.toList
 
 
 posAsInt2 : Pos -> ( Int, Int )
-posAsInt2 pos =
-    Debug.todo "todo"
+posAsInt2 =
+    Tuple.mapBoth Vector4.indexToInt Vector4.indexToInt

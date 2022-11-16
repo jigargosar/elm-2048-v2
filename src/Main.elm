@@ -33,6 +33,11 @@ type Val
     = Val Int
 
 
+valDisplayString : Val -> String
+valDisplayString (Val i) =
+    2 ^ i |> String.fromInt
+
+
 randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
@@ -59,9 +64,9 @@ initNewTileArgs =
 randomBoard : Generator Board
 randomBoard =
     let
-        randomEmptyPositions : Generator (List Grid.Pos)
-        randomEmptyPositions =
-            Grid.emptyPositions Grid.empty
+        randomAllPositions : Generator (List Grid.Pos)
+        randomAllPositions =
+            Grid.allPositions
                 |> Random.List.choices 2
                 |> Random.map Tuple.first
 
@@ -74,7 +79,7 @@ randomBoard =
         randomNewInitialTileArgs : Generator (List NewTileArgs)
         randomNewInitialTileArgs =
             Random.map2 (List.map2 initNewTileArgs)
-                randomEmptyPositions
+                randomAllPositions
                 randomValues
 
         emptyBoard =
@@ -135,8 +140,8 @@ update msg model =
 
 
 boardToTiles : Board -> List Tile
-boardToTiles _ =
-    Debug.todo "todo"
+boardToTiles (Board _ tiles) =
+    Dict.values tiles
 
 
 view : Model -> Html.Html Msg
@@ -251,13 +256,13 @@ mul =
 
 
 tileKey : Tile -> String
-tileKey _ =
-    Debug.todo "todo"
+tileKey t =
+    t.id |> String.fromInt
 
 
 tileDisplayString : Tile -> String
-tileDisplayString _ =
-    Debug.todo "todo"
+tileDisplayString t =
+    valDisplayString t.val
 
 
 viewTile : Tile -> ( String, Html Msg )
