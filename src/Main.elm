@@ -284,7 +284,17 @@ type alias MergedIdValGrid =
 
 boardToIdValGrid : Board -> IdValGrid
 boardToIdValGrid (Board _ tiles) =
-    tilesToIdValGrid tiles
+    let
+        insertTile : Tile -> IdValGrid -> IdValGrid
+        insertTile t =
+            case tileToIdValGridEntry t of
+                Just entry ->
+                    Grid.insertEntry entry
+
+                Nothing ->
+                    identity
+    in
+    Dict.foldl (\_ -> insertTile) Grid.empty tiles
 
 
 tileToIdValGridEntry : Tile -> Maybe ( Grid.Pos, IdVal )
@@ -304,21 +314,6 @@ tileToIdValGridEntry t =
 
         Stayed ->
             Just ( t.pos, ( t.id, t.val ) )
-
-
-tilesToIdValGrid : Tiles -> IdValGrid
-tilesToIdValGrid tiles =
-    let
-        insertTile : Tile -> IdValGrid -> IdValGrid
-        insertTile t =
-            case tileToIdValGridEntry t of
-                Just entry ->
-                    Grid.insertEntry entry
-
-                Nothing ->
-                    identity
-    in
-    Dict.foldl (\_ -> insertTile) Grid.empty tiles
 
 
 boardToTiles : Board -> List Tile
