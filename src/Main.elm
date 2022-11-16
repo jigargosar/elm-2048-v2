@@ -223,6 +223,47 @@ slideAndMergeBoard dir board =
         |> addNewRandomTiles NewDelayedEnter (Grid.emptyPositions grid)
 
 
+type alias IdVal =
+    ( Id, Val )
+
+
+type alias IdValGrid =
+    Grid IdVal
+
+
+type MergedIdVal
+    = Merged Id Id Val
+    | Unmerged IdVal
+
+
+type alias MergedIdValGrid =
+    Grid MergedIdVal
+
+
+boardToIdValGrid : Board -> IdValGrid
+boardToIdValGrid (Board _ tiles) =
+    let
+        insertTile : Tile -> IdValGrid -> IdValGrid
+        insertTile t =
+            case t.anim of
+                InitialEnter ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+
+                MergedExit ->
+                    identity
+
+                MergedEnter ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+
+                NewDelayedEnter ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+
+                Stayed ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+    in
+    Dict.foldl (\_ -> insertTile) Grid.empty tiles
+
+
 slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
 slideAndMergeGrid dir =
     case dir of
@@ -279,47 +320,6 @@ updateBoardFromGrid grid board =
     in
     Grid.toEntries grid
         |> List.foldl updateFromMergedEntry board
-
-
-type alias IdVal =
-    ( Id, Val )
-
-
-type alias IdValGrid =
-    Grid IdVal
-
-
-type MergedIdVal
-    = Merged Id Id Val
-    | Unmerged IdVal
-
-
-type alias MergedIdValGrid =
-    Grid MergedIdVal
-
-
-boardToIdValGrid : Board -> IdValGrid
-boardToIdValGrid (Board _ tiles) =
-    let
-        insertTile : Tile -> IdValGrid -> IdValGrid
-        insertTile t =
-            case t.anim of
-                InitialEnter ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
-
-                MergedExit ->
-                    identity
-
-                MergedEnter ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
-
-                NewDelayedEnter ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
-
-                Stayed ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
-    in
-    Dict.foldl (\_ -> insertTile) Grid.empty tiles
 
 
 view : Model -> Html.Html Msg
