@@ -25,7 +25,7 @@ main =
 
 
 type alias Model =
-    { tiles : List Tile
+    { board : Board
     }
 
 
@@ -112,11 +112,11 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { tiles = []
-
-      --[ { pos = ( 1, 2 ), id = "0", val = 2, anim = InitialEnter }
-      --, { pos = ( 1, 3 ), id = "1", val = 2, anim = InitialEnter }
-      --]
+    let
+        ( board, seed ) =
+            Random.step randomBoard (Random.initialSeed 0)
+    in
+    ( { board = board
       }
     , Cmd.none
     )
@@ -134,21 +134,32 @@ update msg model =
             ( model, Cmd.none )
 
 
+boardToTiles : Board -> List Tile
+boardToTiles board =
+    Debug.todo "todo"
+
+
 view : Model -> Html.Html Msg
 view model =
     toUnstyled <|
-        div [] [ viewBoard model.tiles ]
+        div [] [ viewBoard model.board ]
 
 
-viewBoard : List Tile -> Html Msg
-viewBoard tiles =
+viewBoard : Board -> Html Msg
+viewBoard board =
     Keyed.node "div"
         [ css
             [ displayGrid
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
-        (List.map viewTile tiles)
+        (viewBoardTiles board)
+
+
+viewBoardTiles : Board -> List ( String, Html Msg )
+viewBoardTiles board =
+    boardToTiles board
+        |> List.map viewTile
 
 
 type alias Tile =
