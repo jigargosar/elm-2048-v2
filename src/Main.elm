@@ -113,7 +113,7 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
-        ( board, seed ) =
+        ( board, _ ) =
             Random.step randomBoard (Random.initialSeed 0)
     in
     ( { board = board
@@ -135,7 +135,7 @@ update msg model =
 
 
 boardToTiles : Board -> List Tile
-boardToTiles board =
+boardToTiles _ =
     Debug.todo "todo"
 
 
