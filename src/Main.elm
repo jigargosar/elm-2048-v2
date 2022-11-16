@@ -104,6 +104,7 @@ randomAddNewTiles anim emptyPositions initialBoard =
         randomValues =
             Random.map2 (\a b -> [ a, b ]) randomVal randomVal
 
+        randomNewTiles : Generator (List NewTile)
         randomNewTiles =
             Random.map2 (List.map2 (initNewTile anim))
                 randomEmptyPositions
