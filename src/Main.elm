@@ -116,14 +116,10 @@ randomNewTiles emptyPositions =
         randomValues : Generator (List Val)
         randomValues =
             Random.map2 (\a b -> [ a, b ]) randomVal randomVal
-
-        randomNewTile_ : Generator (List NewTile)
-        randomNewTile_ =
-            Random.map2 (List.map2 initNewTile)
-                randomEmptyPositions
-                randomValues
     in
-    randomNewTile_
+    Random.map2 (List.map2 initNewTile)
+        randomEmptyPositions
+        randomValues
 
 
 randomAddNewTiles : List Grid.Pos -> Board -> Generator Board
