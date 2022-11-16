@@ -84,6 +84,7 @@ randomBoard =
                 randomAllPositions
                 randomValues
 
+        emptyBoard : Board
         emptyBoard =
             Board 0 Dict.empty
 
