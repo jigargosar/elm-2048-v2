@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Grid, Pos, allPositions, empty, posAsInt2)
+module Grid4x4 exposing (Grid, Pos, allPositions, empty, insertEntry, posAsInt2)
 
 import Vector4 exposing (Index(..), Vector4)
 
@@ -13,6 +13,11 @@ type alias Rows a =
 
 type alias Row a =
     Vector4 (Maybe a)
+
+
+insertEntry : ( Pos, a ) -> Grid a -> Grid a
+insertEntry ( pos, a ) grid =
+    Debug.todo "todo"
 
 
 empty : Grid a

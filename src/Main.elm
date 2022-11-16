@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Events
 import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, margin, ms, num, pct, property, px, scale, transforms, translate2, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
@@ -10,6 +11,7 @@ import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
+import Json.Decode as JD
 import Random exposing (Generator)
 import Random.List
 
@@ -110,7 +112,7 @@ randomBoard =
 
 
 type Msg
-    = Msg
+    = OnKeyDown String
 
 
 type alias Flags =
@@ -131,14 +133,54 @@ init _ =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Browser.Events.onKeyDown
+        (JD.field "key" JD.string
+            |> JD.map OnKeyDown
+        )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Msg ->
-            ( model, Cmd.none )
+        OnKeyDown string ->
+            case string of
+                "ArrowRight" ->
+                    ( { model | board = slideBoardRight model.board }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+
+type alias IdVal =
+    ( Id, Val )
+
+
+type alias IdValGrid =
+    Grid IdVal
+
+
+tileToIdValGridEntry : Tile -> Maybe ( Grid.Pos, IdVal )
+tileToIdValGridEntry tile =
+    Debug.todo "todo"
+
+
+slideBoardRight : Board -> Board
+slideBoardRight (Board prevId tiles) =
+    let
+        grid : IdValGrid
+        grid =
+            Dict.foldl (\_ -> insertTile) Grid.empty tiles
+
+        insertTile : Tile -> IdValGrid -> IdValGrid
+        insertTile t grid =
+            case tileToIdValGridEntry t of
+                Just entry ->
+                    Grid.insertEntry entry grid
+
+                Nothing ->
+                    grid
+    in
+    Board prevId tiles
 
 
 boardToTiles : Board -> List Tile
