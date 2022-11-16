@@ -64,10 +64,10 @@ type alias Tiles =
 
 
 type alias NewTile =
-    { anim : Anim, pos : Grid.Pos, val : Val }
+    { pos : Grid.Pos, val : Val }
 
 
-initNewTile : Anim -> Grid.Pos -> Val -> NewTile
+initNewTile : Grid.Pos -> Val -> NewTile
 initNewTile =
     NewTile
 
@@ -83,16 +83,6 @@ randomBoard =
     randomAddNewTiles InitialEnter Grid.allPositions (Board 0 Dict.empty)
 
 
-insertNewTile : NewTile -> Board -> Board
-insertNewTile t (Board prevId tiles) =
-    let
-        id =
-            prevId + 1
-    in
-    Dict.insert id (Tile t.pos id t.val t.anim) tiles
-        |> Board id
-
-
 randomAddNewTiles : Anim -> List Grid.Pos -> Board -> Generator Board
 randomAddNewTiles anim emptyPositions initialBoard =
     let
@@ -104,11 +94,20 @@ randomAddNewTiles anim emptyPositions initialBoard =
         randomValues =
             Random.map2 (\a b -> [ a, b ]) randomVal randomVal
 
-        randomNewTiles : Generator (List NewTile)
+        randomNewTiles : Generator (List ( Grid.Pos, Val ))
         randomNewTiles =
-            Random.map2 (List.map2 (initNewTile anim))
+            Random.map2 (List.map2 Tuple.pair)
                 randomEmptyPositions
                 randomValues
+
+        insertNewTile : ( Grid.Pos, Val ) -> Board -> Board
+        insertNewTile ( pos, val ) (Board prevId tiles) =
+            let
+                id =
+                    prevId + 1
+            in
+            Dict.insert id (Tile pos id val anim) tiles
+                |> Board id
     in
     randomNewTiles
         |> Random.map (List.foldl insertNewTile initialBoard)
