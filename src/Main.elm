@@ -166,6 +166,9 @@ update msg model =
                 "ArrowRight" ->
                     ( updateBoard Right model, Cmd.none )
 
+                "ArrowLeft" ->
+                    ( updateBoard Left model, Cmd.none )
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -188,7 +191,7 @@ slideBoard : Dir -> Board -> Generator Board
 slideBoard dir =
     case dir of
         Left ->
-            slideBoardHelp Grid.mapRowsAsReversedLists
+            slideBoardHelp Grid.mapRowsAsLists
 
         Right ->
             slideBoardHelp Grid.mapRowsAsReversedLists
