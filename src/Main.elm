@@ -181,10 +181,12 @@ slideBoardRight board =
         mergedIdValGrid =
             boardToIdValGrid board
                 |> Grid.mapRows
-                    (Grid.rowToList
-                        >> List.foldr slideAndMerge []
+                    (Grid.rowReverse
+                        >> Grid.rowToList
+                        >> List.foldl slideAndMerge []
                         >> List.reverse
-                        >> Grid.reversedRowFromList
+                        >> Grid.rowFromList
+                        >> Grid.rowReverse
                     )
 
         mergedBoard : Board

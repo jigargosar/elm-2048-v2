@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, emptyPositions, insertEntry, mapRows, posAsInt2, reversedRowFromList, rowToList, toEntries)
+module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, emptyPositions, insertEntry, mapRows, posAsInt2, reversedRowFromList, rowFromList, rowReverse, rowToList, toEntries)
 
 import Vector4 exposing (Index(..), Vector4)
 
