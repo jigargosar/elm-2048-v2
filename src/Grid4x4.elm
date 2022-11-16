@@ -1,4 +1,4 @@
-module Grid4x4 exposing (Grid, Pos, allPositions, empty, insertEntry, posAsInt2)
+module Grid4x4 exposing (Entry, Grid, Pos, allPositions, empty, foldrEachRowAsList, insertEntry, posAsInt2)
 
 import Vector4 exposing (Index(..), Vector4)
 
@@ -15,7 +15,11 @@ type alias Row a =
     Vector4 (Maybe a)
 
 
-insertEntry : ( Pos, a ) -> Grid a -> Grid a
+type alias Entry a =
+    ( Pos, a )
+
+
+insertEntry : Entry a -> Grid a -> Grid a
 insertEntry ( pos, a ) grid =
     Debug.todo "todo"
 
@@ -52,3 +56,8 @@ indices =
 posAsInt2 : Pos -> ( Int, Int )
 posAsInt2 =
     Tuple.mapBoth Vector4.indexToInt Vector4.indexToInt
+
+
+foldrEachRowAsList : (List a -> List a) -> Grid a -> Grid a
+foldrEachRowAsList _ _ =
+    Debug.todo "todo"

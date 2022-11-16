@@ -161,6 +161,13 @@ slideBoardRight (Board prevId tiles) =
         grid : IdValGrid
         grid =
             tilesToIdValGrid tiles
+
+        fn : List IdVal -> List IdVal
+        fn list =
+            Debug.todo "todo"
+
+        _ =
+            Grid.foldrEachRowAsList fn grid
     in
     Board prevId tiles
 
