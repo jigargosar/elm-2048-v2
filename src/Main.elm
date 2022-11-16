@@ -177,8 +177,12 @@ slideBoardRight board =
                         >> List.foldr slideAndMerge []
                         >> Grid.reversedRowFromList
                     )
+
+        mergedBoard : Board
+        mergedBoard =
+            updateBoardFromMergedIdValGrid mergedIdValGrid board
     in
-    updateBoardFromMergedIdValGrid mergedIdValGrid board
+    mergedBoard
 
 
 updateBoardFromMergedIdValGrid : MergedIdValGrid -> Board -> Board
