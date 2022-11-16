@@ -164,14 +164,19 @@ update msg model =
         OnKeyDown string ->
             case string of
                 "ArrowRight" ->
-                    let
-                        ( board, seed ) =
-                            Random.step (slideBoard Right model.board) model.seed
-                    in
-                    ( { model | board = board, seed = seed }, Cmd.none )
+                    ( updateBoard Right model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
+
+
+updateBoard : Dir -> Model -> Model
+updateBoard dir model =
+    let
+        ( board, seed ) =
+            Random.step (slideBoard dir model.board) model.seed
+    in
+    { model | board = board, seed = seed }
 
 
 type Dir
