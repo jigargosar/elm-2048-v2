@@ -51,6 +51,34 @@ type alias Model =
     }
 
 
+type Board
+    = Board Id Tiles
+
+
+type alias Id =
+    Int
+
+
+type alias Tile =
+    { pos : Grid.Pos
+    , id : Id
+    , val : Val
+    , anim : Anim
+    }
+
+
+type Anim
+    = InitialEnter
+    | MergedExit
+    | MergedEnter
+    | NewDelayedEnter
+    | Stayed
+
+
+type alias Tiles =
+    Dict Id Tile
+
+
 type Val
     = Val Int
 
@@ -69,18 +97,6 @@ randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
         |> Random.map Val
-
-
-type alias Id =
-    Int
-
-
-type Board
-    = Board Id Tiles
-
-
-type alias Tiles =
-    Dict Id Tile
 
 
 randomTake : Int -> List a -> Generator (List a)
@@ -287,33 +303,23 @@ boardToIdValGrid (Board _ tiles) =
     let
         insertTile : Tile -> IdValGrid -> IdValGrid
         insertTile t =
-            case tileToIdValGridEntry t of
-                Just entry ->
-                    Grid.insertEntry entry
+            case t.anim of
+                InitialEnter ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
 
-                Nothing ->
+                MergedExit ->
                     identity
+
+                MergedEnter ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+
+                NewDelayedEnter ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+
+                Stayed ->
+                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
     in
     Dict.foldl (\_ -> insertTile) Grid.empty tiles
-
-
-tileToIdValGridEntry : Tile -> Maybe ( Grid.Pos, IdVal )
-tileToIdValGridEntry t =
-    case t.anim of
-        InitialEnter ->
-            Just ( t.pos, ( t.id, t.val ) )
-
-        MergedExit ->
-            Nothing
-
-        MergedEnter ->
-            Just ( t.pos, ( t.id, t.val ) )
-
-        NewDelayedEnter ->
-            Just ( t.pos, ( t.id, t.val ) )
-
-        Stayed ->
-            Just ( t.pos, ( t.id, t.val ) )
 
 
 view : Model -> Html.Html Msg
@@ -331,22 +337,6 @@ viewBoard (Board _ tiles) =
             ]
         ]
         (Dict.values tiles |> List.map viewTile)
-
-
-type alias Tile =
-    { pos : Grid.Pos
-    , id : Id
-    , val : Val
-    , anim : Anim
-    }
-
-
-type Anim
-    = InitialEnter
-    | MergedExit
-    | MergedEnter
-    | NewDelayedEnter
-    | Stayed
 
 
 animDurationDefault =
