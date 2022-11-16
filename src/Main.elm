@@ -335,13 +335,7 @@ viewBoard board =
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
-        (viewBoardTiles board)
-
-
-viewBoardTiles : Board -> List ( String, Html Msg )
-viewBoardTiles board =
-    boardToTiles board
-        |> List.map viewTile
+        (boardToTiles board |> List.map viewTile)
 
 
 type alias Tile =
