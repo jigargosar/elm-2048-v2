@@ -207,30 +207,6 @@ slideAndMergeBoard dir board =
         |> randomAddNewTiles NewDelayedEnter (Grid.emptyPositions grid)
 
 
-updateBoardFromGrid : MergedIdValGrid -> Board -> Board
-updateBoardFromGrid grid board =
-    let
-        updateFromMergedEntry ( pos, mergedIdVal ) (Board prevId tiles) =
-            case mergedIdVal of
-                Merged id1 id2 val ->
-                    let
-                        newId =
-                            prevId + 1
-                    in
-                    Board newId
-                        (tiles
-                            |> Dict.insert id1 (Tile pos id1 val MergedExit)
-                            |> Dict.insert id2 (Tile pos id2 val MergedExit)
-                            |> Dict.insert newId (Tile pos newId (nextVal val) MergedEnter)
-                        )
-
-                Unmerged ( id, val ) ->
-                    Board prevId (Dict.insert id (Tile pos id val Stayed) tiles)
-    in
-    Grid.toEntries grid
-        |> List.foldl updateFromMergedEntry board
-
-
 slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
 slideAndMergeGrid dir =
     case dir of
@@ -264,6 +240,30 @@ slideAndMerge (( id, val ) as idVal) mergedIdValues =
 
         _ ->
             Unmerged idVal :: mergedIdValues
+
+
+updateBoardFromGrid : MergedIdValGrid -> Board -> Board
+updateBoardFromGrid grid board =
+    let
+        updateFromMergedEntry ( pos, mergedIdVal ) (Board prevId tiles) =
+            case mergedIdVal of
+                Merged id1 id2 val ->
+                    let
+                        newId =
+                            prevId + 1
+                    in
+                    Board newId
+                        (tiles
+                            |> Dict.insert id1 (Tile pos id1 val MergedExit)
+                            |> Dict.insert id2 (Tile pos id2 val MergedExit)
+                            |> Dict.insert newId (Tile pos newId (nextVal val) MergedEnter)
+                        )
+
+                Unmerged ( id, val ) ->
+                    Board prevId (Dict.insert id (Tile pos id val Stayed) tiles)
+    in
+    Grid.toEntries grid
+        |> List.foldl updateFromMergedEntry board
 
 
 type alias IdVal =
