@@ -91,11 +91,11 @@ randomTake n list =
 
 randomBoard : Generator Board
 randomBoard =
-    randomAddNewTiles InitialEnter Grid.allPositions (Board 0 Dict.empty)
+    addNewRandomTiles InitialEnter Grid.allPositions (Board 0 Dict.empty)
 
 
-randomAddNewTiles : Anim -> List Grid.Pos -> Board -> Generator Board
-randomAddNewTiles anim emptyPositions initialBoard =
+addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Generator Board
+addNewRandomTiles anim emptyPositions initialBoard =
     let
         randomEmptyPositions : Generator (List Grid.Pos)
         randomEmptyPositions =
@@ -204,7 +204,7 @@ slideAndMergeBoard dir board =
     in
     board
         |> updateBoardFromGrid grid
-        |> randomAddNewTiles NewDelayedEnter (Grid.emptyPositions grid)
+        |> addNewRandomTiles NewDelayedEnter (Grid.emptyPositions grid)
 
 
 slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
