@@ -51,8 +51,22 @@ allPositions =
 
 
 emptyPositions : Grid a -> List Pos
-emptyPositions =
-    Debug.todo "todo"
+emptyPositions (Grid rows) =
+    Vector4.toIndexedList rows
+        |> List.concatMap
+            (\( y, row ) ->
+                row
+                    |> Vector4.toIndexedList
+                    |> List.filterMap
+                        (\( x, mba ) ->
+                            case mba of
+                                Just _ ->
+                                    Nothing
+
+                                Nothing ->
+                                    Just ( x, y )
+                        )
+            )
 
 
 indices =

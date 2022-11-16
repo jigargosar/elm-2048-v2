@@ -31,7 +31,7 @@ import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
-import Random exposing (Generator)
+import Random exposing (Generator, Seed)
 import Random.List
 
 
@@ -47,6 +47,7 @@ main =
 
 type alias Model =
     { board : Board
+    , seed : Seed
     }
 
 
@@ -134,13 +135,12 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
-        ( board, _ ) =
+        ( board, seed ) =
             Random.step randomBoard (Random.initialSeed 0)
     in
     ( { board =
             board
-
-      --|> slideBoardRight
+      , seed = seed
       }
     , Cmd.none
     )
@@ -160,13 +160,17 @@ update msg model =
         OnKeyDown string ->
             case string of
                 "ArrowRight" ->
-                    ( { model | board = slideBoardRight model.board }, Cmd.none )
+                    let
+                        ( board, seed ) =
+                            Random.step (slideBoardRight model.board) model.seed
+                    in
+                    ( { model | board = board, seed = seed }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
 
-slideBoardRight : Board -> Board
+slideBoardRight : Board -> Generator Board
 slideBoardRight board =
     let
         mergedIdValGrid : MergedIdValGrid
@@ -182,7 +186,7 @@ slideBoardRight board =
         mergedBoard =
             updateBoardFromMergedIdValGrid mergedIdValGrid board
     in
-    mergedBoard
+    randomAddNewTiles NewDelayedEnter (Grid.emptyPositions mergedIdValGrid) mergedBoard
 
 
 updateBoardFromMergedIdValGrid : MergedIdValGrid -> Board -> Board
