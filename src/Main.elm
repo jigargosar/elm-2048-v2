@@ -191,7 +191,7 @@ update msg model =
 
 updateBoard : Dir -> Model -> Model
 updateBoard dir model =
-    case slideAndMergeBoard dir model.board of
+    case makeMove dir model.board of
         Nothing ->
             model
 
@@ -210,8 +210,8 @@ type Dir
     | Down
 
 
-slideAndMergeBoard : Dir -> Board -> Maybe (Generator Board)
-slideAndMergeBoard dir board =
+makeMove : Dir -> Board -> Maybe (Generator Board)
+makeMove dir board =
     boardToIdValGrid board
         |> slideAndMergeGrid dir
         |> Maybe.map
