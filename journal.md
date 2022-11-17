@@ -4,7 +4,8 @@ CURRENT STATE:
 * We have 2 implementations with and without animations.
 
 NEXT STEPS:
-* Merge implementations. (with and without animation)
+* [x] Merge implementations. (with and without animation)
+* [ ] bug: new tiles are generated without move/merge 
 
 
 
