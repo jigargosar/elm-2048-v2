@@ -342,11 +342,11 @@ viewBoard ((Board _ tiles) as board) =
         , if isGameOver board then
             div
                 [ css
-                    [ displayGrid
-                    , gridArea11
+                    [ gridArea11
                     , position relative
-                    , backgroundColor <| hsla 0 0 1 0.8
+                    , displayGrid
                     , placeContentCenter
+                    , backgroundColor <| hsla 0 0 1 0.8
                     ]
                 ]
                 [ text "game over" ]
