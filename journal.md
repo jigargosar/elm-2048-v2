@@ -11,6 +11,15 @@ NEXT STEPS:
 
 Problem-Solving:
 
+How to determine if slide and merge operation resulted in any change?
+* We can't compare old and new board, since old board contains old anim state
+* and new board contains stayed anim state.
+* This anim change will happen even if there is no actual tile movement.
+* Also, the two grids we are using are not type compatible.
+* But we could use same type for both grid to solve this problem
+* and also simplify code.
+* Wow!!
+
 What will be initial state?
 * {tiles: Dict Id Tile, grid: Grid Id}
 * what is id? val? idVal? why should they be separate?
