@@ -191,11 +191,16 @@ update msg model =
 
 updateBoard : Dir -> Model -> Model
 updateBoard dir model =
-    let
-        ( board, seed ) =
-            Random.step (slideAndMergeBoard dir model.board) model.seed
-    in
-    { model | board = board, seed = seed }
+    case slideAndMergeBoard dir model.board of
+        Nothing ->
+            model
+
+        Just gen ->
+            let
+                ( board, seed ) =
+                    Random.step gen model.seed
+            in
+            { model | board = board, seed = seed }
 
 
 type Dir
@@ -205,16 +210,16 @@ type Dir
     | Down
 
 
-slideAndMergeBoard : Dir -> Board -> Generator Board
+slideAndMergeBoard : Dir -> Board -> Maybe (Generator Board)
 slideAndMergeBoard dir board =
-    let
-        grid =
-            boardToIdValGrid board
-                |> slideAndMergeGrid dir
-    in
-    board
-        |> updateBoardFromGrid grid
-        |> addNewRandomTiles NewDelayedEnter (Grid.emptyPositions grid)
+    boardToIdValGrid board
+        |> slideAndMergeGrid dir
+        |> Maybe.map
+            (\grid ->
+                board
+                    |> updateBoardFromGrid grid
+                    |> addNewRandomTiles NewDelayedEnter (Grid.emptyPositions grid)
+            )
 
 
 type alias IdVal =
@@ -258,7 +263,7 @@ boardToIdValGrid (Board _ tiles) =
     Dict.foldl (\_ -> insertTile) Grid.empty tiles
 
 
-slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
+slideAndMergeGrid : Dir -> IdValGrid -> Maybe MergedIdValGrid
 slideAndMergeGrid dir grid =
     let
         foo =
@@ -289,7 +294,7 @@ slideAndMergeGrid dir grid =
             else
                 Just mergedGrid
     in
-    mergedGrid
+    res
 
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
