@@ -327,7 +327,7 @@ view model =
 
 
 viewBoard : Board -> Html Msg
-viewBoard (Board _ tiles) =
+viewBoard ((Board _ tiles) as board) =
     div
         [ css [ displayInlineGrid ]
         ]
@@ -339,7 +339,7 @@ viewBoard (Board _ tiles) =
                 ]
             ]
             (Dict.values tiles |> List.map viewTile)
-        , if True then
+        , if isGameOver board then
             div
                 [ css
                     [ displayGrid
@@ -354,6 +354,12 @@ viewBoard (Board _ tiles) =
           else
             text ""
         ]
+
+
+isGameOver : Board -> Bool
+isGameOver board =
+    [ Up, Down, Left, Right ]
+        |> List.all (\dir -> moveHelp dir board == Nothing)
 
 
 animDurationDefault =
