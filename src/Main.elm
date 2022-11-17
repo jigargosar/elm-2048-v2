@@ -2,26 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Css
-    exposing
-        ( Style
-        , animationDelay
-        , animationDuration
-        , animationName
-        , backgroundColor
-        , batch
-        , hsl
-        , margin
-        , ms
-        , num
-        , pct
-        , property
-        , px
-        , scale
-        , transforms
-        , translate2
-        , zero
-        )
+import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, hsla, margin, ms, num, pct, position, property, px, relative, scale, transforms, translate2, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
@@ -347,13 +328,32 @@ view model =
 
 viewBoard : Board -> Html Msg
 viewBoard (Board _ tiles) =
-    Keyed.node "div"
-        [ css
-            [ displayInlineGrid
-            , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
-            ]
+    div
+        [ css [ displayInlineGrid ]
         ]
-        (Dict.values tiles |> List.map viewTile)
+        [ Keyed.node "div"
+            [ css
+                [ displayGrid
+                , gridArea11
+                , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
+                ]
+            ]
+            (Dict.values tiles |> List.map viewTile)
+        , if True then
+            div
+                [ css
+                    [ displayGrid
+                    , gridArea11
+                    , position relative
+                    , backgroundColor <| hsla 0 0 1 0.8
+                    , placeContentCenter
+                    ]
+                ]
+                [ text "game over" ]
+
+          else
+            text ""
+        ]
 
 
 animDurationDefault =
@@ -449,7 +449,7 @@ viewTile t =
         [ css
             [ transforms [ translate2 dx dy ]
             , transition [ T.transform3 300 0 T.easeOut ]
-            , property "grid-area" "1/1"
+            , gridArea11
             , displayGrid
             ]
         ]
@@ -479,3 +479,7 @@ displayInlineGrid =
 
 placeContentCenter =
     property "place-content" "center"
+
+
+gridArea11 =
+    property "grid-area" "1/1"
