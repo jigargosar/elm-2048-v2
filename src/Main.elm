@@ -259,19 +259,37 @@ boardToIdValGrid (Board _ tiles) =
 
 
 slideAndMergeGrid : Dir -> IdValGrid -> MergedIdValGrid
-slideAndMergeGrid dir =
-    case dir of
-        Left ->
-            Grid.mapRowsAsLists slideLeftAndMerge
+slideAndMergeGrid dir grid =
+    let
+        foo =
+            case dir of
+                Left ->
+                    Grid.mapRowsAsLists slideLeftAndMerge
 
-        Right ->
-            Grid.mapRowsAsReversedLists slideLeftAndMerge
+                Right ->
+                    Grid.mapRowsAsReversedLists slideLeftAndMerge
 
-        Up ->
-            Grid.mapColumnsAsLists slideLeftAndMerge
+                Up ->
+                    Grid.mapColumnsAsLists slideLeftAndMerge
 
-        Down ->
-            Grid.mapColumnsAsReversedLists slideLeftAndMerge
+                Down ->
+                    Grid.mapColumnsAsReversedLists slideLeftAndMerge
+
+        mergedGrid =
+            foo grid
+
+        unmergedGrid =
+            Grid.map Unmerged grid
+
+        res : Maybe (Grid MergedIdVal)
+        res =
+            if mergedGrid == unmergedGrid then
+                Nothing
+
+            else
+                Just mergedGrid
+    in
+    mergedGrid
 
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
