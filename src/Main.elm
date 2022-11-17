@@ -174,24 +174,24 @@ update msg model =
         OnKeyDown string ->
             case string of
                 "ArrowRight" ->
-                    ( updateBoard Right model, Cmd.none )
+                    ( move Right model, Cmd.none )
 
                 "ArrowLeft" ->
-                    ( updateBoard Left model, Cmd.none )
+                    ( move Left model, Cmd.none )
 
                 "ArrowUp" ->
-                    ( updateBoard Up model, Cmd.none )
+                    ( move Up model, Cmd.none )
 
                 "ArrowDown" ->
-                    ( updateBoard Down model, Cmd.none )
+                    ( move Down model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
 
 
-updateBoard : Dir -> Model -> Model
-updateBoard dir model =
-    case makeMove dir model.board of
+move : Dir -> Model -> Model
+move dir model =
+    case moveHelp dir model.board of
         Nothing ->
             model
 
@@ -210,8 +210,8 @@ type Dir
     | Down
 
 
-makeMove : Dir -> Board -> Maybe (Generator Board)
-makeMove dir board =
+moveHelp : Dir -> Board -> Maybe (Generator Board)
+moveHelp dir board =
     boardToIdValGrid board
         |> slideAndMergeGrid dir
         |> Maybe.map
