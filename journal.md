@@ -5,7 +5,8 @@ CURRENT STATE:
 
 NEXT STEPS:
 * [x] Merge implementations. (with and without animation)
-* [ ] bug: new tiles are generated without move/merge 
+* [x] bug: new tiles are generated without move/merge
+* [ ] game over
 
 
 

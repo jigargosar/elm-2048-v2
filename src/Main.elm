@@ -349,7 +349,7 @@ viewBoard : Board -> Html Msg
 viewBoard (Board _ tiles) =
     Keyed.node "div"
         [ css
-            [ displayGrid
+            [ displayInlineGrid
             , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
             ]
         ]
@@ -471,6 +471,10 @@ viewTile t =
 
 displayGrid =
     property "display" "grid"
+
+
+displayInlineGrid =
+    property "display" "inline-grid"
 
 
 placeContentCenter =
