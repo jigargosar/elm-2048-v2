@@ -22,7 +22,8 @@ How to determine if slide and merge operation resulted in any change?
 * Nope!!
 * Input cannot contain merged type, it is an impossible state.
 * so how do we handle it, while folding a row?
-* 
+* We could convert input `idval` grid to Unmerged and then compare :)
+* let's try that.
 
 What will be initial state?
 * {tiles: Dict Id Tile, grid: Grid Id}
