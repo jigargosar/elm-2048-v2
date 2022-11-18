@@ -363,7 +363,7 @@ updateBoardFromGrid grid board =
 view : Model -> Html.Html Msg
 view model =
     toUnstyled <|
-        div [] [ viewGame model.game ]
+        div [ css [ padding <| px 30 ] ] [ viewGame model.game ]
 
 
 gameToTileList : Game -> List Tile
@@ -439,13 +439,18 @@ boardStyle =
     batch
         [ displayGrid
         , gridArea11
-        , property "grid-template" "repeat(4, 50px)/repeat(4, 50px)"
+        , property "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
         , paddingForTileAndBoard
+        , roundedBorder
         ]
 
 
+roundedBorder =
+    Css.borderRadius <| px 8
+
+
 paddingForTileAndBoard =
-    padding <| px 5
+    padding <| px 8
 
 
 animDurationDefault =
