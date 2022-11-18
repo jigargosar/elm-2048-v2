@@ -213,7 +213,7 @@ attemptMoveInDir dir game =
 
 slideAndMergeBoard : Dir -> Board -> Maybe ( Board, List Grid.Pos )
 slideAndMergeBoard dir board =
-    boardToIdValGrid board
+    boardToGrid board
         |> slideAndMergeGrid dir
         |> Maybe.map
             (\grid ->
@@ -259,8 +259,8 @@ type alias MergedIdValGrid =
     Grid MergedIdVal
 
 
-boardToIdValGrid : Board -> IdValGrid
-boardToIdValGrid (Board _ tiles) =
+boardToGrid : Board -> IdValGrid
+boardToGrid (Board _ tiles) =
     let
         insertTile : Tile -> IdValGrid -> IdValGrid
         insertTile t =
