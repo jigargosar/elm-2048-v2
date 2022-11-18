@@ -32,6 +32,11 @@ type alias Model =
     }
 
 
+type Game
+    = Running
+    | Over
+
+
 type Board
     = Board Id Tiles
 
