@@ -34,7 +34,7 @@ type alias Model =
 
 type Game
     = Running Board
-    | Over Tiles
+    | Over (List Tile)
 
 
 type Board
@@ -238,7 +238,7 @@ gameFromBoard ((Board _ tiles) as board) =
                 |> List.all (\dir -> slideAndMergeBoard dir board == Nothing)
     in
     if isGameOver then
-        Over tiles
+        Over (Dict.values tiles)
 
     else
         Running board
@@ -363,14 +363,12 @@ view model =
 
 gameToTileList : Game -> List Tile
 gameToTileList game =
-    (case game of
-        Running (Board _ tiles) ->
-            tiles
+    case game of
+        Running (Board _ tilesDict) ->
+            Dict.values tilesDict
 
-        Over tiles ->
-            tiles
-    )
-        |> Dict.values
+        Over tilesList ->
+            tilesList
 
 
 viewGame : Game -> Html Msg
