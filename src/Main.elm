@@ -208,13 +208,7 @@ type Dir
 
 moveHelp : Dir -> Board -> Maybe (Generator Game)
 moveHelp dir =
-    slideAndMergeBoard dir
-        >> Maybe.map
-            (\( board, emptyPositions ) ->
-                board
-                    |> addNewRandomTiles NewDelayedEnter emptyPositions
-                    |> Random.map gameFromBoard
-            )
+    slideAndMergeBoard dir >> Maybe.map addNewTilesAfterMove
 
 
 slideAndMergeBoard : Dir -> Board -> Maybe ( Board, List Grid.Pos )
@@ -225,6 +219,13 @@ slideAndMergeBoard dir board =
             (\grid ->
                 ( updateBoardFromGrid grid board, Grid.emptyPositions grid )
             )
+
+
+addNewTilesAfterMove : ( Board, List Grid.Pos ) -> Generator Game
+addNewTilesAfterMove ( board, emptyPositions ) =
+    board
+        |> addNewRandomTiles NewDelayedEnter emptyPositions
+        |> Random.map gameFromBoard
 
 
 gameFromBoard : Board -> Game
