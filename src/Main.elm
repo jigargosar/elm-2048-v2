@@ -403,7 +403,10 @@ viewGame game =
     div
         [ css [ displayInlineGrid ]
         ]
-        [ Keyed.node "div"
+        [ div
+            [ css [ boardStyle ] ]
+            (Grid.allPositions |> List.map viewBackgroundTile)
+        , Keyed.node "div"
             [ css [ boardStyle ] ]
             (List.map viewTile (gameToTileList game))
         , case game of
@@ -424,12 +427,17 @@ viewGame game =
         ]
 
 
+viewBackgroundTile : a -> Html msg
+viewBackgroundTile pos =
+    text ""
+
+
 boardStyle : Style
 boardStyle =
     batch
         [ displayGrid
         , gridArea11
-        , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
+        , property "grid-template" "repeat(4, 50px)/repeat(4, 50px)"
         ]
 
 
