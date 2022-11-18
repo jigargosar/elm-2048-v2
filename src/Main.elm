@@ -2,8 +2,9 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, fontFamily, fontSize, hsl, hsla, margin, monospace, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, zero)
+import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, color, fontFamily, fontSize, hsl, hsla, margin, monospace, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, zero)
 import Css.Animations as A exposing (keyframes)
+import Css.Global as Global
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
 import Grid4x4 as Grid exposing (Grid)
@@ -363,7 +364,15 @@ updateBoardFromGrid grid board =
 view : Model -> Html.Html Msg
 view model =
     toUnstyled <|
-        div [ css [ padding <| px 30 ] ] [ viewGame model.game ]
+        div [ css [ padding <| px 30 ] ]
+            [ Global.global
+                [ Global.body
+                    [ backgroundColor <| colorDark1
+                    , color <| hsl 1 1 1
+                    ]
+                ]
+            , viewGame model.game
+            ]
 
 
 gameToTileList : Game -> List Tile
@@ -385,13 +394,7 @@ viewGame game =
             , fontSize <| px 50
             ]
         ]
-        [ div
-            [ css
-                [ boardStyle
-                , backgroundColor <| hsl 26 0.71 0.63
-                ]
-            ]
-            (Grid.allPositions |> List.map viewBackgroundTile)
+        [ viewBackgroundGrid
         , Keyed.node "div"
             [ css [ boardStyle ] ]
             (List.map viewTile (gameToTileList game))
@@ -413,6 +416,16 @@ viewGame game =
         ]
 
 
+viewBackgroundGrid =
+    div
+        [ css
+            [ boardStyle
+            , backgroundColor <| colorDark3
+            ]
+        ]
+        (Grid.allPositions |> List.map viewBackgroundTile)
+
+
 viewBackgroundTile : Grid.Pos -> Html msg
 viewBackgroundTile pos =
     div
@@ -425,7 +438,7 @@ viewBackgroundTile pos =
         [ div
             [ css
                 [ roundedBorder
-                , backgroundColor <| hsl 1 1 1
+                , backgroundColor <| colorDark2
                 ]
             ]
             []
@@ -454,6 +467,18 @@ boardStyle =
         , paddingForTileAndBoard
         , roundedBorder
         ]
+
+
+colorDark1 =
+    hsl 0 0 0.15
+
+
+colorDark2 =
+    hsl 0 0 0.2
+
+
+colorDark3 =
+    hsl 0 0 0.3
 
 
 roundedBorder =
@@ -564,7 +589,7 @@ viewTile t =
         ]
         [ div
             [ css
-                [ backgroundColor <| hsl 0 0 0.8
+                [ backgroundColor <| colorDark1
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
