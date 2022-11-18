@@ -187,7 +187,7 @@ move dir model =
             model
 
         Running board ->
-            case moveHelp dir board of
+            case updateBoard dir board of
                 Nothing ->
                     model
 
@@ -206,8 +206,8 @@ type Dir
     | Down
 
 
-moveHelp : Dir -> Board -> Maybe (Generator Game)
-moveHelp dir =
+updateBoard : Dir -> Board -> Maybe (Generator Game)
+updateBoard dir =
     slideAndMergeBoard dir >> Maybe.map addNewTilesAfterMove
 
 
