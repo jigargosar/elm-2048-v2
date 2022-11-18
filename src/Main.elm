@@ -262,25 +262,26 @@ type alias MergedIdValGrid =
 boardToGrid : Board -> IdValGrid
 boardToGrid (Board _ tiles) =
     let
-        insertTile : Tile -> IdValGrid -> IdValGrid
-        insertTile t =
+        toEntry t =
             case t.anim of
                 InitialEnter ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+                    Just ( t.pos, ( t.id, t.val ) )
 
                 MergedExit ->
-                    identity
+                    Nothing
 
                 MergedEnter ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+                    Just ( t.pos, ( t.id, t.val ) )
 
                 NewDelayedEnter ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+                    Just ( t.pos, ( t.id, t.val ) )
 
                 Stayed ->
-                    Grid.insertEntry ( t.pos, ( t.id, t.val ) )
+                    Just ( t.pos, ( t.id, t.val ) )
     in
-    Dict.foldl (\_ -> insertTile) Grid.empty tiles
+    Dict.values tiles
+        |> List.filterMap toEntry
+        |> Grid.fromEntries
 
 
 slideAndMergeGrid : Dir -> IdValGrid -> Maybe MergedIdValGrid

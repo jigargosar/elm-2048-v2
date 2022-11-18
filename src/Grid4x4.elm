@@ -3,9 +3,8 @@ module Grid4x4 exposing
     , Grid
     , Pos
     , allPositions
-    , empty
     , emptyPositions
-    , insertEntry
+    , fromEntries
     , map
     , mapColumnsAsLists
     , mapColumnsAsReversedLists
@@ -33,6 +32,11 @@ type alias Row a =
 
 type alias Entry a =
     ( Pos, a )
+
+
+fromEntries : List (Entry a) -> Grid a
+fromEntries =
+    List.foldl insertEntry empty
 
 
 insertEntry : Entry a -> Grid a -> Grid a
