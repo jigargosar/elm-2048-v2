@@ -2,29 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Css
-    exposing
-        ( Style
-        , animationDelay
-        , animationDuration
-        , animationName
-        , backgroundColor
-        , batch
-        , hsl
-        , hsla
-        , margin
-        , ms
-        , num
-        , pct
-        , position
-        , property
-        , px
-        , relative
-        , scale
-        , transforms
-        , translate2
-        , zero
-        )
+import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, hsla, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
@@ -404,7 +382,11 @@ viewGame game =
         [ css [ displayInlineGrid ]
         ]
         [ div
-            [ css [ boardStyle ] ]
+            [ css
+                [ boardStyle
+                , backgroundColor <| hsl 26 0.71 0.63
+                ]
+            ]
             (Grid.allPositions |> List.map viewBackgroundTile)
         , Keyed.node "div"
             [ css [ boardStyle ] ]
@@ -431,12 +413,12 @@ viewBackgroundTile : Grid.Pos -> Html msg
 viewBackgroundTile pos =
     div
         [ css
-            [ transition [ T.transform3 300 0 T.easeOut ]
-            , gridAreaFromPos pos
+            [ gridAreaFromPos pos
             , displayGrid
+            , paddingForTileAndBoard
             ]
         ]
-        []
+        [ div [ css [ backgroundColor <| hsl 1 1 1 ] ] [] ]
 
 
 gridAreaFromPos : Grid.Pos -> Style
@@ -458,7 +440,12 @@ boardStyle =
         [ displayGrid
         , gridArea11
         , property "grid-template" "repeat(4, 50px)/repeat(4, 50px)"
+        , paddingForTileAndBoard
         ]
+
+
+paddingForTileAndBoard =
+    padding <| px 5
 
 
 animDurationDefault =
@@ -556,12 +543,12 @@ viewTile t =
             , transition [ T.transform3 300 0 T.easeOut ]
             , gridArea11
             , displayGrid
+            , paddingForTileAndBoard
             ]
         ]
         [ div
             [ css
-                [ margin <| px 1
-                , backgroundColor <| hsl 0 0 0.8
+                [ backgroundColor <| hsl 0 0 0.8
                 , displayGrid
                 , placeContentCenter
                 , animToStyle t.anim
