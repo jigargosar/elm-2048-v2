@@ -60,7 +60,7 @@ type Game
 
 
 type Board
-    = Board Id TilesDict
+    = Board Seed Id TilesDict
 
 
 type alias TilesDict =
@@ -114,11 +114,15 @@ randomGame =
 
 randomBoard : Generator Board
 randomBoard =
-    addNewRandomTiles InitialEnter Grid.allPositions (Board 0 Dict.empty)
+    Random.independentSeed
+        |> Random.map
+            (\seed ->
+                addNewRandomTiles InitialEnter Grid.allPositions (Board seed 0 Dict.empty)
+            )
 
 
-addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Generator Board
-addNewRandomTiles anim emptyPositions initialBoard =
+addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Board
+addNewRandomTiles anim emptyPositions =
     let
         randomTake : Int -> List a -> Generator (List a)
         randomTake n list =
@@ -140,16 +144,20 @@ addNewRandomTiles anim emptyPositions initialBoard =
                 randomValues
 
         insertNewTile : ( Grid.Pos, Val ) -> Board -> Board
-        insertNewTile ( pos, val ) (Board prevId tiles) =
+        insertNewTile ( pos, val ) (Board seed prevId tiles) =
             let
                 id =
                     prevId + 1
             in
             Dict.insert id (Tile pos id val anim) tiles
-                |> Board id
+                |> Board seed id
+
+        insertNewTiles : Board -> Board
+        insertNewTiles (Board seed prevId tiles) =
+            Random.step randomNewTiles seed
+                |> (\( list, newSeed ) -> List.foldl insertNewTile (Board newSeed prevId tiles) list)
     in
-    randomNewTiles
-        |> Random.map (List.foldl insertNewTile initialBoard)
+    insertNewTiles
 
 
 type Msg
@@ -208,12 +216,8 @@ move dir model =
         Nothing ->
             model
 
-        Just gen ->
-            let
-                ( game, seed ) =
-                    Random.step gen model.seed
-            in
-            { model | game = game, seed = seed }
+        Just game ->
+            { model | game = game }
 
 
 type Dir
@@ -223,7 +227,7 @@ type Dir
     | Down
 
 
-attemptMoveInDir : Dir -> Game -> Maybe (Generator Game)
+attemptMoveInDir : Dir -> Game -> Maybe Game
 attemptMoveInDir dir game =
     case game of
         Over _ ->
@@ -245,15 +249,15 @@ slideAndMergeBoard dir board =
             )
 
 
-addNewTilesAfterMove : ( Board, List Grid.Pos ) -> Generator Game
+addNewTilesAfterMove : ( Board, List Grid.Pos ) -> Game
 addNewTilesAfterMove ( board, emptyPositions ) =
     board
         |> addNewRandomTiles NewDelayedEnter emptyPositions
-        |> Random.map gameFromBoard
+        |> gameFromBoard
 
 
 gameFromBoard : Board -> Game
-gameFromBoard ((Board _ tiles) as board) =
+gameFromBoard ((Board _ _ tiles) as board) =
     let
         isGameOver =
             [ Up, Down, Left, Right ]
@@ -284,7 +288,7 @@ type alias MergedIdValGrid =
 
 
 boardToGrid : Board -> IdValGrid
-boardToGrid (Board _ tiles) =
+boardToGrid (Board _ _ tiles) =
     let
         toEntry t =
             case t.anim of
@@ -356,14 +360,15 @@ slideLeftAndMerge =
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
     let
-        updateFromMergedEntry ( pos, mergedIdVal ) (Board prevId tiles) =
+        updateFromMergedEntry ( pos, mergedIdVal ) (Board seed prevId tiles) =
             case mergedIdVal of
                 Merged id1 id2 val ->
                     let
                         newId =
                             prevId + 1
                     in
-                    Board newId
+                    Board seed
+                        newId
                         (tiles
                             |> Dict.insert id1 (Tile pos id1 val MergedExit)
                             |> Dict.insert id2 (Tile pos id2 val MergedExit)
@@ -371,7 +376,7 @@ updateBoardFromGrid grid board =
                         )
 
                 Unmerged ( id, val ) ->
-                    Board prevId (Dict.insert id (Tile pos id val Stayed) tiles)
+                    Board seed prevId (Dict.insert id (Tile pos id val Stayed) tiles)
     in
     Grid.toEntries grid
         |> List.foldl updateFromMergedEntry board
@@ -386,7 +391,7 @@ view model =
 gameToTileList : Game -> List Tile
 gameToTileList game =
     case game of
-        Running (Board _ tilesDict) ->
+        Running (Board _ _ tilesDict) ->
             Dict.values tilesDict
 
         Over tilesList ->
