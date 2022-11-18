@@ -404,12 +404,7 @@ viewGame game =
         [ css [ displayInlineGrid ]
         ]
         [ Keyed.node "div"
-            [ css
-                [ displayGrid
-                , gridArea11
-                , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
-                ]
-            ]
+            [ css [ boardStyle ] ]
             (List.map viewTile (gameToTileList game))
         , case game of
             Over _ ->
@@ -426,6 +421,15 @@ viewGame game =
 
             Running _ ->
                 text ""
+        ]
+
+
+boardStyle : Style
+boardStyle =
+    batch
+        [ displayGrid
+        , gridArea11
+        , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
         ]
 
 
