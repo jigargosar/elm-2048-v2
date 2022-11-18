@@ -38,10 +38,10 @@ type Game
 
 
 type Board
-    = Board Id Tiles
+    = Board Id TilesDict
 
 
-type alias Tiles =
+type alias TilesDict =
     Dict Id Tile
 
 
