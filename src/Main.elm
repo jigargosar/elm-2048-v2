@@ -2,7 +2,29 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, hsla, margin, ms, num, pct, position, property, px, relative, scale, transforms, translate2, zero)
+import Css
+    exposing
+        ( Style
+        , animationDelay
+        , animationDuration
+        , animationName
+        , backgroundColor
+        , batch
+        , hsl
+        , hsla
+        , margin
+        , ms
+        , num
+        , pct
+        , position
+        , property
+        , px
+        , relative
+        , scale
+        , transforms
+        , translate2
+        , zero
+        )
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
