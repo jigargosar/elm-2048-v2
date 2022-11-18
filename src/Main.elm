@@ -27,14 +27,14 @@ main =
 
 
 type alias Model =
-    { board : Board
+    { game : Game
     , seed : Seed
     }
 
 
 type Game
-    = Running
-    | Over
+    = Running Board
+    | Over Board
 
 
 type Board
@@ -83,6 +83,11 @@ randomVal : Generator Val
 randomVal =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
         |> Random.map Val
+
+
+randomGame : Generator Game
+randomGame =
+    randomBoard |> Random.map Running
 
 
 randomBoard : Generator Board
@@ -136,10 +141,10 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
-        ( board, seed ) =
-            Random.step randomBoard (Random.initialSeed 0)
+        ( game, seed ) =
+            Random.step randomGame (Random.initialSeed 0)
     in
-    ( { board = board
+    ( { game = game
       , seed = seed
       }
     , Cmd.none
@@ -177,16 +182,21 @@ update msg model =
 
 move : Dir -> Model -> Model
 move dir model =
-    case moveHelp dir model.board of
-        Nothing ->
+    case model.game of
+        Over _ ->
             model
 
-        Just gen ->
-            let
-                ( board, seed ) =
-                    Random.step gen model.seed
-            in
-            { model | board = board, seed = seed }
+        Running board ->
+            case moveHelp dir board of
+                Nothing ->
+                    model
+
+                Just gen ->
+                    let
+                        ( game, seed ) =
+                            Random.step gen model.seed
+                    in
+                    { model | game = game, seed = seed }
 
 
 type Dir
@@ -196,16 +206,39 @@ type Dir
     | Down
 
 
-moveHelp : Dir -> Board -> Maybe (Generator Board)
-moveHelp dir board =
+moveHelp : Dir -> Board -> Maybe (Generator Game)
+moveHelp dir =
+    slideAndMergeBoard dir
+        >> Maybe.map
+            (\( board, emptyPositions ) ->
+                board
+                    |> addNewRandomTiles NewDelayedEnter emptyPositions
+                    |> Random.map gameFromBoard
+            )
+
+
+slideAndMergeBoard : Dir -> Board -> Maybe ( Board, List Grid.Pos )
+slideAndMergeBoard dir board =
     boardToIdValGrid board
         |> slideAndMergeGrid dir
         |> Maybe.map
             (\grid ->
-                board
-                    |> updateBoardFromGrid grid
-                    |> addNewRandomTiles NewDelayedEnter (Grid.emptyPositions grid)
+                ( updateBoardFromGrid grid board, Grid.emptyPositions grid )
             )
+
+
+gameFromBoard : Board -> Game
+gameFromBoard board =
+    let
+        isGameOver =
+            [ Up, Down, Left, Right ]
+                |> List.all (\dir -> slideAndMergeBoard dir board == Nothing)
+    in
+    if isGameOver then
+        Over board
+
+    else
+        Running board
 
 
 type alias IdVal =
@@ -328,11 +361,25 @@ updateBoardFromGrid grid board =
 view : Model -> Html.Html Msg
 view model =
     toUnstyled <|
-        div [] [ viewBoard model.board ]
+        div [] [ viewGame model.game ]
 
 
-viewBoard : Board -> Html Msg
-viewBoard ((Board _ tiles) as board) =
+mapTileList : (Tile -> b) -> Game -> List b
+mapTileList fn game =
+    let
+        (Board _ tiles) =
+            case game of
+                Running board ->
+                    board
+
+                Over board ->
+                    board
+    in
+    List.map fn (Dict.values tiles)
+
+
+viewGame : Game -> Html Msg
+viewGame game =
     div
         [ css [ displayInlineGrid ]
         ]
@@ -343,28 +390,23 @@ viewBoard ((Board _ tiles) as board) =
                 , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
                 ]
             ]
-            (Dict.values tiles |> List.map viewTile)
-        , if isGameOver board then
-            div
-                [ css
-                    [ gridArea11
-                    , position relative
-                    , displayGrid
-                    , placeContentCenter
-                    , backgroundColor <| hsla 0 0 1 0.8
+            (mapTileList viewTile game)
+        , case game of
+            Over _ ->
+                div
+                    [ css
+                        [ gridArea11
+                        , position relative
+                        , displayGrid
+                        , placeContentCenter
+                        , backgroundColor <| hsla 0 0 1 0.8
+                        ]
                     ]
-                ]
-                [ text "game over" ]
+                    [ text "game over" ]
 
-          else
-            text ""
+            Running _ ->
+                text ""
         ]
-
-
-isGameOver : Board -> Bool
-isGameOver board =
-    [ Up, Down, Left, Right ]
-        |> List.all (\dir -> moveHelp dir board == Nothing)
 
 
 animDurationDefault =
