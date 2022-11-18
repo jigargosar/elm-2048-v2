@@ -34,7 +34,7 @@ type alias Model =
 
 type Game
     = Running Board
-    | Over Board
+    | Over Tiles
 
 
 type Board
@@ -231,14 +231,14 @@ addNewTilesAfterMove ( board, emptyPositions ) =
 
 
 gameFromBoard : Board -> Game
-gameFromBoard board =
+gameFromBoard ((Board _ tiles) as board) =
     let
         isGameOver =
             [ Up, Down, Left, Right ]
                 |> List.all (\dir -> slideAndMergeBoard dir board == Nothing)
     in
     if isGameOver then
-        Over board
+        Over tiles
 
     else
         Running board
@@ -361,18 +361,16 @@ view model =
         div [] [ viewGame model.game ]
 
 
-mapTileList : (Tile -> b) -> Game -> List b
-mapTileList fn game =
-    let
-        (Board _ tiles) =
-            case game of
-                Running board ->
-                    board
+gameToTileList : Game -> List Tile
+gameToTileList game =
+    (case game of
+        Running (Board _ tiles) ->
+            tiles
 
-                Over board ->
-                    board
-    in
-    List.map fn (Dict.values tiles)
+        Over tiles ->
+            tiles
+    )
+        |> Dict.values
 
 
 viewGame : Game -> Html Msg
@@ -387,7 +385,7 @@ viewGame game =
                 , property "grid-template" "repeat(4, 25px)/repeat(4, 25px)"
                 ]
             ]
-            (mapTileList viewTile game)
+            (List.map viewTile (gameToTileList game))
         , case game of
             Over _ ->
                 div
