@@ -182,21 +182,16 @@ update msg model =
 
 move : Dir -> Model -> Model
 move dir model =
-    case model.game of
-        Over _ ->
+    case attemptMoveInDir dir model.game of
+        Nothing ->
             model
 
-        Running board ->
-            case updateBoard dir board of
-                Nothing ->
-                    model
-
-                Just gen ->
-                    let
-                        ( game, seed ) =
-                            Random.step gen model.seed
-                    in
-                    { model | game = game, seed = seed }
+        Just gen ->
+            let
+                ( game, seed ) =
+                    Random.step gen model.seed
+            in
+            { model | game = game, seed = seed }
 
 
 type Dir
@@ -206,9 +201,14 @@ type Dir
     | Down
 
 
-updateBoard : Dir -> Board -> Maybe (Generator Game)
-updateBoard dir =
-    slideAndMergeBoard dir >> Maybe.map addNewTilesAfterMove
+attemptMoveInDir : Dir -> Game -> Maybe (Generator Game)
+attemptMoveInDir dir game =
+    case game of
+        Over _ ->
+            Nothing
+
+        Running board ->
+            board |> slideAndMergeBoard dir >> Maybe.map addNewTilesAfterMove
 
 
 slideAndMergeBoard : Dir -> Board -> Maybe ( Board, List Grid.Pos )
