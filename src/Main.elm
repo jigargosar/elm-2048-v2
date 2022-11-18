@@ -478,7 +478,7 @@ colorDark2 =
 
 
 colorDark3 =
-    hsl 0 0 0.3
+    hsl 0 0 0.4
 
 
 roundedBorder =
