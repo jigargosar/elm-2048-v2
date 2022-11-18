@@ -474,11 +474,11 @@ colorDark1 =
 
 
 colorDark2 =
-    hsl 0 0 0.2
+    hsl 0 0 0.4
 
 
 colorDark3 =
-    hsl 0 0 0.4
+    hsl 0 0 0.6
 
 
 roundedBorder =
@@ -589,7 +589,7 @@ viewTile t =
         ]
         [ div
             [ css
-                [ backgroundColor <| colorDark1
+                [ backgroundColor <| valBackgroundColor t.val
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
@@ -601,6 +601,18 @@ viewTile t =
             ]
         ]
     )
+
+
+valBackgroundColor (Val i) =
+    case i of
+        1 ->
+            hsl 0 0 0.2
+
+        2 ->
+            hsl 0 0 0.3
+
+        _ ->
+            colorDark1
 
 
 displayGrid =
