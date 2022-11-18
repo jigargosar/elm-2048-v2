@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
-import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, hsl, hsla, margin, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, zero)
+import Css exposing (Style, animationDelay, animationDuration, animationName, backgroundColor, batch, fontFamily, fontSize, hsl, hsla, margin, monospace, ms, num, padding, pct, position, property, px, relative, scale, transforms, translate2, zero)
 import Css.Animations as A exposing (keyframes)
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
@@ -379,7 +379,11 @@ gameToTileList game =
 viewGame : Game -> Html Msg
 viewGame game =
     div
-        [ css [ displayInlineGrid ]
+        [ css
+            [ displayInlineGrid
+            , fontFamily monospace
+            , fontSize <| px 50
+            ]
         ]
         [ div
             [ css
@@ -418,7 +422,14 @@ viewBackgroundTile pos =
             , paddingForTileAndBoard
             ]
         ]
-        [ div [ css [ backgroundColor <| hsl 1 1 1 ] ] [] ]
+        [ div
+            [ css
+                [ roundedBorder
+                , backgroundColor <| hsl 1 1 1
+                ]
+            ]
+            []
+        ]
 
 
 gridAreaFromPos : Grid.Pos -> Style
@@ -554,6 +565,7 @@ viewTile t =
         [ div
             [ css
                 [ backgroundColor <| hsl 0 0 0.8
+                , roundedBorder
                 , displayGrid
                 , placeContentCenter
                 , animToStyle t.anim
