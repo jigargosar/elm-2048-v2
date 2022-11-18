@@ -208,7 +208,9 @@ attemptMoveInDir dir game =
             Nothing
 
         Running board ->
-            board |> slideAndMergeBoard dir >> Maybe.map addNewTilesAfterMove
+            board
+                |> slideAndMergeBoard dir
+                |> Maybe.map addNewTilesAfterMove
 
 
 slideAndMergeBoard : Dir -> Board -> Maybe ( Board, List Grid.Pos )
