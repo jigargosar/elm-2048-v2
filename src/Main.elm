@@ -427,9 +427,29 @@ viewGame game =
         ]
 
 
-viewBackgroundTile : a -> Html msg
+viewBackgroundTile : Grid.Pos -> Html msg
 viewBackgroundTile pos =
-    text ""
+    div
+        [ css
+            [ transition [ T.transform3 300 0 T.easeOut ]
+            , gridAreaFromPos pos
+            , displayGrid
+            ]
+        ]
+        []
+
+
+gridAreaFromPos : Grid.Pos -> Style
+gridAreaFromPos pos =
+    let
+        ( col, row ) =
+            pos |> Grid.posToInt2 >> mapBothWith (add 1 >> String.fromInt)
+    in
+    property "grid-area" (row ++ "/" ++ col)
+
+
+add =
+    (+)
 
 
 boardStyle : Style
