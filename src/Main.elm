@@ -143,11 +143,11 @@ addNewRandomTiles n anim emptyPositions (Board seed prevId tiles) =
         board =
             Board newSeed prevId tiles
     in
-    List.foldl (\( pos, val ) -> insertNewTile pos val anim) board list
+    List.foldl (insertNewTile anim) board list
 
 
-insertNewTile : Grid.Pos -> Val -> Anim -> Board -> Board
-insertNewTile pos val anim board =
+insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
+insertNewTile anim ( pos, val ) board =
     board
         |> boardWithNextId (initTile pos val anim)
         |> upsertTile
