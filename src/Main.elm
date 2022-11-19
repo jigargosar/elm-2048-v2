@@ -281,7 +281,12 @@ gameMoveInDir dir game =
                     )
 
 
-boardMoveInDir : Dir -> Board -> Maybe Board
+type MoveResult
+    = InvalidMove
+    | MoveSuccess Board
+
+
+boardMoveInDir : Dir -> Board -> MoveResult
 boardMoveInDir dir board =
     board
         |> boardToGrid
@@ -290,7 +295,9 @@ boardMoveInDir dir board =
             (\grid ->
                 updateBoardFromGrid grid board
                     |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
+                    |> MoveSuccess
             )
+        |> Maybe.withDefault InvalidMove
 
 
 gameFromBoard : Board -> Game
