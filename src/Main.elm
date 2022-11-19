@@ -376,7 +376,7 @@ gridAttemptMove dir grid =
         Just mergedGrid
 
 
-gridAttemptMoveHelp : Dir -> Grid IdVal -> MergedIdValGrid
+gridAttemptMoveHelp : Dir -> IdValGrid -> MergedIdValGrid
 gridAttemptMoveHelp dir grid =
     case dir of
         Left ->
