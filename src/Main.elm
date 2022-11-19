@@ -300,7 +300,7 @@ boardMakeMove dir board =
         |> Maybe.map
             (\grid ->
                 Grid.toEntries grid
-                    |> List.foldl updateBoard board
+                    |> List.foldl updateBoardFromMergedEntry board
                     |> addNewRandomTile (Grid.emptyPositions grid)
                     |> Random.map updatedBoardToMoveSuccess
             )
@@ -421,8 +421,8 @@ slideLeftAndMerge =
     List.foldl step [] >> List.reverse
 
 
-updateBoard : ( Grid.Pos, MergedIdVal ) -> Board -> Board
-updateBoard ( to, merged ) board =
+updateBoardFromMergedEntry : ( Grid.Pos, MergedIdVal ) -> Board -> Board
+updateBoardFromMergedEntry ( to, merged ) board =
     case merged of
         Merged id1 id2 val ->
             board
