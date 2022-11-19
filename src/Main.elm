@@ -195,11 +195,7 @@ init _ =
 
 
 generateNewGame =
-    generateGame randomInitialGame
-
-
-generateGame =
-    Random.generate GotGame
+    Random.generate GotGame randomInitialGame
 
 
 randomInitialGame : Generator Game
@@ -245,9 +241,13 @@ move dir game =
     ( game
     , runningBoard game
         |> Maybe.andThen (attemptMove dir)
-        |> Maybe.map generateGame
-        |> Maybe.withDefault Cmd.none
+        |> maybeGenerate GotGame
     )
+
+
+maybeGenerate : (a -> msg) -> Maybe (Generator a) -> Cmd msg
+maybeGenerate msg =
+    Maybe.map (Random.generate msg) >> Maybe.withDefault Cmd.none
 
 
 runningBoard : Game -> Maybe Board
