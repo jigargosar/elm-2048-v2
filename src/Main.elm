@@ -234,19 +234,19 @@ update msg model =
             ( model, Cmd.none )
 
         NewGame ->
-            ( new model, Cmd.none )
+            newGame model
 
         GenerateNewGame seed ->
-            ( new { model | seed = seed }, Cmd.none )
+            newGame { model | seed = seed }
 
 
-new : Model -> Model
-new model =
+newGame : Model -> ( Model, Cmd Msg )
+newGame model =
     let
         ( game, seed ) =
             Random.step randomInitialGame model.seed
     in
-    { model | game = game, seed = seed }
+    ( { model | game = game, seed = seed }, Cmd.none )
 
 
 move : Dir -> Model -> ( Model, Cmd Msg )
