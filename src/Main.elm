@@ -28,9 +28,7 @@ main =
 
 
 type alias Model =
-    { game : Game
-    , seed : Seed
-    }
+    { game : Game }
 
 
 type Game
@@ -192,18 +190,26 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
-        ( game, seed ) =
+        ( game, _ ) =
             Random.step randomInitialGame (Random.initialSeed 0)
     in
-    ( { game = game
-      , seed = seed
-      }
+    ( { game = game }
     , generateNewGame
     )
 
 
 generateNewGame =
-    Random.generate GotGame randomInitialGame
+    generateGame randomInitialGame
+
+
+generateGame =
+    Random.generate GotGame
+
+
+maybeGenerateGame : Maybe (Generator Game) -> Cmd Msg
+maybeGenerateGame =
+    Maybe.map generateGame
+        >> Maybe.withDefault Cmd.none
 
 
 randomInitialGame : Generator Game
@@ -238,33 +244,41 @@ update msg model =
             ( model, Cmd.none )
 
         NewGame ->
-            newGame model
+            ( model, generateNewGame )
 
         GotGame game ->
             ( { model | game = game }, Cmd.none )
 
 
-newGame : Model -> ( Model, Cmd Msg )
-newGame model =
-    let
-        ( game, seed ) =
-            Random.step randomInitialGame model.seed
-    in
-    ( { model | game = game, seed = seed }, Cmd.none )
+
+--newGame : Model -> ( Model, Cmd Msg )
+--newGame model =
+--    let
+--        ( game, seed ) =
+--            Random.step randomInitialGame model.seed
+--    in
+--    ( { model | game = game, seed = seed }, Cmd.none )
+--
+--
+--move : Dir -> Model -> ( Model, Cmd Msg )
+--move dir model =
+--    case gameMakeMoveIfRunning dir model.game of
+--        Nothing ->
+--            ( model, Cmd.none )
+--
+--        Just gameGenerator ->
+--            let
+--                ( game, seed ) =
+--                    Random.step gameGenerator model.seed
+--            in
+--            ( { model | game = game, seed = seed }, Cmd.none )
 
 
 move : Dir -> Model -> ( Model, Cmd Msg )
 move dir model =
-    case gameMakeMoveIfRunning dir model.game of
-        Nothing ->
-            ( model, Cmd.none )
-
-        Just gameGenerator ->
-            let
-                ( game, seed ) =
-                    Random.step gameGenerator model.seed
-            in
-            ( { model | game = game, seed = seed }, Cmd.none )
+    ( model
+    , maybeGenerateGame (gameMakeMoveIfRunning dir model.game)
+    )
 
 
 gameMakeMoveIfRunning : Dir -> Game -> Maybe (Generator Game)
