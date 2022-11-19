@@ -299,9 +299,10 @@ boardMakeMove dir board =
         |> gridAttemptMove dir
         |> Maybe.map
             (\grid ->
-                updateBoardFromGrid grid board
+                Grid.toEntries grid
+                    |> List.foldl updateBoardFromMergedEntry board
                     |> addNewRandomTile (Grid.emptyPositions grid)
-                    |> Random.map moveSuccessResultFromBoard
+                    |> Random.map updatedBoardToMoveResult
             )
         |> Maybe.withDefault (Random.constant InvalidMove)
 
@@ -311,8 +312,8 @@ addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
 
-moveSuccessResultFromBoard : Board -> MoveResult
-moveSuccessResultFromBoard board =
+updatedBoardToMoveResult : Board -> MoveResult
+updatedBoardToMoveResult board =
     let
         grid =
             boardToGrid board
@@ -418,12 +419,6 @@ slideLeftAndMerge =
                     Unmerged idVal :: acc
     in
     List.foldl step [] >> List.reverse
-
-
-updateBoardFromGrid : MergedIdValGrid -> Board -> Board
-updateBoardFromGrid grid board =
-    Grid.toEntries grid
-        |> List.foldl updateBoardFromMergedEntry board
 
 
 updateBoardFromMergedEntry : ( Grid.Pos, MergedIdVal ) -> Board -> Board
