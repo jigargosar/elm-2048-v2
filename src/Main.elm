@@ -15,6 +15,7 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
 import Random exposing (Generator, Seed)
 import Random.List
+import Task
 
 
 main : Program Flags Model Msg
@@ -204,7 +205,7 @@ init _ =
     ( { game = game
       , seed = seed
       }
-    , Cmd.none
+    , Task.succeed NewGame |> Task.perform identity
     )
 
 
