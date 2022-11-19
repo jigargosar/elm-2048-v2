@@ -96,17 +96,13 @@ randomBoard =
     Random.independentSeed
         |> Random.map
             (\seed ->
-                addNewRandomTiles InitialEnter Grid.allPositions (Board seed 0 Dict.empty)
+                addNewRandomTiles 2 InitialEnter Grid.allPositions (Board seed 0 Dict.empty)
             )
 
 
-addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Board
-addNewRandomTiles anim emptyPositions =
+addNewRandomTiles : Int -> Anim -> List Grid.Pos -> Board -> Board
+addNewRandomTiles n anim emptyPositions =
     let
-        randomEmptyPositions : Generator (List Grid.Pos)
-        randomEmptyPositions =
-            randomTake 2 emptyPositions
-
         randomValues : Generator (List Val)
         randomValues =
             Random.map2 (\a b -> [ a, b ]) randomVal randomVal
@@ -114,7 +110,7 @@ addNewRandomTiles anim emptyPositions =
         randomNewTiles : Generator (List ( Grid.Pos, Val ))
         randomNewTiles =
             Random.map2 (List.map2 Tuple.pair)
-                randomEmptyPositions
+                (randomTake n emptyPositions)
                 randomValues
 
         insertNewTile : ( Grid.Pos, Val ) -> Board -> Board
@@ -232,7 +228,7 @@ slideAndMergeBoard dir board =
 addNewTilesAfterMove : ( Board, List Grid.Pos ) -> Game
 addNewTilesAfterMove ( board, emptyPositions ) =
     board
-        |> addNewRandomTiles NewDelayedEnter emptyPositions
+        |> addNewRandomTiles 1 NewDelayedEnter emptyPositions
         |> gameFromBoard
 
 
