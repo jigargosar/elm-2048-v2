@@ -90,9 +90,14 @@ type alias Tile =
     }
 
 
-initTile : Grid.Pos -> Val -> Anim -> Id -> Tile
-initTile pos val anim id =
+tileInit : Grid.Pos -> Val -> Anim -> Id -> Tile
+tileInit pos val anim id =
     Tile pos id val anim
+
+
+tileUpdate : Grid.Pos -> Anim -> Tile -> Tile
+tileUpdate pos anim t =
+    { pos = pos, id = t.id, val = t.val, anim = anim }
 
 
 type Anim
@@ -156,7 +161,7 @@ insertNewTiles anim ( list, board ) =
 insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
 insertNewTile anim ( pos, val ) board =
     board
-        |> boardWithNextId (initTile pos val anim)
+        |> boardWithNextId (tileInit pos val anim)
         |> upsertTileT2
 
 
@@ -170,9 +175,16 @@ upsertTile t (Board rs ids td) =
     insertBy .id t td |> Board rs ids
 
 
-upsertTiles : Board -> List Tile -> Board
-upsertTiles list board =
-    List.foldl (\tile accBoard -> upsertTileT2 ( tile, accBoard )) list board
+updateTile : Id -> Grid.Pos -> Anim -> Board -> Board
+updateTile id pos anim (Board rs ids td) =
+    Dict.update id (Maybe.map (tileUpdate pos anim)) td
+        |> Board rs ids
+
+
+
+--upsertTiles : Board -> List Tile -> Board
+--upsertTiles list board =
+--    List.foldl (\tile accBoard -> upsertTileT2 ( tile, accBoard )) list board
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
@@ -391,19 +403,15 @@ slideLeftAndMerge =
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
     let
-        updateFromMergedEntry ( pos, mergedIdVal ) ((Board seed prevId tiles) as accBoard) =
+        updateFromMergedEntry ( pos, mergedIdVal ) =
             case mergedIdVal of
                 Merged id1 id2 val ->
-                    Board seed
-                        prevId
-                        (tiles
-                            |> Dict.insert id1 (Tile pos id1 val MergedExit)
-                            |> Dict.insert id2 (Tile pos id2 val MergedExit)
-                        )
-                        |> insertNewTile MergedExit ( pos, nextVal val )
+                    updateTile id1 pos MergedExit
+                        >> updateTile id2 pos MergedExit
+                        >> insertNewTile MergedExit ( pos, nextVal val )
 
-                Unmerged ( id, val ) ->
-                    upsertTileT2 ( initTile pos val Stayed id, accBoard )
+                Unmerged ( id, _ ) ->
+                    updateTile id pos Stayed
     in
     Grid.toEntries grid
         |> List.foldl updateFromMergedEntry board
