@@ -296,13 +296,13 @@ boardMakeMove dir board =
             (\grid ->
                 updateBoardFromGrid grid board
                     |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
-                    |> toMovedSuccessfully
+                    |> moveResultFromUpdatedBoard
             )
         |> Maybe.withDefault InvalidMove
 
 
-toMovedSuccessfully : Board -> MoveResult
-toMovedSuccessfully board =
+moveResultFromUpdatedBoard : Board -> MoveResult
+moveResultFromUpdatedBoard board =
     let
         grid =
             boardToGrid board
@@ -412,17 +412,18 @@ slideLeftAndMerge =
 
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
-    let
-        updateFromMergedEntry ( pos, merged ) =
-            case merged of
-                Merged id1 id2 val ->
-                    mergeTiles id1 id2 val pos
-
-                Unmerged ( id, _ ) ->
-                    updateTile id pos Stayed
-    in
     Grid.toEntries grid
-        |> List.foldl updateFromMergedEntry board
+        |> List.foldl updateBoardFromMergedEntry board
+
+
+updateBoardFromMergedEntry : ( Grid.Pos, MergedIdVal ) -> Board -> Board
+updateBoardFromMergedEntry ( pos, merged ) =
+    case merged of
+        Merged id1 id2 val ->
+            mergeTiles id1 id2 val pos
+
+        Unmerged ( id, _ ) ->
+            updateTile id pos Stayed
 
 
 view : Model -> Html.Html Msg
