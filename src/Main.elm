@@ -127,6 +127,11 @@ createAndInsertTile fn (Board seed prevId tiles) =
         |> Board seed id
 
 
+boardStepNextId : Board -> ( Id, Board )
+boardStepNextId board =
+    Debug.todo "todo"
+
+
 insertNewTile : Grid.Pos -> Val -> Anim -> Board -> Board
 insertNewTile pos val anim (Board seed prevId tiles) =
     let
