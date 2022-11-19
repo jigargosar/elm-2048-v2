@@ -3,6 +3,9 @@
   <component name="GoVcsConfiguration">
     <option name="GO_FMT" value="false" />
   </component>
+  <component name="PWA">
+    <option name="wasEnabledAtLeastOnce" value="true" />
+  </component>
   <component name="PrettierConfiguration">
     <option name="myRunOnReformat" value="true" />
     <option name="myFilesPattern" value="{**/*,*}.{js,ts,jsx,tsx,json,html,md}" />

@@ -33,11 +33,31 @@ type alias Model =
 
 
 type Game
-    = Running Board
+    = Running RunningBoard
     | Over GameOverBoard
 
 
-type Board
+type alias RunningBoard =
+    Board { running : CompatibleTag }
+
+
+type alias GameOverBoard =
+    Board { over : CompatibleTag }
+
+
+
+--noinspection ElmUnusedSymbol
+
+
+type CompatibleTag
+    = CompatibleTag
+
+
+
+--noinspection ElmUnusedSymbol
+
+
+type Board a
     = Board Seed IdSeed TilesDict
 
 
@@ -65,13 +85,13 @@ withNextId fn seed =
         |> Tuple.mapFirst fn
 
 
-boardWithNextId : (Id -> a) -> Board -> ( a, Board )
+boardWithNextId : (Id -> a) -> Board x -> ( a, Board x )
 boardWithNextId fn (Board rs ids td) =
     withNextId fn ids
         |> Tuple.mapSecond (\newIdSeed -> Board rs newIdSeed td)
 
 
-randomStepBoard : Generator a -> Board -> ( a, Board )
+randomStepBoard : Generator a -> Board x -> ( a, Board x )
 randomStepBoard fn (Board rs ids td) =
     Random.step fn rs
         |> Tuple.mapSecond (\newRandomSeed -> Board newRandomSeed ids td)
@@ -132,7 +152,7 @@ randomGame =
     randomBoard |> Random.map Running
 
 
-randomBoard : Generator Board
+randomBoard : Generator RunningBoard
 randomBoard =
     Random.independentSeed
         |> Random.map
@@ -145,37 +165,37 @@ randomBoard =
             )
 
 
-addNewRandomTiles : Anim -> Int -> List Grid.Pos -> Board -> Board
+addNewRandomTiles : Anim -> Int -> List Grid.Pos -> Board x -> Board x
 addNewRandomTiles anim n emptyPositions board =
     board
         |> randomStepBoard (randomPosValEntries n emptyPositions)
         |> insertNewTiles anim
 
 
-insertNewTiles : Anim -> ( List ( Grid.Pos, Val ), Board ) -> Board
+insertNewTiles : Anim -> ( List ( Grid.Pos, Val ), Board x ) -> Board x
 insertNewTiles anim ( list, board ) =
     List.foldl (insertNewTile anim) board list
 
 
-insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
+insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board x -> Board x
 insertNewTile anim ( pos, val ) board =
     board
         |> boardWithNextId (tileInit pos val anim)
         |> insertNewTileHelp
 
 
-insertNewTileHelp : ( Tile, Board ) -> Board
+insertNewTileHelp : ( Tile, Board x ) -> Board x
 insertNewTileHelp ( t, Board rs ids td ) =
     insertBy .id t td |> Board rs ids
 
 
-updateTile : Id -> Grid.Pos -> Anim -> Board -> Board
+updateTile : Id -> Grid.Pos -> Anim -> Board x -> Board x
 updateTile id pos anim (Board rs ids td) =
     Dict.update id (Maybe.map (tileUpdate pos anim)) td
         |> Board rs ids
 
 
-mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board -> Board
+mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board x -> Board x
 mergeTiles id1 id2 val to =
     updateTile id1 to MergedExit
         >> updateTile id2 to MergedExit
@@ -269,35 +289,13 @@ type Dir
     | Down
 
 
-gameMoveInDir : Dir -> Game -> Maybe Game
-gameMoveInDir dir game =
-    case game of
-        Over _ ->
-            Nothing
-
-        Running board ->
-            case boardMoveInDir dir board of
-                InvalidMove ->
-                    Nothing
-
-                MovedSuccessfully movedBoard ->
-                    Just (Running movedBoard)
-
-                MovedSuccessfullyButGameOver gameOverBoard ->
-                    Just (Over gameOverBoard)
-
-
 type MoveResult
     = InvalidMove
-    | MovedSuccessfully Board
+    | MovedSuccessfully RunningBoard
     | MovedSuccessfullyButGameOver GameOverBoard
 
 
-type GameOverBoard
-    = GameOverBoard Board
-
-
-boardMoveInDir : Dir -> Board -> MoveResult
+boardMoveInDir : Dir -> RunningBoard -> MoveResult
 boardMoveInDir dir board =
     board
         |> boardToGrid
@@ -311,7 +309,7 @@ boardMoveInDir dir board =
         |> Maybe.withDefault InvalidMove
 
 
-moveResultFromUpdatedBoard : Board -> MoveResult
+moveResultFromUpdatedBoard : Board x -> MoveResult
 moveResultFromUpdatedBoard board =
     let
         grid =
@@ -322,28 +320,15 @@ moveResultFromUpdatedBoard board =
                 |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
     in
     if isGameOver then
-        MovedSuccessfullyButGameOver <| GameOverBoard board
+        MovedSuccessfullyButGameOver (mapBoard board)
 
     else
-        MovedSuccessfully board
+        MovedSuccessfully (mapBoard board)
 
 
-
---gameFromBoard : Board -> Game
---gameFromBoard ((Board _ _ tiles) as board) =
---    let
---        grid =
---            boardToGrid board
---
---        isGameOver =
---            [ Up, Down, Left, Right ]
---                |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
---    in
---    if isGameOver then
---        Over (Dict.values tiles)
---
---    else
---        Running board
+mapBoard : Board x -> Board y
+mapBoard (Board a b c) =
+    Board a b c
 
 
 type alias IdVal =
@@ -363,7 +348,7 @@ type alias MergedIdValGrid =
     Grid MergedIdVal
 
 
-boardToGrid : Board -> IdValGrid
+boardToGrid : Board x -> IdValGrid
 boardToGrid (Board _ _ tiles) =
     let
         toEntry t =
@@ -433,7 +418,7 @@ slideLeftAndMerge =
     List.foldl step [] >> List.reverse
 
 
-updateBoardFromGrid : MergedIdValGrid -> Board -> Board
+updateBoardFromGrid : MergedIdValGrid -> Board x -> Board x
 updateBoardFromGrid grid board =
     let
         updateFromMergedEntry ( pos, merged ) =
@@ -468,7 +453,7 @@ gameToTileList game =
         Running (Board _ _ tilesDict) ->
             Dict.values tilesDict
 
-        Over (GameOverBoard (Board _ _ tilesDict)) ->
+        Over (Board _ _ tilesDict) ->
             Dict.values tilesDict
 
 
