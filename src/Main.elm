@@ -29,7 +29,6 @@ main =
 
 type alias Model =
     { game : Game
-    , seed : Seed
     }
 
 
@@ -207,11 +206,10 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
-        ( game, seed ) =
+        ( game, _ ) =
             Random.step randomGame (Random.initialSeed 0)
     in
     ( { game = game
-      , seed = seed
       }
     , Cmd.none
     )
