@@ -364,7 +364,18 @@ gridAttemptMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
 gridAttemptMove dir grid =
     let
         mergedGrid =
-            gridAttemptMoveHelp dir grid
+            case dir of
+                Left ->
+                    Grid.mapRowsAsLists slideLeftAndMerge grid
+
+                Right ->
+                    Grid.mapRowsAsReversedLists slideLeftAndMerge grid
+
+                Up ->
+                    Grid.mapColumnsAsLists slideLeftAndMerge grid
+
+                Down ->
+                    Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
 
         unmergedGrid =
             Grid.map Unmerged grid
@@ -374,22 +385,6 @@ gridAttemptMove dir grid =
 
     else
         Just mergedGrid
-
-
-gridAttemptMoveHelp : Dir -> IdValGrid -> MergedIdValGrid
-gridAttemptMoveHelp dir grid =
-    case dir of
-        Left ->
-            Grid.mapRowsAsLists slideLeftAndMerge grid
-
-        Right ->
-            Grid.mapRowsAsReversedLists slideLeftAndMerge grid
-
-        Up ->
-            Grid.mapColumnsAsLists slideLeftAndMerge grid
-
-        Down ->
-            Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
 
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
