@@ -284,6 +284,11 @@ gameMoveInDir dir game =
 type MoveResult
     = InvalidMove
     | MovedSuccessfully Board
+    | MovedSuccessfullyButGameOver GameOverBoard
+
+
+type GameOverBoard
+    = GameOverBoard (List Tile)
 
 
 boardMoveInDir : Dir -> Board -> MoveResult
@@ -295,9 +300,26 @@ boardMoveInDir dir board =
             (\grid ->
                 updateBoardFromGrid grid board
                     |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
-                    |> MovedSuccessfully
+                    |> moveResultFromUpdatedBoard
             )
         |> Maybe.withDefault InvalidMove
+
+
+moveResultFromUpdatedBoard : Board -> MoveResult
+moveResultFromUpdatedBoard ((Board _ _ tiles) as board) =
+    let
+        grid =
+            boardToGrid board
+
+        isGameOver =
+            [ Up, Down, Left, Right ]
+                |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
+    in
+    if isGameOver then
+        MovedSuccessfullyButGameOver <| GameOverBoard (Dict.values tiles)
+
+    else
+        MovedSuccessfully board
 
 
 gameFromBoard : Board -> Game
