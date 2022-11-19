@@ -241,15 +241,12 @@ update msg model =
 
 
 new : Model -> Model
-new =
-    randomStepModel randomInitialGame
-        >> (\( game, model ) -> { model | game = game })
-
-
-randomStepModel : Generator a -> Model -> ( a, Model )
-randomStepModel gen model =
-    Random.step gen model.seed
-        |> Tuple.mapSecond (\seed -> { model | seed = seed })
+new model =
+    let
+        ( game, seed ) =
+            Random.step randomInitialGame model.seed
+    in
+    { model | game = game, seed = seed }
 
 
 move : Dir -> Model -> ( Model, Cmd Msg )
