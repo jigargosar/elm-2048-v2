@@ -261,7 +261,7 @@ move dir model =
             model
 
         Running board ->
-            case randomStepMaybeGenerator (boardMakeMove dir board) model.seed of
+            case stepMaybeGenerator (boardMakeMove dir board) model.seed of
                 Nothing ->
                     model
 
@@ -269,8 +269,8 @@ move dir model =
                     { model | game = game, seed = seed }
 
 
-randomStepMaybeGenerator : Maybe (Generator a) -> Seed -> Maybe ( a, Seed )
-randomStepMaybeGenerator maybeGen seed =
+stepMaybeGenerator : Maybe (Generator a) -> Seed -> Maybe ( a, Seed )
+stepMaybeGenerator maybeGen seed =
     case maybeGen of
         Just gen ->
             Just (Random.step gen seed)
