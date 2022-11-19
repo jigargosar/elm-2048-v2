@@ -221,16 +221,16 @@ update msg model =
         OnKeyDown string ->
             case string of
                 "ArrowRight" ->
-                    ( move Right model, Cmd.none )
+                    move Right model
 
                 "ArrowLeft" ->
-                    ( move Left model, Cmd.none )
+                    move Left model
 
                 "ArrowUp" ->
-                    ( move Up model, Cmd.none )
+                    move Up model
 
                 "ArrowDown" ->
-                    ( move Down model, Cmd.none )
+                    move Down model
 
                 _ ->
                     ( model, Cmd.none )
@@ -254,18 +254,18 @@ randomStepModel gen model =
         |> Tuple.mapSecond (\seed -> { model | seed = seed })
 
 
-move : Dir -> Model -> Model
+move : Dir -> Model -> ( Model, Cmd Msg )
 move dir model =
     case gameMakeMoveIfRunning dir model.game of
         Nothing ->
-            model
+            ( model, Cmd.none )
 
         Just gameGenerator ->
             let
                 ( game, seed ) =
                     Random.step gameGenerator model.seed
             in
-            { model | game = game, seed = seed }
+            ( { model | game = game, seed = seed }, Cmd.none )
 
 
 gameMakeMoveIfRunning : Dir -> Game -> Maybe (Generator Game)
