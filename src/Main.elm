@@ -39,7 +39,7 @@ type Game
 
 
 type Board
-    = Board Seed IdSeed TilesDict
+    = Board IdSeed TilesDict
 
 
 type alias TilesDict =
@@ -67,15 +67,9 @@ withNextId fn seed =
 
 
 boardWithNextId : (Id -> a) -> Board -> ( a, Board )
-boardWithNextId fn (Board rs ids td) =
+boardWithNextId fn (Board ids td) =
     withNextId fn ids
-        |> Tuple.mapSecond (\newIdSeed -> Board rs newIdSeed td)
-
-
-randomStepBoard : Generator a -> Board -> ( a, Board )
-randomStepBoard fn (Board rs ids td) =
-    Random.step fn rs
-        |> Tuple.mapSecond (\newRandomSeed -> Board newRandomSeed ids td)
+        |> Tuple.mapSecond (\newIdSeed -> Board newIdSeed td)
 
 
 type alias Id =
@@ -130,13 +124,12 @@ randomVal =
 
 randomInitialBoard : Generator Board
 randomInitialBoard =
-    emptyBoard |> Random.andThen addInitialRandomTiles
+    addInitialRandomTiles emptyBoard
 
 
-emptyBoard : Generator Board
+emptyBoard : Board
 emptyBoard =
-    Random.independentSeed
-        |> Random.map (\seed -> Board seed initialIdSeed Dict.empty)
+    Board initialIdSeed Dict.empty
 
 
 addInitialRandomTiles : Board -> Generator Board
@@ -163,14 +156,14 @@ insertNewTile anim ( pos, val ) board =
 
 
 insertNewTileHelp : ( Tile, Board ) -> Board
-insertNewTileHelp ( t, Board rs ids td ) =
-    insertBy .id t td |> Board rs ids
+insertNewTileHelp ( t, Board ids td ) =
+    insertBy .id t td |> Board ids
 
 
 updateTile : Id -> Grid.Pos -> Anim -> Board -> Board
-updateTile id pos anim (Board rs ids td) =
+updateTile id pos anim (Board ids td) =
     Dict.update id (Maybe.map (tileUpdate pos anim)) td
-        |> Board rs ids
+        |> Board ids
 
 
 mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board -> Board
@@ -254,17 +247,11 @@ update msg model =
 
 new : Model -> Model
 new model =
-    { model | game = gameNew model.game }
-
-
-gameNew : Game -> Game
-gameNew game =
-    case game of
-        Running board ->
-            boardReInit board |> Running
-
-        Over board ->
-            boardReInit board |> Running
+    let
+        ( game, seed ) =
+            Random.step randomInitialGame model.seed
+    in
+    { model | game = game, seed = seed }
 
 
 move : Dir -> Model -> Model
@@ -305,12 +292,6 @@ type MoveResult
     = InvalidMove
     | MovedSuccessfully Board
     | MovedSuccessfullyButGameOver Board
-
-
-boardReInit : Board -> Board
-boardReInit board =
-    randomStepBoard randomInitialBoard board
-        |> Tuple.first
 
 
 boardMakeMove : Dir -> Board -> Generator MoveResult
@@ -367,7 +348,7 @@ type alias MergedIdValGrid =
 
 
 boardToGrid : Board -> IdValGrid
-boardToGrid (Board _ _ tiles) =
+boardToGrid (Board _ tiles) =
     let
         toEntry t =
             case t.anim of
@@ -474,10 +455,10 @@ view model =
 gameToTileList : Game -> List Tile
 gameToTileList game =
     case game of
-        Running (Board _ _ tilesDict) ->
+        Running (Board _ tilesDict) ->
             Dict.values tilesDict
 
-        Over (Board _ _ tilesDict) ->
+        Over (Board _ tilesDict) ->
             Dict.values tilesDict
 
 
