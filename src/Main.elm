@@ -403,8 +403,8 @@ slideLeftAndMerge =
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
     let
-        updateFromMergedEntry ( pos, mergedIdVal ) =
-            case mergedIdVal of
+        updateFromMergedEntry ( pos, merged ) =
+            case merged of
                 Merged id1 id2 val ->
                     updateTile id1 pos MergedExit
                         >> updateTile id2 pos MergedExit
