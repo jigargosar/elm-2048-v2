@@ -111,10 +111,10 @@ addNewRandomTiles n anim emptyPositions (Board seed prevId tiles) =
         ( list, newSeed ) =
             Random.step (randomPosValEntries n emptyPositions) seed
 
-        newBoard =
+        board =
             Board newSeed prevId tiles
     in
-    List.foldl (\( pos, val ) -> insertNewTile pos val anim) newBoard list
+    List.foldl (\( pos, val ) -> insertNewTile pos val anim) board list
 
 
 createAndInsertTile : (Id -> Tile) -> Board -> Board
