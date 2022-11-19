@@ -100,14 +100,15 @@ randomBoard =
             )
 
 
+randomTake : Int -> List a -> Generator (List a)
+randomTake n list =
+    Random.List.choices n list
+        |> Random.map Tuple.first
+
+
 addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Board
 addNewRandomTiles anim emptyPositions =
     let
-        randomTake : Int -> List a -> Generator (List a)
-        randomTake n list =
-            Random.List.choices n list
-                |> Random.map Tuple.first
-
         randomEmptyPositions : Generator (List Grid.Pos)
         randomEmptyPositions =
             randomTake 2 emptyPositions
