@@ -249,18 +249,21 @@ update msg model =
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
-    , maybeGenerateGame (gameMakeMoveIfRunning dir game)
+    , runningBoard game
+        |> Maybe.andThen (boardAttemptMove dir)
+        |> Maybe.map generateGame
+        |> Maybe.withDefault Cmd.none
     )
 
 
-gameMakeMoveIfRunning : Dir -> Game -> Maybe (Generator Game)
-gameMakeMoveIfRunning dir game =
+runningBoard : Game -> Maybe Board
+runningBoard game =
     case game of
         Over _ ->
             Nothing
 
         Running board ->
-            boardMakeMove dir board
+            Just board
 
 
 type Dir
@@ -270,18 +273,18 @@ type Dir
     | Down
 
 
-boardMakeMove : Dir -> Board -> Maybe (Generator Game)
-boardMakeMove dir board =
+boardAttemptMove : Dir -> Board -> Maybe (Generator Game)
+boardAttemptMove dir board =
     case gridAttemptMove dir (boardToGrid board) of
+        Nothing ->
+            Nothing
+
         Just grid ->
             Grid.toEntries grid
                 |> List.foldl updateBoardFromMergedEntry board
                 |> addNewRandomTile (Grid.emptyPositions grid)
                 |> Random.map gameFromUpdatedBoard
                 |> Just
-
-        Nothing ->
-            Nothing
 
 
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
