@@ -264,15 +264,13 @@ move dir model =
             model
 
         Running board ->
-            let
-                ( moveResult, seed ) =
-                    Random.step (boardMakeMove dir board) model.seed
-            in
-            updateModelWithMoveResult moveResult { model | seed = seed }
+            model
+                |> randomStepModel (boardMakeMove dir board)
+                |> updateModelWithMoveResult
 
 
-updateModelWithMoveResult : MoveResult -> Model -> Model
-updateModelWithMoveResult moveResult model =
+updateModelWithMoveResult : ( MoveResult, Model ) -> Model
+updateModelWithMoveResult ( moveResult, model ) =
     case moveResult of
         InvalidMove ->
             model
