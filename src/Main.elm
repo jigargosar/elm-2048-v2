@@ -291,7 +291,7 @@ boardMakeMove : Dir -> Board -> MoveResult
 boardMakeMove dir board =
     board
         |> boardToGrid
-        |> gridMakeMove dir
+        |> gridAttemptMove dir
         |> Maybe.map
             (\grid ->
                 updateBoardFromGrid grid board
@@ -309,7 +309,7 @@ toMovedSuccessfully board =
 
         isGameOver =
             [ Up, Down, Left, Right ]
-                |> List.all (\dir -> gridMakeMove dir grid == Nothing)
+                |> List.all (\dir -> gridAttemptMove dir grid == Nothing)
     in
     if isGameOver then
         MovedSuccessfullyButGameOver board
@@ -360,8 +360,8 @@ boardToGrid (Board _ _ tiles) =
         |> Grid.fromEntries
 
 
-gridMakeMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
-gridMakeMove dir grid =
+gridAttemptMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
+gridAttemptMove dir grid =
     let
         mergedGrid =
             gridMakeMoveHelp dir grid
