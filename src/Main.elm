@@ -162,16 +162,11 @@ insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
 insertNewTile anim ( pos, val ) board =
     board
         |> boardWithNextId (tileInit pos val anim)
-        |> upsertTileT2
+        |> insertNewTileHelp
 
 
-upsertTileT2 : ( Tile, Board ) -> Board
-upsertTileT2 ( t, b ) =
-    upsertTile t b
-
-
-upsertTile : Tile -> Board -> Board
-upsertTile t (Board rs ids td) =
+insertNewTileHelp : ( Tile, Board ) -> Board
+insertNewTileHelp ( t, Board rs ids td ) =
     insertBy .id t td |> Board rs ids
 
 
@@ -181,10 +176,11 @@ updateTile id pos anim (Board rs ids td) =
         |> Board rs ids
 
 
-
---upsertTiles : Board -> List Tile -> Board
---upsertTiles list board =
---    List.foldl (\tile accBoard -> upsertTileT2 ( tile, accBoard )) list board
+mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board -> Board
+mergeTiles id1 id2 val to =
+    updateTile id1 to MergedExit
+        >> updateTile id2 to MergedExit
+        >> insertNewTile MergedExit ( to, nextVal val )
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
@@ -406,9 +402,7 @@ updateBoardFromGrid grid board =
         updateFromMergedEntry ( pos, merged ) =
             case merged of
                 Merged id1 id2 val ->
-                    updateTile id1 pos MergedExit
-                        >> updateTile id2 pos MergedExit
-                        >> insertNewTile MergedExit ( pos, nextVal val )
+                    mergeTiles id1 id2 val pos
 
                 Unmerged ( id, _ ) ->
                     updateTile id pos Stayed
