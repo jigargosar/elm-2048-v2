@@ -39,11 +39,25 @@ type Game
 
 
 type Board
-    = Board Seed Id TilesDict
+    = Board Seed IdSeed TilesDict
 
 
 type alias TilesDict =
     Dict Id Tile
+
+
+type IdSeed
+    = IdSeed Int
+
+
+initialIdSeed : IdSeed
+initialIdSeed =
+    IdSeed 1
+
+
+stepIdSeed : IdSeed -> ( Id, IdSeed )
+stepIdSeed (IdSeed nextId) =
+    ( nextId, IdSeed (nextId + 1) )
 
 
 type alias Id =
@@ -101,7 +115,10 @@ randomBoard =
     Random.independentSeed
         |> Random.map
             (\seed ->
-                addNewRandomTiles 2 InitialEnter Grid.allPositions (Board seed 0 Dict.empty)
+                addNewRandomTiles 2
+                    InitialEnter
+                    Grid.allPositions
+                    (Board seed initialIdSeed Dict.empty)
             )
 
 
@@ -118,13 +135,13 @@ addNewRandomTiles n anim emptyPositions (Board seed prevId tiles) =
 
 
 insertNewTile : Grid.Pos -> Val -> Anim -> Board -> Board
-insertNewTile pos val anim (Board seed prevId tiles) =
+insertNewTile pos val anim (Board randomSeed idSeed tiles) =
     let
-        id =
-            prevId + 1
+        ( id, newIdSeed ) =
+            stepIdSeed idSeed
     in
     Dict.insert id (Tile pos id val anim) tiles
-        |> Board seed id
+        |> Board randomSeed newIdSeed
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
