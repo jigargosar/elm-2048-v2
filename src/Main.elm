@@ -278,7 +278,7 @@ updateFromGridAndAddNewTile board grid =
     Grid.toEntries grid
         |> List.foldl updateBoardFromMergedEntry board
         |> addNewRandomTile (Grid.emptyPositions grid)
-        |> Random.map gameFromUpdatedBoard
+        |> Random.map gameFromBoard
 
 
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
@@ -286,8 +286,8 @@ addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
 
-gameFromUpdatedBoard : Board -> Game
-gameFromUpdatedBoard board =
+gameFromBoard : Board -> Game
+gameFromBoard board =
     let
         grid =
             boardToGrid board
