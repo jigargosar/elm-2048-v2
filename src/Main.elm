@@ -58,6 +58,11 @@ type alias Tile =
     }
 
 
+initTile : Grid.Pos -> Val -> Anim -> Id -> Tile
+initTile pos val anim id =
+    Tile pos id val anim
+
+
 type Anim
     = InitialEnter
     | MergedExit
@@ -101,23 +106,25 @@ randomBoard =
 
 
 addNewRandomTiles : Int -> Anim -> List Grid.Pos -> Board -> Board
-addNewRandomTiles n anim emptyPositions =
+addNewRandomTiles n anim emptyPositions (Board seed prevId tiles) =
     let
-        insertNewTile : ( Grid.Pos, Val ) -> Board -> Board
-        insertNewTile ( pos, val ) (Board seed prevId tiles) =
-            let
-                id =
-                    prevId + 1
-            in
-            Dict.insert id (Tile pos id val anim) tiles
-                |> Board seed id
-
-        insertNewTiles : Board -> Board
-        insertNewTiles (Board seed prevId tiles) =
+        ( list, newSeed ) =
             Random.step (randomPosValEntries n emptyPositions) seed
-                |> (\( list, newSeed ) -> List.foldl insertNewTile (Board newSeed prevId tiles) list)
+
+        newBoard =
+            Board newSeed prevId tiles
     in
-    insertNewTiles
+    List.foldl (\( pos, val ) -> insertNewTile pos val anim) newBoard list
+
+
+insertNewTile : Grid.Pos -> Val -> Anim -> Board -> Board
+insertNewTile pos val anim (Board seed prevId tiles) =
+    let
+        id =
+            prevId + 1
+    in
+    Dict.insert id (Tile pos id val anim) tiles
+        |> Board seed id
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
