@@ -261,22 +261,27 @@ move dir model =
             model
 
         Running board ->
-            model
-                |> randomStepModel (boardMakeMove dir board)
-                |> updateModelWithMoveResult
+            case randomStepMaybe (boardMakeMove dir board) model.seed of
+                Nothing ->
+                    model
+
+                Just ( game, seed ) ->
+                    { model | game = game, seed = seed }
 
 
-updateModelWithMoveResult : ( MoveResult, Model ) -> Model
-updateModelWithMoveResult ( moveResult, model ) =
-    case moveResult of
-        InvalidMove ->
-            model
+randomStepMaybe : Maybe (Generator a) -> Seed -> Maybe ( a, Seed )
+randomStepMaybe maybeGen seed =
+    case maybeGen of
+        Just gen ->
+            Just (Random.step gen seed)
 
-        MovedSuccessfully movedBoard ->
-            { model | game = Running movedBoard }
+        Nothing ->
+            Nothing
 
-        MovedSuccessfullyButGameOver overBoard ->
-            { model | game = Over overBoard }
+
+stepWithSeed : Seed -> Generator a -> ( a, Seed )
+stepWithSeed seed gen =
+    Random.step gen seed
 
 
 type Dir
@@ -286,23 +291,18 @@ type Dir
     | Down
 
 
-type MoveResult
-    = InvalidMove
-    | MovedSuccessfully Board
-    | MovedSuccessfullyButGameOver Board
-
-
-boardMakeMove : Dir -> Board -> Generator MoveResult
+boardMakeMove : Dir -> Board -> Maybe (Generator Game)
 boardMakeMove dir board =
     case gridAttemptMove dir (boardToGrid board) of
         Just grid ->
             Grid.toEntries grid
                 |> List.foldl updateBoardFromMergedEntry board
                 |> addNewRandomTile (Grid.emptyPositions grid)
-                |> Random.map updatedBoardToMoveSuccess
+                |> Random.map gameFromUpdatedBoard
+                |> Just
 
         Nothing ->
-            Random.constant InvalidMove
+            Nothing
 
 
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
@@ -310,8 +310,8 @@ addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
 
-updatedBoardToMoveSuccess : Board -> MoveResult
-updatedBoardToMoveSuccess board =
+gameFromUpdatedBoard : Board -> Game
+gameFromUpdatedBoard board =
     let
         grid =
             boardToGrid board
@@ -321,10 +321,10 @@ updatedBoardToMoveSuccess board =
                 |> List.all (\dir -> gridAttemptMove dir grid == Nothing)
     in
     if isGameOver then
-        MovedSuccessfullyButGameOver board
+        Over board
 
     else
-        MovedSuccessfully board
+        Running board
 
 
 type alias IdVal =
