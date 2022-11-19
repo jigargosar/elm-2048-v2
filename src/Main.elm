@@ -35,7 +35,7 @@ type alias Model =
 
 type Game
     = Running Board
-    | Over (List Tile)
+    | Over GameOverBoard
 
 
 type Board
@@ -248,12 +248,20 @@ update msg model =
 
 move : Dir -> Model -> Model
 move dir model =
-    case gameMoveInDir dir model.game of
-        Nothing ->
+    case model.game of
+        Over _ ->
             model
 
-        Just game ->
-            { model | game = game }
+        Running board ->
+            case boardMoveInDir dir board of
+                InvalidMove ->
+                    model
+
+                MovedSuccessfully movedBoard ->
+                    { model | game = Running movedBoard }
+
+                MovedSuccessfullyButGameOver gameOverBoard ->
+                    { model | game = Over gameOverBoard }
 
 
 type Dir
@@ -270,15 +278,15 @@ gameMoveInDir dir game =
             Nothing
 
         Running board ->
-            board
-                |> boardToGrid
-                |> slideAndMergeGrid dir
-                |> Maybe.map
-                    (\grid ->
-                        updateBoardFromGrid grid board
-                            |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
-                            |> gameFromBoard
-                    )
+            case boardMoveInDir dir board of
+                InvalidMove ->
+                    Nothing
+
+                MovedSuccessfully movedBoard ->
+                    Just (Running movedBoard)
+
+                MovedSuccessfullyButGameOver gameOverBoard ->
+                    Just (Over gameOverBoard)
 
 
 type MoveResult
@@ -288,7 +296,7 @@ type MoveResult
 
 
 type GameOverBoard
-    = GameOverBoard (List Tile)
+    = GameOverBoard Board
 
 
 boardMoveInDir : Dir -> Board -> MoveResult
@@ -306,7 +314,7 @@ boardMoveInDir dir board =
 
 
 moveResultFromUpdatedBoard : Board -> MoveResult
-moveResultFromUpdatedBoard ((Board _ _ tiles) as board) =
+moveResultFromUpdatedBoard board =
     let
         grid =
             boardToGrid board
@@ -316,27 +324,28 @@ moveResultFromUpdatedBoard ((Board _ _ tiles) as board) =
                 |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
     in
     if isGameOver then
-        MovedSuccessfullyButGameOver <| GameOverBoard (Dict.values tiles)
+        MovedSuccessfullyButGameOver <| GameOverBoard board
 
     else
         MovedSuccessfully board
 
 
-gameFromBoard : Board -> Game
-gameFromBoard ((Board _ _ tiles) as board) =
-    let
-        grid =
-            boardToGrid board
 
-        isGameOver =
-            [ Up, Down, Left, Right ]
-                |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
-    in
-    if isGameOver then
-        Over (Dict.values tiles)
-
-    else
-        Running board
+--gameFromBoard : Board -> Game
+--gameFromBoard ((Board _ _ tiles) as board) =
+--    let
+--        grid =
+--            boardToGrid board
+--
+--        isGameOver =
+--            [ Up, Down, Left, Right ]
+--                |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
+--    in
+--    if isGameOver then
+--        Over (Dict.values tiles)
+--
+--    else
+--        Running board
 
 
 type alias IdVal =
@@ -461,8 +470,8 @@ gameToTileList game =
         Running (Board _ _ tilesDict) ->
             Dict.values tilesDict
 
-        Over tilesList ->
-            tilesList
+        Over (GameOverBoard (Board _ _ tilesDict)) ->
+            Dict.values tilesDict
 
 
 viewGame : Game -> Html Msg
