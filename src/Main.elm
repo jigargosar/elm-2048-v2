@@ -166,11 +166,6 @@ updateTile id pos anim (Board ids td) =
         |> Board ids
 
 
-insertNewMergedTile : Grid.Pos -> Val -> Board -> Board
-insertNewMergedTile pos val =
-    insertNewTile MergedEnter ( pos, val )
-
-
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
 randomPosValEntries n posList =
     Random.map2 (List.map2 Tuple.pair)
@@ -438,7 +433,7 @@ updateBoardFromMergedEntry ( to, merged ) board =
             board
                 |> updateTile id1 to MergedExit
                 |> updateTile id2 to MergedExit
-                |> insertNewMergedTile to (nextVal val)
+                |> insertNewTile MergedEnter ( to, nextVal val )
 
         Unmerged ( id, _ ) ->
             updateTile id to Stayed board
