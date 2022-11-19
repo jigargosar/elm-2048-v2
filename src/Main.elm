@@ -100,12 +100,6 @@ randomBoard =
             )
 
 
-randomTake : Int -> List a -> Generator (List a)
-randomTake n list =
-    Random.List.choices n list
-        |> Random.map Tuple.first
-
-
 addNewRandomTiles : Anim -> List Grid.Pos -> Board -> Board
 addNewRandomTiles anim emptyPositions =
     let
@@ -138,6 +132,12 @@ addNewRandomTiles anim emptyPositions =
                 |> (\( list, newSeed ) -> List.foldl insertNewTile (Board newSeed prevId tiles) list)
     in
     insertNewTiles
+
+
+randomTake : Int -> List a -> Generator (List a)
+randomTake n list =
+    Random.List.choices n list
+        |> Random.map Tuple.first
 
 
 type Msg
