@@ -207,6 +207,7 @@ randomTake n list =
 
 type Msg
     = OnKeyDown String
+    | NewGame
 
 
 type alias Flags =
@@ -258,6 +259,24 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        NewGame ->
+            ( new model, Cmd.none )
+
+
+new : Model -> Model
+new model =
+    { model | game = gameNew model.game }
+
+
+gameNew : Game -> Game
+gameNew game =
+    case game of
+        Running board ->
+            boardReInit board |> Running
+
+        Over board ->
+            boardReInit board |> Running
+
 
 move : Dir -> Model -> Model
 move dir model =
@@ -288,6 +307,12 @@ type MoveResult
     = InvalidMove
     | MovedSuccessfully Board
     | MovedSuccessfullyButGameOver Board
+
+
+boardReInit : Board -> Board
+boardReInit board =
+    randomStepBoard randomInitialBoard board
+        |> Tuple.first
 
 
 boardMakeMove : Dir -> Board -> MoveResult
