@@ -6,7 +6,9 @@ CURRENT STATE:
 NEXT STEPS:
 * [x] Merge implementations. (with and without animation)
 * [x] bug: new tiles are generated without move/merge
-* [ ] game over
+* [x] game over
+* [ ] generate 2 new styles at start and one afterwards.
+* [ ] ui styles
 
 
 
