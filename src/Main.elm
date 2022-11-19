@@ -263,7 +263,7 @@ move dir model =
             model
 
         Running board ->
-            case boardMoveInDir dir board of
+            case boardMakeMove dir board of
                 InvalidMove ->
                     model
 
@@ -287,11 +287,11 @@ type MoveResult
     | MovedSuccessfullyButGameOver Board
 
 
-boardMoveInDir : Dir -> Board -> MoveResult
-boardMoveInDir dir board =
+boardMakeMove : Dir -> Board -> MoveResult
+boardMakeMove dir board =
     board
         |> boardToGrid
-        |> slideAndMergeGrid dir
+        |> gridMakeMove dir
         |> Maybe.map
             (\grid ->
                 updateBoardFromGrid grid board
@@ -309,7 +309,7 @@ moveResultFromUpdatedBoard board =
 
         isGameOver =
             [ Up, Down, Left, Right ]
-                |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
+                |> List.all (\dir -> gridMakeMove dir grid == Nothing)
     in
     if isGameOver then
         MovedSuccessfullyButGameOver board
@@ -360,22 +360,11 @@ boardToGrid (Board _ _ tiles) =
         |> Grid.fromEntries
 
 
-slideAndMergeGrid : Dir -> IdValGrid -> Maybe MergedIdValGrid
-slideAndMergeGrid dir grid =
+gridMakeMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
+gridMakeMove dir grid =
     let
         mergedGrid =
-            case dir of
-                Left ->
-                    Grid.mapRowsAsLists slideLeftAndMerge grid
-
-                Right ->
-                    Grid.mapRowsAsReversedLists slideLeftAndMerge grid
-
-                Up ->
-                    Grid.mapColumnsAsLists slideLeftAndMerge grid
-
-                Down ->
-                    Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
+            gridMakeMoveHelp dir grid
 
         unmergedGrid =
             Grid.map Unmerged grid
@@ -385,6 +374,22 @@ slideAndMergeGrid dir grid =
 
     else
         Just mergedGrid
+
+
+gridMakeMoveHelp : Dir -> Grid IdVal -> MergedIdValGrid
+gridMakeMoveHelp dir grid =
+    case dir of
+        Left ->
+            Grid.mapRowsAsLists slideLeftAndMerge grid
+
+        Right ->
+            Grid.mapRowsAsReversedLists slideLeftAndMerge grid
+
+        Up ->
+            Grid.mapColumnsAsLists slideLeftAndMerge grid
+
+        Down ->
+            Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
 
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
