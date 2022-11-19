@@ -183,6 +183,7 @@ type Msg
     = OnKeyDown String
     | NewGame
     | GenerateNewGame Seed
+    | GotGame Game
 
 
 type alias Flags =
@@ -200,6 +201,10 @@ init _ =
       }
     , Random.generate GenerateNewGame Random.independentSeed
     )
+
+
+generateNewGame =
+    Random.generate GotGame randomInitialGame
 
 
 randomInitialGame : Generator Game
@@ -238,6 +243,9 @@ update msg model =
 
         GenerateNewGame seed ->
             newGame { model | seed = seed }
+
+        GotGame game ->
+            ( { model | game = game }, Cmd.none )
 
 
 newGame : Model -> ( Model, Cmd Msg )
