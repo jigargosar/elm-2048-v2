@@ -72,6 +72,12 @@ boardWithNextId fn (Board rs ids td) =
         |> Tuple.mapSecond (\newIdSeed -> Board rs newIdSeed td)
 
 
+randomStepBoard : Generator a -> Board -> ( a, Board )
+randomStepBoard fn (Board rs ids td) =
+    Random.step fn rs
+        |> Tuple.mapSecond (\newRandomSeed -> Board newRandomSeed ids td)
+
+
 type alias Id =
     Int
 
@@ -127,22 +133,23 @@ randomBoard =
     Random.independentSeed
         |> Random.map
             (\seed ->
-                addNewRandomTiles 2
+                addNewRandomTiles
                     InitialEnter
+                    2
                     Grid.allPositions
                     (Board seed initialIdSeed Dict.empty)
             )
 
 
-addNewRandomTiles : Int -> Anim -> List Grid.Pos -> Board -> Board
-addNewRandomTiles n anim emptyPositions (Board seed prevId tiles) =
-    let
-        ( list, newSeed ) =
-            Random.step (randomPosValEntries n emptyPositions) seed
+addNewRandomTiles : Anim -> Int -> List Grid.Pos -> Board -> Board
+addNewRandomTiles anim n emptyPositions board =
+    board
+        |> randomStepBoard (randomPosValEntries n emptyPositions)
+        |> insertNewTiles anim
 
-        board =
-            Board newSeed prevId tiles
-    in
+
+insertNewTiles : Anim -> ( List ( Grid.Pos, Val ), Board ) -> Board
+insertNewTiles anim ( list, board ) =
     List.foldl (insertNewTile anim) board list
 
 
@@ -150,12 +157,22 @@ insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
 insertNewTile anim ( pos, val ) board =
     board
         |> boardWithNextId (initTile pos val anim)
-        |> upsertTile
+        |> upsertTileT2
 
 
-upsertTile : ( Tile, Board ) -> Board
-upsertTile ( t, Board rs ids td ) =
+upsertTileT2 : ( Tile, Board ) -> Board
+upsertTileT2 ( t, b ) =
+    upsertTile t b
+
+
+upsertTile : Tile -> Board -> Board
+upsertTile t (Board rs ids td) =
     insertBy .id t td |> Board rs ids
+
+
+upsertTiles : Board -> List Tile -> Board
+upsertTiles list board =
+    List.foldl (\tile accBoard -> upsertTileT2 ( tile, accBoard )) list board
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
@@ -263,7 +280,10 @@ slideAndMergeBoard dir board =
 addNewTilesAfterMove : ( Board, List Grid.Pos ) -> Game
 addNewTilesAfterMove ( board, emptyPositions ) =
     board
-        |> addNewRandomTiles 1 NewDelayedEnter emptyPositions
+        |> addNewRandomTiles
+            NewDelayedEnter
+            1
+            emptyPositions
         |> gameFromBoard
 
 
@@ -371,23 +391,19 @@ slideLeftAndMerge =
 updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
     let
-        updateFromMergedEntry ( pos, mergedIdVal ) (Board seed prevId tiles) =
+        updateFromMergedEntry ( pos, mergedIdVal ) ((Board seed prevId tiles) as accBoard) =
             case mergedIdVal of
                 Merged id1 id2 val ->
-                    let
-                        newId =
-                            prevId + 1
-                    in
                     Board seed
-                        newId
+                        prevId
                         (tiles
                             |> Dict.insert id1 (Tile pos id1 val MergedExit)
                             |> Dict.insert id2 (Tile pos id2 val MergedExit)
-                            |> Dict.insert newId (Tile pos newId (nextVal val) MergedEnter)
                         )
+                        |> insertNewTile MergedExit ( pos, nextVal val )
 
                 Unmerged ( id, val ) ->
-                    Board seed prevId (Dict.insert id (Tile pos id val Stayed) tiles)
+                    upsertTileT2 ( initTile pos val Stayed id, accBoard )
     in
     Grid.toEntries grid
         |> List.foldl updateFromMergedEntry board
