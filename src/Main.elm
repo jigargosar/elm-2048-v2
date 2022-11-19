@@ -202,12 +202,6 @@ generateGame =
     Random.generate GotGame
 
 
-maybeGenerateGame : Maybe (Generator Game) -> Cmd Msg
-maybeGenerateGame =
-    Maybe.map generateGame
-        >> Maybe.withDefault Cmd.none
-
-
 randomInitialGame : Generator Game
 randomInitialGame =
     randomInitialBoard |> Random.map Running
