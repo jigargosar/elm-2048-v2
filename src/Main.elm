@@ -155,11 +155,6 @@ insertNewTile anim ( pos, val ) board =
         |> insertNewTileHelp
 
 
-insertNewMergedTile : Grid.Pos -> Val -> Board -> Board
-insertNewMergedTile pos val =
-    insertNewTile MergedEnter ( pos, val )
-
-
 insertNewTileHelp : ( Tile, Board ) -> Board
 insertNewTileHelp ( t, Board ids td ) =
     insertBy .id t td |> Board ids
@@ -171,11 +166,9 @@ updateTile id pos anim (Board ids td) =
         |> Board ids
 
 
-mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board -> Board
-mergeTiles id1 id2 val to =
-    updateTile id1 to MergedExit
-        >> updateTile id2 to MergedExit
-        >> insertNewMergedTile to (nextVal val)
+insertNewMergedTile : Grid.Pos -> Val -> Board -> Board
+insertNewMergedTile pos val =
+    insertNewTile MergedEnter ( pos, val )
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
@@ -439,13 +432,16 @@ updateBoardFromGrid grid board =
 
 
 updateBoardFromMergedEntry : ( Grid.Pos, MergedIdVal ) -> Board -> Board
-updateBoardFromMergedEntry ( pos, merged ) =
+updateBoardFromMergedEntry ( to, merged ) board =
     case merged of
         Merged id1 id2 val ->
-            mergeTiles id1 id2 val pos
+            board
+                |> updateTile id1 to MergedExit
+                |> updateTile id2 to MergedExit
+                |> insertNewMergedTile to (nextVal val)
 
         Unmerged ( id, _ ) ->
-            updateTile id pos Stayed
+            updateTile id to Stayed board
 
 
 view : Model -> Html.Html Msg
