@@ -271,34 +271,25 @@ attemptMoveInDir dir game =
 
         Running board ->
             board
-                |> slideAndMergeBoardToGrid dir
+                |> boardToGrid
+                |> slideAndMergeGrid dir
                 |> Maybe.map
                     (\grid ->
-                        addNewTilesAfterMove
-                            (Grid.emptyPositions grid)
-                            (updateBoardFromGrid grid board)
+                        updateBoardFromGrid grid board
+                            |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
+                            |> gameFromBoard
                     )
-
-
-slideAndMergeBoardToGrid : Dir -> Board -> Maybe MergedIdValGrid
-slideAndMergeBoardToGrid dir board =
-    boardToGrid board
-        |> slideAndMergeGrid dir
-
-
-addNewTilesAfterMove : List Grid.Pos -> Board -> Game
-addNewTilesAfterMove emptyPositions board =
-    board
-        |> addNewRandomTiles NewDelayedEnter 1 emptyPositions
-        |> gameFromBoard
 
 
 gameFromBoard : Board -> Game
 gameFromBoard ((Board _ _ tiles) as board) =
     let
+        grid =
+            boardToGrid board
+
         isGameOver =
             [ Up, Down, Left, Right ]
-                |> List.all (\dir -> slideAndMergeBoardToGrid dir board == Nothing)
+                |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
     in
     if isGameOver then
         Over (Dict.values tiles)
