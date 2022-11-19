@@ -182,7 +182,6 @@ randomTake n list =
 type Msg
     = OnKeyDown String
     | NewGame
-    | GenerateNewGame Seed
     | GotGame Game
 
 
@@ -199,7 +198,7 @@ init _ =
     ( { game = game
       , seed = seed
       }
-    , Random.generate GenerateNewGame Random.independentSeed
+    , generateNewGame
     )
 
 
@@ -240,9 +239,6 @@ update msg model =
 
         NewGame ->
             newGame model
-
-        GenerateNewGame seed ->
-            newGame { model | seed = seed }
 
         GotGame game ->
             ( { model | game = game }, Cmd.none )
