@@ -294,17 +294,15 @@ type MoveResult
 
 boardMakeMove : Dir -> Board -> Generator MoveResult
 boardMakeMove dir board =
-    board
-        |> boardToGrid
-        |> gridAttemptMove dir
-        |> Maybe.map
-            (\grid ->
-                Grid.toEntries grid
-                    |> List.foldl updateBoardFromMergedEntry board
-                    |> addNewRandomTile (Grid.emptyPositions grid)
-                    |> Random.map updatedBoardToMoveSuccess
-            )
-        |> Maybe.withDefault (Random.constant InvalidMove)
+    case gridAttemptMove dir (boardToGrid board) of
+        Just grid ->
+            Grid.toEntries grid
+                |> List.foldl updateBoardFromMergedEntry board
+                |> addNewRandomTile (Grid.emptyPositions grid)
+                |> Random.map updatedBoardToMoveSuccess
+
+        Nothing ->
+            Random.constant InvalidMove
 
 
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
