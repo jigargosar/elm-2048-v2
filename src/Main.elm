@@ -296,13 +296,13 @@ boardMakeMove dir board =
             (\grid ->
                 updateBoardFromGrid grid board
                     |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
-                    |> moveResultFromUpdatedBoard
+                    |> toMovedSuccessfully
             )
         |> Maybe.withDefault InvalidMove
 
 
-moveResultFromUpdatedBoard : Board -> MoveResult
-moveResultFromUpdatedBoard board =
+toMovedSuccessfully : Board -> MoveResult
+toMovedSuccessfully board =
     let
         grid =
             boardToGrid board
