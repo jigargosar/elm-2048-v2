@@ -302,7 +302,7 @@ boardMakeMove dir board =
                 Grid.toEntries grid
                     |> List.foldl updateBoardFromMergedEntry board
                     |> addNewRandomTile (Grid.emptyPositions grid)
-                    |> Random.map updatedBoardToMoveResult
+                    |> Random.map updatedBoardToMoveSuccess
             )
         |> Maybe.withDefault (Random.constant InvalidMove)
 
@@ -312,8 +312,8 @@ addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
 
-updatedBoardToMoveResult : Board -> MoveResult
-updatedBoardToMoveResult board =
+updatedBoardToMoveSuccess : Board -> MoveResult
+updatedBoardToMoveSuccess board =
     let
         grid =
             boardToGrid board
