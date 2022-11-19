@@ -55,9 +55,21 @@ initialIdSeed =
     IdSeed 1
 
 
-stepIdSeed : IdSeed -> ( Id, IdSeed )
-stepIdSeed (IdSeed nextId) =
+generateId : IdSeed -> ( Id, IdSeed )
+generateId (IdSeed nextId) =
     ( nextId, IdSeed (nextId + 1) )
+
+
+withNextId : (Id -> x) -> IdSeed -> ( x, IdSeed )
+withNextId fn seed =
+    generateId seed
+        |> Tuple.mapFirst fn
+
+
+boardWithNextId : (Id -> a) -> Board -> ( a, Board )
+boardWithNextId fn (Board rs ids td) =
+    withNextId fn ids
+        |> Tuple.mapSecond (\newIdSeed -> Board rs newIdSeed td)
 
 
 type alias Id =
@@ -135,13 +147,20 @@ addNewRandomTiles n anim emptyPositions (Board seed prevId tiles) =
 
 
 insertNewTile : Grid.Pos -> Val -> Anim -> Board -> Board
-insertNewTile pos val anim (Board randomSeed idSeed tiles) =
-    let
-        ( id, newIdSeed ) =
-            stepIdSeed idSeed
-    in
-    Dict.insert id (Tile pos id val anim) tiles
-        |> Board randomSeed newIdSeed
+insertNewTile pos val anim board =
+    board
+        |> boardWithNextId (initTile pos val anim)
+        |> boardUpsertTile
+
+
+boardUpsertTile : ( Tile, Board ) -> Board
+boardUpsertTile ( t, Board rs ids td ) =
+    insertBy .id t td |> Board rs ids
+
+
+insertBy : (b -> comparable) -> b -> Dict comparable b -> Dict comparable b
+insertBy fn val =
+    Dict.insert (fn val) val
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
