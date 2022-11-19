@@ -363,7 +363,7 @@ boardToGrid (Board _ _ tiles) =
 gridAttemptMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
 gridAttemptMove dir grid =
     let
-        mergedGrid =
+        updatedGrid =
             case dir of
                 Left ->
                     Grid.mapRowsAsLists slideLeftAndMerge grid
@@ -380,11 +380,11 @@ gridAttemptMove dir grid =
         unmergedGrid =
             Grid.map Unmerged grid
     in
-    if mergedGrid == unmergedGrid then
+    if updatedGrid == unmergedGrid then
         Nothing
 
     else
-        Just mergedGrid
+        Just updatedGrid
 
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
