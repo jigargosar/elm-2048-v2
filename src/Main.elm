@@ -139,19 +139,15 @@ randomVal =
         |> Random.map Val
 
 
-randomGame : Generator Game
-randomGame =
-    randomBoard |> Random.map Running
+randomInitialBoard : Generator Board
+randomInitialBoard =
+    emptyBoard |> Random.map addInitialRandomTiles
 
 
-randomBoard : Generator Board
-randomBoard =
+emptyBoard : Generator Board
+emptyBoard =
     Random.independentSeed
-        |> Random.map
-            (\seed ->
-                addInitialRandomTiles
-                    (Board seed initialIdSeed Dict.empty)
-            )
+        |> Random.map (\seed -> Board seed initialIdSeed Dict.empty)
 
 
 addInitialRandomTiles : Board -> Board
@@ -221,12 +217,17 @@ init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
         ( game, _ ) =
-            Random.step randomGame (Random.initialSeed 0)
+            Random.step randomInitialGame (Random.initialSeed 0)
     in
     ( { game = game
       }
     , Cmd.none
     )
+
+
+randomInitialGame : Generator Game
+randomInitialGame =
+    randomInitialBoard |> Random.map Running
 
 
 subscriptions : Model -> Sub Msg
