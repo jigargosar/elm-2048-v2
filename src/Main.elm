@@ -150,17 +150,12 @@ insertNewTile : Grid.Pos -> Val -> Anim -> Board -> Board
 insertNewTile pos val anim board =
     board
         |> boardWithNextId (initTile pos val anim)
-        |> boardUpsertTile
+        |> upsertTile
 
 
-boardUpsertTile : ( Tile, Board ) -> Board
-boardUpsertTile ( t, Board rs ids td ) =
+upsertTile : ( Tile, Board ) -> Board
+upsertTile ( t, Board rs ids td ) =
     insertBy .id t td |> Board rs ids
-
-
-insertBy : (b -> comparable) -> b -> Dict comparable b -> Dict comparable b
-insertBy fn val =
-    Dict.insert (fn val) val
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
@@ -690,3 +685,12 @@ placeContentCenter =
 
 gridArea11 =
     property "grid-area" "1/1"
+
+
+
+-- BASICS
+
+
+insertBy : (b -> comparable) -> b -> Dict comparable b -> Dict comparable b
+insertBy fn val =
+    Dict.insert (fn val) val
