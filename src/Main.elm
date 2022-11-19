@@ -254,6 +254,17 @@ new model =
     { model | game = game, seed = seed }
 
 
+randomStepModel : Generator a -> { b | seed : Seed } -> ( a, { c | seed : Seed } )
+randomStepModel gen model =
+    Random.step gen model.seed
+        |> Tuple.mapSecond (setSeedIn model)
+
+
+setSeedIn : { a | seed : b } -> b -> { a | seed : b }
+setSeedIn model seed =
+    { model | seed = seed }
+
+
 move : Dir -> Model -> Model
 move dir model =
     case model.game of
