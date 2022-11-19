@@ -33,16 +33,8 @@ type alias Model =
 
 
 type Game
-    = Running RunningBoard
-    | Over GameOverBoard
-
-
-type alias RunningBoard =
-    Board { running : CompatibleTag }
-
-
-type alias GameOverBoard =
-    Board { over : CompatibleTag }
+    = Running Board
+    | Over Board
 
 
 
@@ -57,7 +49,7 @@ type CompatibleTag
 --noinspection ElmUnusedSymbol
 
 
-type Board a
+type Board
     = Board Seed IdSeed TilesDict
 
 
@@ -85,13 +77,13 @@ withNextId fn seed =
         |> Tuple.mapFirst fn
 
 
-boardWithNextId : (Id -> a) -> Board x -> ( a, Board x )
+boardWithNextId : (Id -> a) -> Board -> ( a, Board )
 boardWithNextId fn (Board rs ids td) =
     withNextId fn ids
         |> Tuple.mapSecond (\newIdSeed -> Board rs newIdSeed td)
 
 
-randomStepBoard : Generator a -> Board x -> ( a, Board x )
+randomStepBoard : Generator a -> Board -> ( a, Board )
 randomStepBoard fn (Board rs ids td) =
     Random.step fn rs
         |> Tuple.mapSecond (\newRandomSeed -> Board newRandomSeed ids td)
@@ -152,7 +144,7 @@ randomGame =
     randomBoard |> Random.map Running
 
 
-randomBoard : Generator RunningBoard
+randomBoard : Generator Board
 randomBoard =
     Random.independentSeed
         |> Random.map
@@ -165,37 +157,37 @@ randomBoard =
             )
 
 
-addNewRandomTiles : Anim -> Int -> List Grid.Pos -> Board x -> Board x
+addNewRandomTiles : Anim -> Int -> List Grid.Pos -> Board -> Board
 addNewRandomTiles anim n emptyPositions board =
     board
         |> randomStepBoard (randomPosValEntries n emptyPositions)
         |> insertNewTiles anim
 
 
-insertNewTiles : Anim -> ( List ( Grid.Pos, Val ), Board x ) -> Board x
+insertNewTiles : Anim -> ( List ( Grid.Pos, Val ), Board ) -> Board
 insertNewTiles anim ( list, board ) =
     List.foldl (insertNewTile anim) board list
 
 
-insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board x -> Board x
+insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
 insertNewTile anim ( pos, val ) board =
     board
         |> boardWithNextId (tileInit pos val anim)
         |> insertNewTileHelp
 
 
-insertNewTileHelp : ( Tile, Board x ) -> Board x
+insertNewTileHelp : ( Tile, Board ) -> Board
 insertNewTileHelp ( t, Board rs ids td ) =
     insertBy .id t td |> Board rs ids
 
 
-updateTile : Id -> Grid.Pos -> Anim -> Board x -> Board x
+updateTile : Id -> Grid.Pos -> Anim -> Board -> Board
 updateTile id pos anim (Board rs ids td) =
     Dict.update id (Maybe.map (tileUpdate pos anim)) td
         |> Board rs ids
 
 
-mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board x -> Board x
+mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board -> Board
 mergeTiles id1 id2 val to =
     updateTile id1 to MergedExit
         >> updateTile id2 to MergedExit
@@ -278,8 +270,8 @@ move dir model =
                 MovedSuccessfully movedBoard ->
                     { model | game = Running movedBoard }
 
-                MovedSuccessfullyButGameOver gameOverBoard ->
-                    { model | game = Over gameOverBoard }
+                MovedSuccessfullyButGameOver overBoard ->
+                    { model | game = Over overBoard }
 
 
 type Dir
@@ -291,11 +283,11 @@ type Dir
 
 type MoveResult
     = InvalidMove
-    | MovedSuccessfully RunningBoard
-    | MovedSuccessfullyButGameOver GameOverBoard
+    | MovedSuccessfully Board
+    | MovedSuccessfullyButGameOver Board
 
 
-boardMoveInDir : Dir -> RunningBoard -> MoveResult
+boardMoveInDir : Dir -> Board -> MoveResult
 boardMoveInDir dir board =
     board
         |> boardToGrid
@@ -309,7 +301,7 @@ boardMoveInDir dir board =
         |> Maybe.withDefault InvalidMove
 
 
-moveResultFromUpdatedBoard : Board x -> MoveResult
+moveResultFromUpdatedBoard : Board -> MoveResult
 moveResultFromUpdatedBoard board =
     let
         grid =
@@ -320,15 +312,10 @@ moveResultFromUpdatedBoard board =
                 |> List.all (\dir -> slideAndMergeGrid dir grid == Nothing)
     in
     if isGameOver then
-        MovedSuccessfullyButGameOver (mapBoard board)
+        MovedSuccessfullyButGameOver board
 
     else
-        MovedSuccessfully (mapBoard board)
-
-
-mapBoard : Board x -> Board y
-mapBoard (Board a b c) =
-    Board a b c
+        MovedSuccessfully board
 
 
 type alias IdVal =
@@ -348,7 +335,7 @@ type alias MergedIdValGrid =
     Grid MergedIdVal
 
 
-boardToGrid : Board x -> IdValGrid
+boardToGrid : Board -> IdValGrid
 boardToGrid (Board _ _ tiles) =
     let
         toEntry t =
@@ -418,7 +405,7 @@ slideLeftAndMerge =
     List.foldl step [] >> List.reverse
 
 
-updateBoardFromGrid : MergedIdValGrid -> Board x -> Board x
+updateBoardFromGrid : MergedIdValGrid -> Board -> Board
 updateBoardFromGrid grid board =
     let
         updateFromMergedEntry ( pos, merged ) =
