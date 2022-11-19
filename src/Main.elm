@@ -246,12 +246,9 @@ update msg model =
 
 
 new : Model -> Model
-new model =
-    let
-        ( game, seed ) =
-            Random.step randomInitialGame model.seed
-    in
-    { model | game = game, seed = seed }
+new =
+    randomStepModel randomInitialGame
+        >> (\( game, model ) -> { model | game = game })
 
 
 randomStepModel : Generator a -> Model -> ( a, Model )
