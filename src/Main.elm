@@ -248,7 +248,7 @@ update msg model =
 
 move : Dir -> Model -> Model
 move dir model =
-    case attemptMoveInDir dir model.game of
+    case gameMoveInDir dir model.game of
         Nothing ->
             model
 
@@ -263,8 +263,8 @@ type Dir
     | Down
 
 
-attemptMoveInDir : Dir -> Game -> Maybe Game
-attemptMoveInDir dir game =
+gameMoveInDir : Dir -> Game -> Maybe Game
+gameMoveInDir dir game =
     case game of
         Over _ ->
             Nothing
@@ -279,6 +279,18 @@ attemptMoveInDir dir game =
                             |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
                             |> gameFromBoard
                     )
+
+
+boardMoveInDir : Dir -> Board -> Maybe Board
+boardMoveInDir dir board =
+    board
+        |> boardToGrid
+        |> slideAndMergeGrid dir
+        |> Maybe.map
+            (\grid ->
+                updateBoardFromGrid grid board
+                    |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
+            )
 
 
 gameFromBoard : Board -> Game
