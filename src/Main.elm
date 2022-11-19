@@ -149,16 +149,18 @@ randomBoard =
     Random.independentSeed
         |> Random.map
             (\seed ->
-                addNewRandomTiles
-                    InitialEnter
-                    2
-                    Grid.allPositions
+                addInitialRandomTiles
                     (Board seed initialIdSeed Dict.empty)
             )
 
 
-addNewRandomTiles : Anim -> Int -> List Grid.Pos -> Board -> Board
-addNewRandomTiles anim n emptyPositions board =
+addInitialRandomTiles : Board -> Board
+addInitialRandomTiles =
+    addRandomTilesHelp InitialEnter 2 Grid.allPositions
+
+
+addRandomTilesHelp : Anim -> Int -> List Grid.Pos -> Board -> Board
+addRandomTilesHelp anim n emptyPositions board =
     board
         |> randomStepBoard (randomPosValEntries n emptyPositions)
         |> insertNewTiles anim
@@ -295,14 +297,19 @@ boardMakeMove dir board =
         |> Maybe.map
             (\grid ->
                 updateBoardFromGrid grid board
-                    |> addNewRandomTiles NewDelayedEnter 1 (Grid.emptyPositions grid)
-                    |> moveResultFromUpdatedBoard
+                    |> addNewRandomTile (Grid.emptyPositions grid)
+                    |> moveSuccessResultFromBoard
             )
         |> Maybe.withDefault InvalidMove
 
 
-moveResultFromUpdatedBoard : Board -> MoveResult
-moveResultFromUpdatedBoard board =
+addNewRandomTile : List Grid.Pos -> Board -> Board
+addNewRandomTile emptyPositions =
+    addRandomTilesHelp NewDelayedEnter 1 emptyPositions
+
+
+moveSuccessResultFromBoard : Board -> MoveResult
+moveSuccessResultFromBoard board =
     let
         grid =
             boardToGrid board
