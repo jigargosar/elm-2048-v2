@@ -275,16 +275,16 @@ type Dir
 
 boardAttemptMove : Dir -> Board -> Maybe (Generator Game)
 boardAttemptMove dir board =
-    case gridAttemptMove dir (boardToGrid board) of
-        Nothing ->
-            Nothing
+    gridAttemptMove dir (boardToGrid board)
+        |> Maybe.map (boardUpdateFromGridAndAddNewTile board)
 
-        Just grid ->
-            Grid.toEntries grid
-                |> List.foldl updateBoardFromMergedEntry board
-                |> addNewRandomTile (Grid.emptyPositions grid)
-                |> Random.map gameFromUpdatedBoard
-                |> Just
+
+boardUpdateFromGridAndAddNewTile : Board -> Grid MergedIdVal -> Generator Game
+boardUpdateFromGridAndAddNewTile board grid =
+    Grid.toEntries grid
+        |> List.foldl updateBoardFromMergedEntry board
+        |> addNewRandomTile (Grid.emptyPositions grid)
+        |> Random.map gameFromUpdatedBoard
 
 
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
