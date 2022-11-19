@@ -17,7 +17,7 @@ import Random exposing (Generator, Seed)
 import Random.List
 
 
-main : Program Flags Model Msg
+main : Program Flags Game Msg
 main =
     Browser.element
         { init = init
@@ -25,10 +25,6 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
-
-
-type alias Model =
-    { game : Game }
 
 
 type Game
@@ -187,13 +183,13 @@ type alias Flags =
     ()
 
 
-init : Flags -> ( Model, Cmd Msg )
+init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         ( game, _ ) =
             Random.step randomInitialGame (Random.initialSeed 0)
     in
-    ( { game = game }
+    ( game
     , generateNewGame
     )
 
@@ -217,7 +213,7 @@ randomInitialGame =
     randomInitialBoard |> Random.map Running
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Game -> Sub Msg
 subscriptions _ =
     Browser.Events.onKeyDown
         (JD.field "key" JD.string
@@ -225,7 +221,7 @@ subscriptions _ =
         )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Game -> ( Game, Cmd Msg )
 update msg model =
     case msg of
         OnKeyDown "ArrowRight" ->
@@ -247,37 +243,13 @@ update msg model =
             ( model, generateNewGame )
 
         GotGame game ->
-            ( { model | game = game }, Cmd.none )
+            ( game, Cmd.none )
 
 
-
---newGame : Model -> ( Model, Cmd Msg )
---newGame model =
---    let
---        ( game, seed ) =
---            Random.step randomInitialGame model.seed
---    in
---    ( { model | game = game, seed = seed }, Cmd.none )
---
---
---move : Dir -> Model -> ( Model, Cmd Msg )
---move dir model =
---    case gameMakeMoveIfRunning dir model.game of
---        Nothing ->
---            ( model, Cmd.none )
---
---        Just gameGenerator ->
---            let
---                ( game, seed ) =
---                    Random.step gameGenerator model.seed
---            in
---            ( { model | game = game, seed = seed }, Cmd.none )
-
-
-move : Dir -> Model -> ( Model, Cmd Msg )
-move dir model =
-    ( model
-    , maybeGenerateGame (gameMakeMoveIfRunning dir model.game)
+move : Dir -> Game -> ( Game, Cmd Msg )
+move dir game =
+    ( game
+    , maybeGenerateGame (gameMakeMoveIfRunning dir game)
     )
 
 
@@ -439,8 +411,8 @@ updateBoardFromMergedEntry ( to, merged ) board =
             updateTile id to Stayed board
 
 
-view : Model -> Html.Html Msg
-view model =
+view : Game -> Html.Html Msg
+view game =
     toUnstyled <|
         div [ css [ padding <| px 30 ] ]
             [ Global.global
@@ -449,7 +421,7 @@ view model =
                     , color <| hsl 1 1 1
                     ]
                 ]
-            , viewGame model.game
+            , viewGame game
             ]
 
 
