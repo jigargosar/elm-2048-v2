@@ -218,22 +218,20 @@ subscriptions _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OnKeyDown string ->
-            case string of
-                "ArrowRight" ->
-                    move Right model
+        OnKeyDown "ArrowRight" ->
+            move Right model
 
-                "ArrowLeft" ->
-                    move Left model
+        OnKeyDown "ArrowLeft" ->
+            move Left model
 
-                "ArrowUp" ->
-                    move Up model
+        OnKeyDown "ArrowUp" ->
+            move Up model
 
-                "ArrowDown" ->
-                    move Down model
+        OnKeyDown "ArrowDown" ->
+            move Down model
 
-                _ ->
-                    ( model, Cmd.none )
+        OnKeyDown _ ->
+            ( model, Cmd.none )
 
         NewGame ->
             ( new model, Cmd.none )
