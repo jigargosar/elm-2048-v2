@@ -29,24 +29,13 @@ main =
 
 type alias Model =
     { game : Game
+    , seed : Seed
     }
 
 
 type Game
     = Running Board
     | Over Board
-
-
-
---noinspection ElmUnusedSymbol
-
-
-type CompatibleTag
-    = CompatibleTag
-
-
-
---noinspection ElmUnusedSymbol
 
 
 type Board
@@ -141,7 +130,7 @@ randomVal =
 
 randomInitialBoard : Generator Board
 randomInitialBoard =
-    emptyBoard |> Random.map addInitialRandomTiles
+    emptyBoard |> Random.andThen addInitialRandomTiles
 
 
 emptyBoard : Generator Board
@@ -150,20 +139,19 @@ emptyBoard =
         |> Random.map (\seed -> Board seed initialIdSeed Dict.empty)
 
 
-addInitialRandomTiles : Board -> Board
+addInitialRandomTiles : Board -> Generator Board
 addInitialRandomTiles =
     addRandomTilesHelp InitialEnter 2 Grid.allPositions
 
 
-addRandomTilesHelp : Anim -> Int -> List Grid.Pos -> Board -> Board
+addRandomTilesHelp : Anim -> Int -> List Grid.Pos -> Board -> Generator Board
 addRandomTilesHelp anim n emptyPositions board =
-    board
-        |> randomStepBoard (randomPosValEntries n emptyPositions)
-        |> insertNewTiles anim
+    randomPosValEntries n emptyPositions
+        |> Random.map (\list -> insertNewTiles anim list board)
 
 
-insertNewTiles : Anim -> ( List ( Grid.Pos, Val ), Board ) -> Board
-insertNewTiles anim ( list, board ) =
+insertNewTiles : Anim -> List ( Grid.Pos, Val ) -> Board -> Board
+insertNewTiles anim list board =
     List.foldl (insertNewTile anim) board list
 
 
@@ -217,10 +205,11 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init _ =
     let
-        ( game, _ ) =
+        ( game, seed ) =
             Random.step randomInitialGame (Random.initialSeed 0)
     in
     ( { game = game
+      , seed = seed
       }
     , Cmd.none
     )
@@ -285,15 +274,24 @@ move dir model =
             model
 
         Running board ->
-            case boardMakeMove dir board of
-                InvalidMove ->
-                    model
+            let
+                ( moveResult, seed ) =
+                    Random.step (boardMakeMove dir board) model.seed
+            in
+            updateModelWithMoveResult moveResult { model | seed = seed }
 
-                MovedSuccessfully movedBoard ->
-                    { model | game = Running movedBoard }
 
-                MovedSuccessfullyButGameOver overBoard ->
-                    { model | game = Over overBoard }
+updateModelWithMoveResult : MoveResult -> Model -> Model
+updateModelWithMoveResult moveResult model =
+    case moveResult of
+        InvalidMove ->
+            model
+
+        MovedSuccessfully movedBoard ->
+            { model | game = Running movedBoard }
+
+        MovedSuccessfullyButGameOver overBoard ->
+            { model | game = Over overBoard }
 
 
 type Dir
@@ -315,7 +313,7 @@ boardReInit board =
         |> Tuple.first
 
 
-boardMakeMove : Dir -> Board -> MoveResult
+boardMakeMove : Dir -> Board -> Generator MoveResult
 boardMakeMove dir board =
     board
         |> boardToGrid
@@ -324,12 +322,12 @@ boardMakeMove dir board =
             (\grid ->
                 updateBoardFromGrid grid board
                     |> addNewRandomTile (Grid.emptyPositions grid)
-                    |> moveSuccessResultFromBoard
+                    |> Random.map moveSuccessResultFromBoard
             )
-        |> Maybe.withDefault InvalidMove
+        |> Maybe.withDefault (Random.constant InvalidMove)
 
 
-addNewRandomTile : List Grid.Pos -> Board -> Board
+addNewRandomTile : List Grid.Pos -> Board -> Generator Board
 addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
