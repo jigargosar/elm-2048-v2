@@ -15,7 +15,6 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
 import Random exposing (Generator, Seed)
 import Random.List
-import Task
 
 
 main : Program Flags Model Msg
@@ -156,6 +155,11 @@ insertNewTile anim ( pos, val ) board =
         |> insertNewTileHelp
 
 
+insertNewMergedTile : Grid.Pos -> Val -> Board -> Board
+insertNewMergedTile pos val =
+    insertNewTile MergedEnter ( pos, val )
+
+
 insertNewTileHelp : ( Tile, Board ) -> Board
 insertNewTileHelp ( t, Board ids td ) =
     insertBy .id t td |> Board ids
@@ -171,7 +175,7 @@ mergeTiles : Id -> Id -> Val -> Grid.Pos -> Board -> Board
 mergeTiles id1 id2 val to =
     updateTile id1 to MergedExit
         >> updateTile id2 to MergedExit
-        >> insertNewTile MergedExit ( to, nextVal val )
+        >> insertNewMergedTile to (nextVal val)
 
 
 randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
@@ -190,6 +194,7 @@ randomTake n list =
 type Msg
     = OnKeyDown String
     | NewGame
+    | GenerateNewGame Seed
 
 
 type alias Flags =
@@ -205,7 +210,7 @@ init _ =
     ( { game = game
       , seed = seed
       }
-    , Task.succeed NewGame |> Task.perform identity
+    , Random.generate GenerateNewGame Random.independentSeed
     )
 
 
@@ -244,6 +249,9 @@ update msg model =
 
         NewGame ->
             ( new model, Cmd.none )
+
+        GenerateNewGame seed ->
+            ( new { model | seed = seed }, Cmd.none )
 
 
 new : Model -> Model
