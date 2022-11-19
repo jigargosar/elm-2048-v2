@@ -363,28 +363,33 @@ boardToGrid (Board _ _ tiles) =
 gridAttemptMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
 gridAttemptMove dir grid =
     let
-        updatedGrid =
-            case dir of
-                Left ->
-                    Grid.mapRowsAsLists slideLeftAndMerge grid
-
-                Right ->
-                    Grid.mapRowsAsReversedLists slideLeftAndMerge grid
-
-                Up ->
-                    Grid.mapColumnsAsLists slideLeftAndMerge grid
-
-                Down ->
-                    Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
+        mergedGrid =
+            gridAttemptMoveHelp dir grid
 
         unmergedGrid =
             Grid.map Unmerged grid
     in
-    if updatedGrid == unmergedGrid then
+    if mergedGrid == unmergedGrid then
         Nothing
 
     else
-        Just updatedGrid
+        Just mergedGrid
+
+
+gridAttemptMoveHelp : Dir -> IdValGrid -> MergedIdValGrid
+gridAttemptMoveHelp dir grid =
+    case dir of
+        Left ->
+            Grid.mapRowsAsLists slideLeftAndMerge grid
+
+        Right ->
+            Grid.mapRowsAsReversedLists slideLeftAndMerge grid
+
+        Up ->
+            Grid.mapColumnsAsLists slideLeftAndMerge grid
+
+        Down ->
+            Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
 
 
 slideLeftAndMerge : List IdVal -> List MergedIdVal
