@@ -256,26 +256,26 @@ randomStepModel gen model =
 
 move : Dir -> Model -> Model
 move dir model =
-    case model.game of
-        Over _ ->
+    case gameMakeMoveIfRunning dir model.game of
+        Nothing ->
             model
 
+        Just gameGenerator ->
+            let
+                ( game, seed ) =
+                    Random.step gameGenerator model.seed
+            in
+            { model | game = game, seed = seed }
+
+
+gameMakeMoveIfRunning : Dir -> Game -> Maybe (Generator Game)
+gameMakeMoveIfRunning dir game =
+    case game of
+        Over _ ->
+            Nothing
+
         Running board ->
-            case boardMakeMove dir board of
-                Nothing ->
-                    model
-
-                Just gameGenerator ->
-                    setGameFromGenerator gameGenerator model
-
-
-setGameFromGenerator : Generator Game -> Model -> Model
-setGameFromGenerator gameGenerator model =
-    let
-        ( game, seed ) =
-            Random.step gameGenerator model.seed
-    in
-    { model | game = game, seed = seed }
+            boardMakeMove dir board
 
 
 type Dir
