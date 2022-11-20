@@ -298,7 +298,7 @@ boardAttemptMove dir board =
             (\result ->
                 board
                     |> updateMerged result.merged
-                    |> updateUnmerged result.unmerged
+                    |> updateUnmerged result.stayed
                     |> addNewRandomTile result.empty
             )
 

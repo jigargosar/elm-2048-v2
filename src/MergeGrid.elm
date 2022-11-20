@@ -9,14 +9,14 @@ type alias Pos =
 
 type alias Result a =
     { merged : List ( Pos, ( a, a ) )
-    , unmerged : List ( Pos, a )
+    , stayed : List ( Pos, a )
     , empty : List Pos
     }
 
 
 type Merged a
     = Merged a a
-    | Unmerged a
+    | Stayed a
 
 
 type Dir
@@ -33,7 +33,7 @@ update eq dir list =
             Grid.fromEntries list
 
         unmergedGrid =
-            Grid.map Unmerged grid
+            Grid.map Stayed grid
 
         mergedGrid =
             gridAttemptMoveHelp eq dir grid
@@ -44,7 +44,7 @@ update eq dir list =
     else
         Grid.toEntries mergedGrid
             |> List.foldl updateResult
-                { merged = [], unmerged = [], empty = Grid.emptyPositions mergedGrid }
+                { merged = [], stayed = [], empty = Grid.emptyPositions mergedGrid }
             |> Just
 
 
@@ -54,8 +54,8 @@ updateResult ( to, merged ) acc =
         Merged a b ->
             { acc | merged = ( to, ( a, b ) ) :: acc.merged }
 
-        Unmerged a ->
-            { acc | unmerged = ( to, a ) :: acc.unmerged }
+        Stayed a ->
+            { acc | stayed = ( to, a ) :: acc.stayed }
 
 
 gridAttemptMoveHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
@@ -83,14 +83,14 @@ slideLeftAndMerge eq =
     let
         step a acc =
             case acc of
-                (Unmerged b) :: rest ->
+                (Stayed b) :: rest ->
                     if eq a b then
                         Merged a b :: rest
 
                     else
-                        Unmerged a :: acc
+                        Stayed a :: acc
 
                 _ ->
-                    Unmerged a :: acc
+                    Stayed a :: acc
     in
     List.foldl step [] >> List.reverse
