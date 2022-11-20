@@ -26,8 +26,8 @@ type alias Pos =
     FourByFourGrid.Pos
 
 
-allGridPositions : List Pos
-allGridPositions =
+allPositions : List Pos
+allPositions =
     FourByFourGrid.allPositions
 
 
@@ -147,7 +147,7 @@ emptyBoard =
 
 addInitialRandomTiles : Board -> Generator Board
 addInitialRandomTiles =
-    addRandomTilesHelp InitialEnter 2 allGridPositions
+    addRandomTilesHelp InitialEnter 2 allPositions
 
 
 addRandomTilesHelp : Anim -> Int -> List Pos -> Board -> Generator Board
@@ -439,7 +439,7 @@ viewBackgroundGrid =
             , backgroundColor <| colorDark3
             ]
         ]
-        (allGridPositions |> List.map viewBackgroundTile)
+        (allPositions |> List.map viewBackgroundTile)
 
 
 viewBackgroundTile : Pos -> Html msg
