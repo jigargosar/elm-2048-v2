@@ -241,7 +241,7 @@ move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
     , runningBoard game
-        |> Maybe.andThen (boardMove dir)
+        |> Maybe.andThen (boardAttemptMove dir)
         |> Maybe.map (Random.map gameFromBoard)
         |> maybeGenerate GotGame
     )
@@ -298,7 +298,7 @@ boardAttemptMove dir board =
             (\result ->
                 board
                     |> updateMerged result.merged
-                    |> updateUnmerged result.stayed
+                    |> updateStayed result.stayed
                     |> addNewRandomTile result.empty
             )
 
@@ -313,12 +313,23 @@ type alias Pos =
 
 updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
 updateMerged list board =
-    Debug.todo "todo"
+    let
+        fn ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
+            acc
+                |> updateTile id1 pos MergedExit
+                |> updateTile id2 pos MergedExit
+                |> insertNewTile MergedEnter ( pos, nextVal val )
+    in
+    List.foldl fn board list
 
 
-updateUnmerged : List ( Pos, IdVal ) -> Board -> Board
-updateUnmerged list board =
-    Debug.todo "todo"
+updateStayed : List ( Pos, IdVal ) -> Board -> Board
+updateStayed list board =
+    let
+        fn ( pos, ( id, _ ) ) =
+            updateTile id pos Stayed
+    in
+    List.foldl fn board list
 
 
 updateFromGridAndAddNewTile : Board -> Grid MergedIdVal -> Generator Board
