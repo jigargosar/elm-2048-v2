@@ -60,13 +60,13 @@ update eq dir list =
 
     else
         Grid.toEntries mergedGrid
-            |> List.foldl updateResult
+            |> List.foldl accumulateResult
                 { merged = [], stayed = [], empty = Grid.emptyPositions mergedGrid }
             |> Just
 
 
-updateResult : ( Pos, Merged a ) -> Result a -> Result a
-updateResult ( to, merged ) acc =
+accumulateResult : ( Pos, Merged a ) -> Result a -> Result a
+accumulateResult ( to, merged ) acc =
     case merged of
         Merged a b ->
             { acc | merged = ( to, ( a, b ) ) :: acc.merged }
