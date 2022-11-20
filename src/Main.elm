@@ -301,7 +301,7 @@ boardAttemptMove dir board =
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
 slideAndMerge =
-    Grid.update (eqBy Tuple.second)
+    Grid.slideAndMerge (eqBy Tuple.second)
 
 
 updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board

@@ -4,7 +4,7 @@ module SlideAndMergeGrid exposing
     , Result
     , allPositions
     , posToInt
-    , update
+    , slideAndMerge
     )
 
 import FourByFourGrid as Grid exposing (Grid)
@@ -43,8 +43,8 @@ type Dir
     | Down
 
 
-update : (a -> a -> Bool) -> Dir -> List ( Pos, a ) -> Maybe (Result a)
-update eq dir list =
+slideAndMerge : (a -> a -> Bool) -> Dir -> List ( Pos, a ) -> Maybe (Result a)
+slideAndMerge eq dir list =
     let
         grid =
             Grid.fromEntries list
@@ -53,7 +53,7 @@ update eq dir list =
             Grid.map Stayed grid
 
         mergedGrid =
-            slideAndMerge eq dir grid
+            slideAndMergeHelp eq dir grid
     in
     if mergedGrid == unmergedGrid then
         Nothing
@@ -75,8 +75,8 @@ accumulateResult ( to, merged ) acc =
             { acc | stayed = ( to, a ) :: acc.stayed }
 
 
-slideAndMerge : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
-slideAndMerge eq dir grid =
+slideAndMergeHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
+slideAndMergeHelp eq dir grid =
     let
         fn =
             slideLeftAndMerge eq
