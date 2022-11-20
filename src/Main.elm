@@ -13,6 +13,7 @@ import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
+import MergeGrid exposing (Dir(..))
 import Random exposing (Generator, Seed)
 import Random.List
 
@@ -278,17 +279,53 @@ runningBoard game =
             Just board
 
 
-type Dir
-    = Left
-    | Right
-    | Up
-    | Down
-
-
 boardMove : Dir -> Board -> Maybe (Generator Board)
 boardMove dir board =
     gridAttemptMove dir (boardToGrid board)
         |> Maybe.map (updateFromGridAndAddNewTile board)
+
+
+boardAttemptMove : Dir -> Board -> Maybe (Generator Board)
+boardAttemptMove dir board =
+    let
+        result =
+            boardToGrid board
+                |> Grid.toEntries
+                |> MergeGrid.update (eqBy Tuple.second) dir
+    in
+    if List.isEmpty result.merged && List.isEmpty result.moved then
+        Nothing
+
+    else
+        board
+            |> updateMerged result.merged
+            |> updateMoved result.moved
+            |> updateStayed result.stayed
+            |> addNewRandomTile result.empty
+            |> Just
+
+
+eqBy fn a b =
+    fn a == fn b
+
+
+type alias Pos =
+    Grid.Pos
+
+
+updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
+updateMerged list board =
+    Debug.todo "todo"
+
+
+updateMoved : List ( Pos, IdVal ) -> Board -> Board
+updateMoved list board =
+    Debug.todo "todo"
+
+
+updateStayed : List IdVal -> Board -> Board
+updateStayed list board =
+    Debug.todo "todo"
 
 
 updateFromGridAndAddNewTile : Board -> Grid MergedIdVal -> Generator Board
