@@ -14,11 +14,7 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
 import Random exposing (Generator, Seed)
 import Random.List
-import SlideAndMergeGrid as Grid exposing (Dir(..))
-
-
-type alias Pos =
-    Grid.Pos
+import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
 
 
 main : Program Flags Game Msg
