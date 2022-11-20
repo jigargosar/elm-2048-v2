@@ -384,7 +384,7 @@ slideLeftAndMerge =
             case acc of
                 (Unmerged ( lastId, lastVal )) :: rest ->
                     if val == lastVal then
-                        Merged id lastId val :: rest
+                        Merged id lastId (nextVal val) :: rest
 
                     else
                         Unmerged idVal :: acc
@@ -398,11 +398,11 @@ slideLeftAndMerge =
 updateBoardFromMergedEntry : ( Grid.Pos, MergedIdVal ) -> Board -> Board
 updateBoardFromMergedEntry ( to, merged ) board =
     case merged of
-        Merged id1 id2 val ->
+        Merged id1 id2 mergedVal ->
             board
                 |> updateTile id1 to MergedExit
                 |> updateTile id2 to MergedExit
-                |> insertNewTile MergedEnter ( to, nextVal val )
+                |> insertNewTile MergedEnter ( to, mergedVal )
 
         Unmerged ( id, _ ) ->
             updateTile id to Stayed board
