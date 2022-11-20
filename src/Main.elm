@@ -240,7 +240,7 @@ move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
     , runningBoard game
-        |> Maybe.andThen (attemptMove dir)
+        |> Maybe.andThen (boardMove dir)
         |> Maybe.map (Random.map gameFromBoard)
         |> maybeGenerate GotGame
     )
@@ -285,8 +285,8 @@ type Dir
     | Down
 
 
-attemptMove : Dir -> Board -> Maybe (Generator Board)
-attemptMove dir board =
+boardMove : Dir -> Board -> Maybe (Generator Board)
+boardMove dir board =
     gridAttemptMove dir (boardToGrid board)
         |> Maybe.map (updateFromGridAndAddNewTile board)
 
