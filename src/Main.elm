@@ -288,21 +288,19 @@ boardMove dir board =
 boardAttemptMove : Dir -> Board -> Maybe (Generator Board)
 boardAttemptMove dir board =
     let
-        result =
+        mbResult =
             boardToGrid board
                 |> Grid.toEntries
                 |> MergeGrid.update (eqBy Tuple.second) dir
     in
-    if List.isEmpty result.merged && List.isEmpty result.moved then
-        Nothing
-
-    else
-        board
-            |> updateMerged result.merged
-            |> updateMoved result.moved
-            |> updateStayed result.stayed
-            |> addNewRandomTile result.empty
-            |> Just
+    mbResult
+        |> Maybe.map
+            (\result ->
+                board
+                    |> updateMerged result.merged
+                    |> updateUnmerged result.unmerged
+                    |> addNewRandomTile result.empty
+            )
 
 
 eqBy fn a b =
@@ -318,13 +316,8 @@ updateMerged list board =
     Debug.todo "todo"
 
 
-updateMoved : List ( Pos, IdVal ) -> Board -> Board
-updateMoved list board =
-    Debug.todo "todo"
-
-
-updateStayed : List IdVal -> Board -> Board
-updateStayed list board =
+updateUnmerged : List ( Pos, IdVal ) -> Board -> Board
+updateUnmerged list board =
     Debug.todo "todo"
 
 
