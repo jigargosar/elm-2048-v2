@@ -53,7 +53,7 @@ update eq dir list =
             Grid.map Stayed grid
 
         mergedGrid =
-            gridAttemptMoveHelp eq dir grid
+            slideAndMerge eq dir grid
     in
     if mergedGrid == unmergedGrid then
         Nothing
@@ -75,8 +75,8 @@ accumulateResult ( to, merged ) acc =
             { acc | stayed = ( to, a ) :: acc.stayed }
 
 
-gridAttemptMoveHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
-gridAttemptMoveHelp eq dir grid =
+slideAndMerge : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
+slideAndMerge eq dir grid =
     let
         fn =
             slideLeftAndMerge eq
