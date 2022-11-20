@@ -1,4 +1,4 @@
-module SlideAndMerge exposing (Dir(..), Result, update)
+module SlideAndMergeGrid exposing (Dir(..), Result, update)
 
 import Grid4x4 as Grid exposing (Grid)
 

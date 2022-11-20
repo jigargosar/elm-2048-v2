@@ -15,7 +15,7 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
 import Random exposing (Generator, Seed)
 import Random.List
-import SlideAndMerge exposing (Dir(..))
+import SlideAndMergeGrid exposing (Dir(..))
 
 
 
@@ -314,9 +314,9 @@ boardAttemptMove dir board =
             )
 
 
-slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (SlideAndMerge.Result IdVal)
+slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (SlideAndMergeGrid.Result IdVal)
 slideAndMerge =
-    SlideAndMerge.update (eqBy Tuple.second)
+    SlideAndMergeGrid.update (eqBy Tuple.second)
 
 
 eqBy fn a b =
