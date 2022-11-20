@@ -43,7 +43,8 @@ update eq dir list =
 
     else
         Grid.toEntries mergedGrid
-            |> List.foldl updateResult { merged = [], unmerged = [], empty = Grid.emptyPositions mergedGrid }
+            |> List.foldl updateResult
+                { merged = [], unmerged = [], empty = Grid.emptyPositions mergedGrid }
             |> Just
 
 
