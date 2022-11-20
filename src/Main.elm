@@ -246,6 +246,23 @@ move dir game =
     )
 
 
+gameFromBoard : Board -> Game
+gameFromBoard board =
+    let
+        grid =
+            boardToGrid board
+
+        isGameOver =
+            [ Up, Down, Left, Right ]
+                |> List.all (\dir -> gridAttemptMove dir grid == Nothing)
+    in
+    if isGameOver then
+        Over board
+
+    else
+        Running board
+
+
 maybeGenerate : (a -> msg) -> Maybe (Generator a) -> Cmd msg
 maybeGenerate msg =
     Maybe.map (Random.generate msg) >> Maybe.withDefault Cmd.none
@@ -284,23 +301,6 @@ updateFromGridAndAddNewTile board grid =
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
 addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
-
-
-gameFromBoard : Board -> Game
-gameFromBoard board =
-    let
-        grid =
-            boardToGrid board
-
-        isGameOver =
-            [ Up, Down, Left, Right ]
-                |> List.all (\dir -> gridAttemptMove dir grid == Nothing)
-    in
-    if isGameOver then
-        Over board
-
-    else
-        Running board
 
 
 type alias IdVal =
