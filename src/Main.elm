@@ -18,7 +18,7 @@ import SlideAndMergeGrid as Grid exposing (Dir(..))
 
 
 
--- Grid4x4 WRAPPERS
+-- FourByFourGrid WRAPPERS
 
 
 type alias Pos =
@@ -318,10 +318,6 @@ slideAndMerge =
     Grid.update (eqBy Tuple.second)
 
 
-eqBy fn a b =
-    fn a == fn b
-
-
 updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
 updateMerged list board =
     let
@@ -467,10 +463,6 @@ gridAreaFromPos pos =
             pos |> posToInt >> mapBothWith (add 1 >> String.fromInt)
     in
     property "grid-area" (row ++ "/" ++ col)
-
-
-add =
-    (+)
 
 
 boardStyle : Style
@@ -677,3 +669,13 @@ gridArea11 =
 insertBy : (b -> comparable) -> b -> Dict comparable b -> Dict comparable b
 insertBy fn val =
     Dict.insert (fn val) val
+
+
+eqBy : (b -> a) -> b -> b -> Bool
+eqBy fn a b =
+    fn a == fn b
+
+
+add : number -> number -> number
+add =
+    (+)

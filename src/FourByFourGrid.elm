@@ -1,4 +1,4 @@
-module Grid4x4 exposing
+module FourByFourGrid exposing
     ( Entry
     , Grid
     , Pos
