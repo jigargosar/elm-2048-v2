@@ -7,15 +7,33 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
-import Grid4x4 as Grid exposing (Grid)
+import Grid4x4
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
-import MergeGrid exposing (Dir(..))
 import Random exposing (Generator, Seed)
 import Random.List
+import SlideAndMerge exposing (Dir(..))
+
+
+
+-- Grid4x4 WRAPPERS
+
+
+type alias Pos =
+    Grid4x4.Pos
+
+
+allGridPositions : List Pos
+allGridPositions =
+    Grid4x4.allPositions
+
+
+posToInt : Pos -> ( Int, Int )
+posToInt =
+    Grid4x4.posToInt2
 
 
 main : Program Flags Game Msg
@@ -72,19 +90,19 @@ type alias Id =
 
 
 type alias Tile =
-    { pos : Grid.Pos
+    { pos : Pos
     , id : Id
     , val : Val
     , anim : Anim
     }
 
 
-tileInit : Grid.Pos -> Val -> Anim -> Id -> Tile
+tileInit : Pos -> Val -> Anim -> Id -> Tile
 tileInit pos val anim id =
     Tile pos id val anim
 
 
-tileUpdate : Grid.Pos -> Anim -> Tile -> Tile
+tileUpdate : Pos -> Anim -> Tile -> Tile
 tileUpdate pos anim t =
     { pos = pos, id = t.id, val = t.val, anim = anim }
 
@@ -129,21 +147,21 @@ emptyBoard =
 
 addInitialRandomTiles : Board -> Generator Board
 addInitialRandomTiles =
-    addRandomTilesHelp InitialEnter 2 Grid.allPositions
+    addRandomTilesHelp InitialEnter 2 allGridPositions
 
 
-addRandomTilesHelp : Anim -> Int -> List Grid.Pos -> Board -> Generator Board
+addRandomTilesHelp : Anim -> Int -> List Pos -> Board -> Generator Board
 addRandomTilesHelp anim n emptyPositions board =
     randomPosValEntries n emptyPositions
         |> Random.map (\list -> insertNewTiles anim list board)
 
 
-insertNewTiles : Anim -> List ( Grid.Pos, Val ) -> Board -> Board
+insertNewTiles : Anim -> List ( Pos, Val ) -> Board -> Board
 insertNewTiles anim list board =
     List.foldl (insertNewTile anim) board list
 
 
-insertNewTile : Anim -> ( Grid.Pos, Val ) -> Board -> Board
+insertNewTile : Anim -> ( Pos, Val ) -> Board -> Board
 insertNewTile anim ( pos, val ) board =
     board
         |> boardWithNextId (tileInit pos val anim)
@@ -155,13 +173,13 @@ insertNewTileHelp ( t, Board ids td ) =
     insertBy .id t td |> Board ids
 
 
-updateTile : Id -> Grid.Pos -> Anim -> Board -> Board
+updateTile : Id -> Pos -> Anim -> Board -> Board
 updateTile id pos anim (Board ids td) =
     Dict.update id (Maybe.map (tileUpdate pos anim)) td
         |> Board ids
 
 
-randomPosValEntries : Int -> List Grid.Pos -> Generator (List ( Grid.Pos, Val ))
+randomPosValEntries : Int -> List Pos -> Generator (List ( Pos, Val ))
 randomPosValEntries n posList =
     Random.map2 (List.map2 Tuple.pair)
         (randomTake n posList)
@@ -251,11 +269,11 @@ gameFromBoard : Board -> Game
 gameFromBoard board =
     let
         grid =
-            boardToGrid board
+            boardToEntries board
 
         isGameOver =
             [ Up, Down, Left, Right ]
-                |> List.all (\dir -> gridAttemptMove dir grid == Nothing)
+                |> List.all (\dir -> slideAndMerge dir grid == Nothing)
     in
     if isGameOver then
         Over board
@@ -279,19 +297,12 @@ runningBoard game =
             Just board
 
 
-boardMove : Dir -> Board -> Maybe (Generator Board)
-boardMove dir board =
-    gridAttemptMove dir (boardToGrid board)
-        |> Maybe.map (updateFromGridAndAddNewTile board)
-
-
 boardAttemptMove : Dir -> Board -> Maybe (Generator Board)
 boardAttemptMove dir board =
     let
         mbResult =
-            boardToGrid board
-                |> Grid.toEntries
-                |> MergeGrid.update (eqBy Tuple.second) dir
+            boardToEntries board
+                |> slideAndMerge dir
     in
     mbResult
         |> Maybe.map
@@ -303,12 +314,13 @@ boardAttemptMove dir board =
             )
 
 
+slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (SlideAndMerge.Result IdVal)
+slideAndMerge =
+    SlideAndMerge.update (eqBy Tuple.second)
+
+
 eqBy fn a b =
     fn a == fn b
-
-
-type alias Pos =
-    Grid.Pos
 
 
 updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
@@ -332,14 +344,7 @@ updateStayed list board =
     List.foldl fn board list
 
 
-updateFromGridAndAddNewTile : Board -> Grid MergedIdVal -> Generator Board
-updateFromGridAndAddNewTile board grid =
-    Grid.toEntries grid
-        |> List.foldl updateBoardFromMergedEntry board
-        |> addNewRandomTile (Grid.emptyPositions grid)
-
-
-addNewRandomTile : List Grid.Pos -> Board -> Generator Board
+addNewRandomTile : List Pos -> Board -> Generator Board
 addNewRandomTile emptyPositions =
     addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
@@ -348,21 +353,8 @@ type alias IdVal =
     ( Id, Val )
 
 
-type alias IdValGrid =
-    Grid IdVal
-
-
-type MergedIdVal
-    = Merged Id Id Val
-    | Unmerged IdVal
-
-
-type alias MergedIdValGrid =
-    Grid MergedIdVal
-
-
-boardToGrid : Board -> IdValGrid
-boardToGrid (Board _ tiles) =
+boardToEntries : Board -> List ( Pos, IdVal )
+boardToEntries (Board _ tiles) =
     let
         toEntry t =
             case t.anim of
@@ -383,70 +375,6 @@ boardToGrid (Board _ tiles) =
     in
     Dict.values tiles
         |> List.filterMap toEntry
-        |> Grid.fromEntries
-
-
-gridAttemptMove : Dir -> IdValGrid -> Maybe MergedIdValGrid
-gridAttemptMove dir grid =
-    let
-        mergedGrid =
-            gridAttemptMoveHelp dir grid
-
-        unmergedGrid =
-            Grid.map Unmerged grid
-    in
-    if mergedGrid == unmergedGrid then
-        Nothing
-
-    else
-        Just mergedGrid
-
-
-gridAttemptMoveHelp : Dir -> IdValGrid -> MergedIdValGrid
-gridAttemptMoveHelp dir grid =
-    case dir of
-        Left ->
-            Grid.mapRowsAsLists slideLeftAndMerge grid
-
-        Right ->
-            Grid.mapRowsAsReversedLists slideLeftAndMerge grid
-
-        Up ->
-            Grid.mapColumnsAsLists slideLeftAndMerge grid
-
-        Down ->
-            Grid.mapColumnsAsReversedLists slideLeftAndMerge grid
-
-
-slideLeftAndMerge : List IdVal -> List MergedIdVal
-slideLeftAndMerge =
-    let
-        step (( id, val ) as idVal) acc =
-            case acc of
-                (Unmerged ( lastId, lastVal )) :: rest ->
-                    if val == lastVal then
-                        Merged id lastId (nextVal val) :: rest
-
-                    else
-                        Unmerged idVal :: acc
-
-                _ ->
-                    Unmerged idVal :: acc
-    in
-    List.foldl step [] >> List.reverse
-
-
-updateBoardFromMergedEntry : ( Grid.Pos, MergedIdVal ) -> Board -> Board
-updateBoardFromMergedEntry ( to, merged ) board =
-    case merged of
-        Merged id1 id2 mergedVal ->
-            board
-                |> updateTile id1 to MergedExit
-                |> updateTile id2 to MergedExit
-                |> insertNewTile MergedEnter ( to, mergedVal )
-
-        Unmerged ( id, _ ) ->
-            updateTile id to Stayed board
 
 
 view : Game -> Html.Html Msg
@@ -511,10 +439,10 @@ viewBackgroundGrid =
             , backgroundColor <| colorDark3
             ]
         ]
-        (Grid.allPositions |> List.map viewBackgroundTile)
+        (allGridPositions |> List.map viewBackgroundTile)
 
 
-viewBackgroundTile : Grid.Pos -> Html msg
+viewBackgroundTile : Pos -> Html msg
 viewBackgroundTile pos =
     div
         [ css
@@ -533,11 +461,11 @@ viewBackgroundTile pos =
         ]
 
 
-gridAreaFromPos : Grid.Pos -> Style
+gridAreaFromPos : Pos -> Style
 gridAreaFromPos pos =
     let
         ( col, row ) =
-            pos |> Grid.posToInt2 >> mapBothWith (add 1 >> String.fromInt)
+            pos |> posToInt2 >> mapBothWith (add 1 >> String.fromInt)
     in
     property "grid-area" (row ++ "/" ++ col)
 
@@ -663,7 +591,7 @@ viewTile : Tile -> ( String, Html Msg )
 viewTile t =
     let
         ( dx, dy ) =
-            t.pos |> Grid.posToInt2 |> mapBothWith (toFloat >> mul 100 >> pct)
+            t.pos |> posToInt2 |> mapBothWith (toFloat >> mul 100 >> pct)
     in
     ( tileKey t
     , div
