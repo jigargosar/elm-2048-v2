@@ -7,7 +7,7 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
-import Grid4x4
+import Grid4x4 as FourByFourGrid
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
@@ -23,17 +23,17 @@ import SlideAndMerge exposing (Dir(..))
 
 
 type alias Pos =
-    Grid4x4.Pos
+    FourByFourGrid.Pos
 
 
 allGridPositions : List Pos
 allGridPositions =
-    Grid4x4.allPositions
+    FourByFourGrid.allPositions
 
 
 posToInt : Pos -> ( Int, Int )
 posToInt =
-    Grid4x4.posToInt2
+    FourByFourGrid.posToInt2
 
 
 main : Program Flags Game Msg
@@ -465,7 +465,7 @@ gridAreaFromPos : Pos -> Style
 gridAreaFromPos pos =
     let
         ( col, row ) =
-            pos |> posToInt2 >> mapBothWith (add 1 >> String.fromInt)
+            pos |> posToInt >> mapBothWith (add 1 >> String.fromInt)
     in
     property "grid-area" (row ++ "/" ++ col)
 
@@ -591,7 +591,7 @@ viewTile : Tile -> ( String, Html Msg )
 viewTile t =
     let
         ( dx, dy ) =
-            t.pos |> posToInt2 |> mapBothWith (toFloat >> mul 100 >> pct)
+            t.pos |> posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
     in
     ( tileKey t
     , div
