@@ -1,10 +1,27 @@
-module SlideAndMergeGrid exposing (Dir(..), Result, update)
+module SlideAndMergeGrid exposing
+    ( Dir(..)
+    , Pos
+    , Result
+    , allPositions
+    , posToInt
+    , update
+    )
 
-import Grid4x4 as Grid exposing (Grid)
+import Grid4x4 as FourByFourGrid exposing (Grid)
 
 
 type alias Pos =
-    Grid.Pos
+    FourByFourGrid.Pos
+
+
+allPositions : List Pos
+allPositions =
+    FourByFourGrid.allPositions
+
+
+posToInt : Pos -> ( Int, Int )
+posToInt =
+    FourByFourGrid.posToInt2
 
 
 type alias Result a =

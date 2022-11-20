@@ -7,7 +7,6 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
-import Grid4x4 as FourByFourGrid
 import Html
 import Html.Styled exposing (Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (css)
@@ -15,7 +14,7 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
 import Random exposing (Generator, Seed)
 import Random.List
-import SlideAndMergeGrid exposing (Dir(..))
+import SlideAndMergeGrid as Grid exposing (Dir(..))
 
 
 
@@ -23,17 +22,17 @@ import SlideAndMergeGrid exposing (Dir(..))
 
 
 type alias Pos =
-    FourByFourGrid.Pos
+    Grid.Pos
 
 
 allPositions : List Pos
 allPositions =
-    FourByFourGrid.allPositions
+    Grid.allPositions
 
 
 posToInt : Pos -> ( Int, Int )
 posToInt =
-    FourByFourGrid.posToInt2
+    Grid.posToInt
 
 
 main : Program Flags Game Msg
@@ -314,9 +313,9 @@ boardAttemptMove dir board =
             )
 
 
-slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (SlideAndMergeGrid.Result IdVal)
+slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
 slideAndMerge =
-    SlideAndMergeGrid.update (eqBy Tuple.second)
+    Grid.update (eqBy Tuple.second)
 
 
 eqBy fn a b =
