@@ -241,6 +241,7 @@ move dir game =
     ( game
     , runningBoard game
         |> Maybe.andThen (attemptMove dir)
+        |> Maybe.map (Random.map gameFromBoard)
         |> maybeGenerate GotGame
     )
 
@@ -267,18 +268,17 @@ type Dir
     | Down
 
 
-attemptMove : Dir -> Board -> Maybe (Generator Game)
+attemptMove : Dir -> Board -> Maybe (Generator Board)
 attemptMove dir board =
     gridAttemptMove dir (boardToGrid board)
         |> Maybe.map (updateFromGridAndAddNewTile board)
 
 
-updateFromGridAndAddNewTile : Board -> Grid MergedIdVal -> Generator Game
+updateFromGridAndAddNewTile : Board -> Grid MergedIdVal -> Generator Board
 updateFromGridAndAddNewTile board grid =
     Grid.toEntries grid
         |> List.foldl updateBoardFromMergedEntry board
         |> addNewRandomTile (Grid.emptyPositions grid)
-        |> Random.map gameFromBoard
 
 
 addNewRandomTile : List Grid.Pos -> Board -> Generator Board
