@@ -17,22 +17,8 @@ import Random.List
 import SlideAndMergeGrid as Grid exposing (Dir(..))
 
 
-
--- FourByFourGrid WRAPPERS
-
-
 type alias Pos =
     Grid.Pos
-
-
-allPositions : List Pos
-allPositions =
-    Grid.allPositions
-
-
-posToInt : Pos -> ( Int, Int )
-posToInt =
-    Grid.posToInt
 
 
 main : Program Flags Game Msg
@@ -146,7 +132,7 @@ emptyBoard =
 
 addInitialRandomTiles : Board -> Generator Board
 addInitialRandomTiles =
-    addRandomTilesHelp InitialEnter 2 allPositions
+    addRandomTilesHelp InitialEnter 2 Grid.allPositions
 
 
 addRandomTilesHelp : Anim -> Int -> List Pos -> Board -> Generator Board
@@ -434,7 +420,7 @@ viewBackgroundGrid =
             , backgroundColor <| colorDark3
             ]
         ]
-        (allPositions |> List.map viewBackgroundTile)
+        (Grid.allPositions |> List.map viewBackgroundTile)
 
 
 viewBackgroundTile : Pos -> Html msg
@@ -460,7 +446,7 @@ gridAreaFromPos : Pos -> Style
 gridAreaFromPos pos =
     let
         ( col, row ) =
-            pos |> posToInt >> mapBothWith (add 1 >> String.fromInt)
+            pos |> Grid.posToInt >> mapBothWith (add 1 >> String.fromInt)
     in
     property "grid-area" (row ++ "/" ++ col)
 
@@ -582,7 +568,7 @@ viewTile : Tile -> ( String, Html Msg )
 viewTile t =
     let
         ( dx, dy ) =
-            t.pos |> posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+            t.pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
     in
     ( tileKey t
     , div
