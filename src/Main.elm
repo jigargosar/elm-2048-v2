@@ -256,16 +256,10 @@ updateMergedAndScore list game =
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> addMergedTileAndUpdateScore pos mergedVal
+                |> insertTile MergedEnter (initNewTile pos mergedVal)
+                |> addScore mergedVal
     in
     List.foldl fn game list
-
-
-addMergedTileAndUpdateScore : Pos -> Val -> Game -> Game
-addMergedTileAndUpdateScore pos mergedVal game =
-    game
-        |> insertTile MergedEnter (initNewTile pos mergedVal)
-        |> addScore mergedVal
 
 
 addScore : Val -> Game -> Game
