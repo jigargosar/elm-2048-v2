@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "reactor": "elm reactor"
+  },
   "devDependencies": {
     "elm-tooling": "^1.10.0"
   }
