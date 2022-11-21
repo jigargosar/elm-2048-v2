@@ -343,7 +343,9 @@ boardToEntries (Board _ _ td) =
 
 view : Game -> Html.Html Msg
 view game =
-    toUnstyled (viewStyled game)
+    game
+        |> viewStyled
+        |> toUnstyled
 
 
 viewStyled : Game -> Html Msg
