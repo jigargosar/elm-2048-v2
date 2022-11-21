@@ -60,21 +60,6 @@ type Score
     = Score Int
 
 
-scoreZero : Score
-scoreZero =
-    Score 0
-
-
-scoreAdd : Val -> Score -> Score
-scoreAdd val (Score i) =
-    Score (Val.toScore val + i)
-
-
-totalScore : Score -> Int
-totalScore (Score i) =
-    i
-
-
 type alias Id =
     Int
 
@@ -157,7 +142,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialIdSeed scoreZero Dict.empty
+            Game initialIdSeed (Score 0) Dict.empty
     in
     ( initialModel
     , generateNewGame initialModel
@@ -252,25 +237,25 @@ slideAndMerge =
 
 updateMergedEntries : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
 updateMergedEntries list game =
-    List.foldl updateMergedEntry game list
+    let
+        ( scoreDelta, Game ids (Score score) td ) =
+            List.foldl updateMergedEntry ( 0, game ) list
+    in
+    Game ids (Score (score + scoreDelta)) td
 
 
-updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> Game -> Game
-updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
+updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> ( Int, Game ) -> ( Int, Game )
+updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) ( scoreAcc, game ) =
     let
         mergedVal =
             Val.next val
     in
-    acc
+    ( Val.toScore val + scoreAcc
+    , game
         |> updateTile id1 pos MergedExit
         |> updateTile id2 pos MergedExit
         |> insertTile MergedEnter (initNewTile pos mergedVal)
-        |> addScore mergedVal
-
-
-addScore : Val -> Game -> Game
-addScore val (Game ids s td) =
-    Game ids (scoreAdd val s) td
+    )
 
 
 updateStayedEntries : List ( Pos, IdVal ) -> Game -> Game
@@ -330,7 +315,7 @@ globalStyleNode =
 
 
 viewStyled : Game -> Html Msg
-viewStyled ((Game _ score _) as game) =
+viewStyled ((Game _ (Score score) _) as game) =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
@@ -340,7 +325,7 @@ viewStyled ((Game _ score _) as game) =
                 , onClick NewGame
                 ]
                 [ button [] [ text "New Game" ]
-                , div [] [ text <| String.fromInt <| totalScore score ]
+                , div [] [ text <| String.fromInt score ]
                 ]
             , viewGame game
             ]
