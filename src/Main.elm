@@ -393,6 +393,7 @@ gameToTiles game =
             Dict.values td
 
 
+gameToBoard : Game -> Board
 gameToBoard game =
     case game of
         Running board ->
@@ -402,10 +403,12 @@ gameToBoard game =
             board
 
 
+boardToScore : Board -> Score
 boardToScore (Board _ score _) =
     score
 
 
+scoreToDisplayString : Score -> String
 scoreToDisplayString (Score i) =
     String.fromInt i
 
