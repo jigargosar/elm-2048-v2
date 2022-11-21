@@ -233,11 +233,11 @@ isGameOver game =
         entries =
             entriesForSlideAndMerge game
 
-        canSlideAndMerge dir =
+        invalidMove dir =
             slideAndMerge dir entries /= Nothing
     in
     [ Up, Down, Left, Right ]
-        |> List.any canSlideAndMerge
+        |> List.all invalidMove
 
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
