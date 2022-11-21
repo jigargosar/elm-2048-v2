@@ -328,12 +328,8 @@ viewStyled ((Game _ score _) as game) =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
-            [ div
-                [ css [ displayFlex, gap "20px" ]
-                , autofocus True
-                , onClick NewGame
-                ]
-                [ button [] [ text "New Game" ]
+            [ div [ css [ displayFlex, gap "20px" ] ]
+                [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
                 , viewScore score
                 ]
             , viewGame game
@@ -347,9 +343,9 @@ viewScore (Score scores) =
         total =
             String.fromInt (List.sum scores)
     in
-    div [ css [ displayGrid, placeContentCenter ] ]
+    div [ css [ displayGrid ] ]
         (div [ css [ gridArea11 ] ] [ text total ]
-            :: List.map viewScoreDelta scores
+            :: List.foldl (viewScoreDelta >> (::)) [] scores
         )
 
 
@@ -358,19 +354,19 @@ viewScoreDelta s =
     div
         [ css
             [ gridArea11
-            , opacity <| num 0.5
+            , position relative
+            , left <| pct 100
             , animationName <|
                 keyframes
                     [ ( 100
-                      , [ A.transform [ translateY <| px -100 ]
+                      , [ A.transform [ translateY <| em -1 ]
                         , A.opacity zero
                         ]
                       )
                     ]
-            , animationDuration <| ms 2000
+            , animationDuration <| ms 1000
             , animFillBoth
-
-            --, fontSize <| em 0.5
+            , fontSize <| em 0.8
             ]
         ]
         [ text "+", text <| String.fromInt s ]
