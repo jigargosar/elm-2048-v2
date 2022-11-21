@@ -18,30 +18,27 @@ import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
 import Val exposing (Val)
 
 
+type NewTile
+    = NewTile Pos Val
 
---type NewTile
---    = NewTile Pos Val
---
---
---type Tile_
---    = Tile_ Id Pos Val
---
---
---type NewAnimTile
---    = NewAnimTile Anim NewTile
---
---
---type AnimTile
---    = AnimTile Anim Tile_
---
---type IdDict a
---    = IdDict (Dict Id a)
---
---idDictFromListBy : (a -> Id) -> List a -> IdDict a
---idDictFromListBy fn list =
---    List.foldl (\ a -> Dict.insert (fn a) a) Dict.empty list
---        |> IdDict
---
+
+initNewTile : Pos -> Val -> NewTile
+initNewTile =
+    NewTile
+
+
+type Tile
+    = Tile Id Anim Pos Val
+
+
+initTile : Id -> Anim -> NewTile -> Tile
+initTile id anim (NewTile pos val) =
+    Tile id anim pos val
+
+
+setTilePosAndAnim : Pos -> Anim -> Tile -> Tile
+setTilePosAndAnim pos anim (Tile id _ _ val) =
+    Tile id anim pos val
 
 
 main : Program Flags Game Msg
@@ -81,24 +78,6 @@ generateId (IdSeed nextId) =
     ( nextId, IdSeed (nextId + 1) )
 
 
-type alias Tile =
-    { pos : Pos
-    , id : Id
-    , val : Val
-    , anim : Anim
-    }
-
-
-tileInit : Pos -> Val -> Anim -> Id -> Tile
-tileInit pos val anim id =
-    Tile pos id val anim
-
-
-tileUpdate : Pos -> Anim -> Tile -> Tile
-tileUpdate pos anim t =
-    { pos = pos, id = t.id, val = t.val, anim = anim }
-
-
 type Anim
     = InitialEnter
     | MergedExit
@@ -124,36 +103,31 @@ addInitialRandomTiles =
 
 addRandomTilesHelp : Anim -> Int -> List Pos -> Board -> Generator Board
 addRandomTilesHelp anim n emptyPositions board =
-    randomPosValEntries n emptyPositions
-        |> Random.map (\list -> insertNewTiles anim list board)
+    randomNewTiles n emptyPositions
+        |> Random.map (List.foldl (insertNewTile anim) board)
 
 
-insertNewTiles : Anim -> List ( Pos, Val ) -> Board -> Board
-insertNewTiles anim list board =
-    List.foldl (insertNewTile anim) board list
-
-
-insertNewTile : Anim -> ( Pos, Val ) -> Board -> Board
-insertNewTile anim ( pos, val ) (Board ids td) =
+insertNewTile : Anim -> NewTile -> Board -> Board
+insertNewTile anim newTile (Board ids td) =
     let
         ( id, newIdSeed ) =
             generateId ids
 
         tile =
-            tileInit pos val anim id
+            initTile id anim newTile
     in
-    Board newIdSeed (insertBy .id tile td)
+    Board newIdSeed (Dict.insert id tile td)
 
 
 updateTile : Id -> Pos -> Anim -> Board -> Board
 updateTile id pos anim (Board ids td) =
-    Dict.update id (Maybe.map (tileUpdate pos anim)) td
+    Dict.update id (Maybe.map (setTilePosAndAnim pos anim)) td
         |> Board ids
 
 
-randomPosValEntries : Int -> List Pos -> Generator (List ( Pos, Val ))
-randomPosValEntries n posList =
-    Random.map2 (List.map2 Tuple.pair)
+randomNewTiles : Int -> List Pos -> Generator (List NewTile)
+randomNewTiles n posList =
+    Random.map2 (List.map2 initNewTile)
         (randomTake n posList)
         (Random.list n Val.random)
 
@@ -298,7 +272,7 @@ updateMerged list board =
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> insertNewTile MergedEnter ( pos, Val.next val )
+                |> insertNewTile MergedEnter (initNewTile pos (Val.next val))
     in
     List.foldl fn board list
 
@@ -324,22 +298,22 @@ type alias IdVal =
 boardToEntries : Board -> List ( Pos, IdVal )
 boardToEntries (Board _ td) =
     let
-        toEntry t =
-            case t.anim of
+        toEntry (Tile id anim pos val) =
+            case anim of
                 InitialEnter ->
-                    Just ( t.pos, ( t.id, t.val ) )
+                    Just ( pos, ( id, val ) )
 
                 MergedExit ->
                     Nothing
 
                 MergedEnter ->
-                    Just ( t.pos, ( t.id, t.val ) )
+                    Just ( pos, ( id, val ) )
 
                 NewDelayedEnter ->
-                    Just ( t.pos, ( t.id, t.val ) )
+                    Just ( pos, ( id, val ) )
 
                 Stayed ->
-                    Just ( t.pos, ( t.id, t.val ) )
+                    Just ( pos, ( id, val ) )
     in
     Dict.values td
         |> List.filterMap toEntry
@@ -359,8 +333,8 @@ view game =
             ]
 
 
-gameToTileList : Game -> List Tile
-gameToTileList game =
+gameToTiles : Game -> List Tile
+gameToTiles game =
     case game of
         Running (Board _ td) ->
             Dict.values td
@@ -381,7 +355,7 @@ viewGame game =
         [ viewBackgroundGrid
         , Keyed.node "div"
             [ css [ boardStyle ] ]
-            (List.map viewTile (gameToTileList game))
+            (List.map viewTile (gameToTiles game))
         , case game of
             Over _ ->
                 div
@@ -529,35 +503,13 @@ animationNameEnter =
             ]
 
 
-type alias Int2 =
-    ( Int, Int )
-
-
-mapBothWith fn =
-    Tuple.mapBoth fn fn
-
-
-mul =
-    (*)
-
-
-tileKey : Tile -> String
-tileKey t =
-    t.id |> String.fromInt
-
-
-tileDisplayString : Tile -> String
-tileDisplayString t =
-    Val.toDisplayString t.val
-
-
 viewTile : Tile -> ( String, Html Msg )
-viewTile t =
+viewTile ((Tile id anim pos val) as tile) =
     let
         ( dx, dy ) =
-            t.pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
     in
-    ( tileKey t
+    ( String.fromInt id
     , div
         [ css
             [ transforms [ translate2 dx dy ]
@@ -569,15 +521,15 @@ viewTile t =
         ]
         [ div
             [ css
-                [ backgroundColor <| valBackgroundColor t.val
+                [ backgroundColor <| valBackgroundColor val
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
-                , animToStyle t.anim
+                , animToStyle anim
                 ]
-            , HA.title <| Debug.toString t
+            , HA.title <| Debug.toString tile
             ]
-            [ text <| tileDisplayString t
+            [ text <| Val.toDisplayString val
             ]
         ]
     )
@@ -639,11 +591,6 @@ gridArea11 =
 -- BASICS
 
 
-insertBy : (b -> comparable) -> b -> Dict comparable b -> Dict comparable b
-insertBy fn val =
-    Dict.insert (fn val) val
-
-
 eqBy : (b -> a) -> b -> b -> Bool
 eqBy fn a b =
     fn a == fn b
@@ -652,3 +599,13 @@ eqBy fn a b =
 add : number -> number -> number
 add =
     (+)
+
+
+mapBothWith : (a -> x) -> ( a, a ) -> ( x, x )
+mapBothWith fn =
+    Tuple.mapBoth fn fn
+
+
+mul : number -> number -> number
+mul =
+    (*)
