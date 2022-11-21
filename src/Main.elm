@@ -250,11 +250,11 @@ boardAttemptMove dir board =
 isGameOver : Board -> Bool
 isGameOver board =
     let
-        grid =
+        entries =
             boardToEntries board
     in
     [ Up, Down, Left, Right ]
-        |> List.all (\dir -> slideAndMerge dir grid == Nothing)
+        |> List.all (\dir -> slideAndMerge dir entries == Nothing)
 
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
