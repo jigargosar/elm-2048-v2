@@ -348,17 +348,22 @@ view game =
         |> toUnstyled
 
 
+globalStyleNode : Html msg
+globalStyleNode =
+    Global.global
+        [ Global.body
+            [ backgroundColor <| colorDark1
+            , color <| hsl 1 1 1
+            , fontSize <| px 30
+            , fontFamily monospace
+            ]
+        ]
+
+
 viewStyled : Game -> Html Msg
 viewStyled game =
     div [ css [ padding <| px 30 ] ]
-        [ Global.global
-            [ Global.body
-                [ backgroundColor <| colorDark1
-                , color <| hsl 1 1 1
-                , fontSize <| px 30
-                , fontFamily monospace
-                ]
-            ]
+        [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
             [ div
                 [ css [ displayFlex, gap "20px" ]
