@@ -318,7 +318,7 @@ type alias IdVal =
 
 
 boardToEntries : Board -> List ( Pos, IdVal )
-boardToEntries (Board _ td) =
+boardToEntries (Board _ _ td) =
     let
         toEntry (Tile id anim pos val) =
             case anim of
@@ -365,10 +365,10 @@ view game =
 gameToTiles : Game -> List Tile
 gameToTiles game =
     case game of
-        Running (Board _ td) ->
+        Running (Board _ _ td) ->
             Dict.values td
 
-        Over (Board _ td) ->
+        Over (Board _ _ td) ->
             Dict.values td
 
 
