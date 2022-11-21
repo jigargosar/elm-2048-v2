@@ -57,7 +57,7 @@ type Game
 
 
 type Score
-    = Score Int
+    = Score (List Int)
 
 
 type alias Id =
@@ -142,7 +142,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialIdSeed (Score 0) Dict.empty
+            Game initialIdSeed (Score [ 0 ]) Dict.empty
     in
     ( initialModel
     , generateNewGame initialModel
@@ -241,7 +241,7 @@ updateMergedEntries list game =
         ( scoreDelta, Game ids (Score score) td ) =
             List.foldl updateMergedEntry ( 0, game ) list
     in
-    Game ids (Score (score + scoreDelta)) td
+    Game ids (Score (scoreDelta :: score)) td
 
 
 updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> ( Int, Game ) -> ( Int, Game )
