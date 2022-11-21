@@ -88,27 +88,26 @@ type Anim
 
 randomInitialBoard : Generator Board
 randomInitialBoard =
-    addInitialRandomTiles emptyBoard
+    let
+        emptyBoard =
+            Board initialIdSeed Dict.empty
+    in
+    addRandomTilesHelp 2 InitialEnter Grid.allPositions emptyBoard
 
 
-emptyBoard : Board
-emptyBoard =
-    Board initialIdSeed Dict.empty
+addRandomTile : List Pos -> Board -> Generator Board
+addRandomTile emptyPositions =
+    addRandomTilesHelp 1 NewDelayedEnter emptyPositions
 
 
-addInitialRandomTiles : Board -> Generator Board
-addInitialRandomTiles =
-    addRandomTilesHelp InitialEnter 2 Grid.allPositions
-
-
-addRandomTilesHelp : Anim -> Int -> List Pos -> Board -> Generator Board
-addRandomTilesHelp anim n emptyPositions board =
+addRandomTilesHelp : Int -> Anim -> List Pos -> Board -> Generator Board
+addRandomTilesHelp n anim emptyPositions board =
     randomNewTiles n emptyPositions
-        |> Random.map (List.foldl (insertNewTile anim) board)
+        |> Random.map (List.foldl (insertTile anim) board)
 
 
-insertNewTile : Anim -> NewTile -> Board -> Board
-insertNewTile anim newTile (Board ids td) =
+insertTile : Anim -> NewTile -> Board -> Board
+insertTile anim newTile (Board ids td) =
     let
         ( id, newIdSeed ) =
             generateId ids
@@ -256,7 +255,7 @@ boardAttemptMove dir board =
                 board
                     |> updateMerged result.merged
                     |> updateStayed result.stayed
-                    |> addNewRandomTile result.empty
+                    |> addRandomTile result.empty
             )
 
 
@@ -272,7 +271,7 @@ updateMerged list board =
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> insertNewTile MergedEnter (initNewTile pos (Val.next val))
+                |> insertTile MergedEnter (initNewTile pos (Val.next val))
     in
     List.foldl fn board list
 
@@ -284,11 +283,6 @@ updateStayed list board =
             updateTile id pos Stayed
     in
     List.foldl fn board list
-
-
-addNewRandomTile : List Pos -> Board -> Generator Board
-addNewRandomTile emptyPositions =
-    addRandomTilesHelp NewDelayedEnter 1 emptyPositions
 
 
 type alias IdVal =
