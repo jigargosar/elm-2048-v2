@@ -259,7 +259,7 @@ updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) ( scoreAcc, game ) =
         mergedVal =
             Val.next val
     in
-    ( Val.toScore val + scoreAcc
+    ( Val.toScore mergedVal + scoreAcc
     , game
         |> updateTile id1 pos MergedExit
         |> updateTile id2 pos MergedExit
