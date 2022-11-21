@@ -216,7 +216,7 @@ move dir game =
 attemptMove : Dir -> Game -> Maybe (Generator Game)
 attemptMove dir game =
     let
-        updateThenAddRandomTile result =
+        updateFromResult result =
             game
                 |> updateMerged result.merged
                 |> updateStayed result.stayed
@@ -224,7 +224,7 @@ attemptMove dir game =
     in
     entriesForSlideAndMerge game
         |> slideAndMerge dir
-        |> Maybe.map updateThenAddRandomTile
+        |> Maybe.map updateFromResult
 
 
 isGameOver : Game -> Bool
