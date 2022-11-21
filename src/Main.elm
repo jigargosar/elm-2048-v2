@@ -210,16 +210,6 @@ move dir game =
     )
 
 
-isGameOver : Board -> Bool
-isGameOver board =
-    let
-        grid =
-            boardToEntries board
-    in
-    [ Up, Down, Left, Right ]
-        |> List.all (\dir -> slideAndMerge dir grid == Nothing)
-
-
 gameFromBoard : Board -> Game
 gameFromBoard board =
     if isGameOver board then
@@ -256,6 +246,16 @@ boardAttemptMove dir board =
     boardToEntries board
         |> slideAndMerge dir
         |> Maybe.map updateThenAddRandomTile
+
+
+isGameOver : Board -> Bool
+isGameOver board =
+    let
+        grid =
+            boardToEntries board
+    in
+    [ Up, Down, Left, Right ]
+        |> List.all (\dir -> slideAndMerge dir grid == Nothing)
 
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
