@@ -357,6 +357,7 @@ view game =
                     , onClick NewGame
                     ]
                     [ button [] [ text "New Game" ] ]
+                , div [] [ text (game |> gameToBoard |> boardToScore |> scoreToDisplayString) ]
                 , viewGame game
                 ]
             ]
@@ -370,6 +371,23 @@ gameToTiles game =
 
         Over (Board _ _ td) ->
             Dict.values td
+
+
+gameToBoard game =
+    case game of
+        Running board ->
+            board
+
+        Over board ->
+            board
+
+
+boardToScore (Board _ score _) =
+    score
+
+
+scoreToDisplayString (Score i) =
+    String.fromInt i
 
 
 viewGame : Game -> Html Msg
