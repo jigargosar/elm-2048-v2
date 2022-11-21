@@ -102,9 +102,9 @@ addRandomTile emptyPositions =
 
 
 addRandomTilesHelp : Int -> Anim -> List Pos -> Game -> Generator Game
-addRandomTilesHelp n anim emptyPositions board =
+addRandomTilesHelp n anim emptyPositions game =
     randomNewTiles n emptyPositions
-        |> Random.map (List.foldl (insertTile anim) board)
+        |> Random.map (List.foldl (insertTile anim) game)
 
 
 insertTile : Anim -> NewTile -> Game -> Game
@@ -219,24 +219,24 @@ move dir game =
 
 
 attemptMove : Dir -> Game -> Maybe (Generator Game)
-attemptMove dir board =
+attemptMove dir game =
     let
         updateThenAddRandomTile result =
-            board
+            game
                 |> updateMergedAndScore result.merged
                 |> updateStayed result.stayed
                 |> addRandomTile result.empty
     in
-    entriesForSlideAndMerge board
+    entriesForSlideAndMerge game
         |> slideAndMerge dir
         |> Maybe.map updateThenAddRandomTile
 
 
 isGameOver : Game -> Bool
-isGameOver board =
+isGameOver game =
     let
         entries =
-            entriesForSlideAndMerge board
+            entriesForSlideAndMerge game
 
         canSlideAndMerge dir =
             slideAndMerge dir entries /= Nothing
@@ -251,7 +251,7 @@ slideAndMerge =
 
 
 updateMergedAndScore : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
-updateMergedAndScore list board =
+updateMergedAndScore list game =
     let
         fn ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
             let
@@ -263,12 +263,12 @@ updateMergedAndScore list board =
                 |> updateTile id2 pos MergedExit
                 |> addMergedTileAndUpdateScore pos mergedVal
     in
-    List.foldl fn board list
+    List.foldl fn game list
 
 
 addMergedTileAndUpdateScore : Pos -> Val -> Game -> Game
-addMergedTileAndUpdateScore pos mergedVal board =
-    board
+addMergedTileAndUpdateScore pos mergedVal game =
+    game
         |> insertTile MergedEnter (initNewTile pos mergedVal)
         |> addScore mergedVal
 
@@ -279,12 +279,12 @@ addScore val (Game ids s td) =
 
 
 updateStayed : List ( Pos, IdVal ) -> Game -> Game
-updateStayed list board =
+updateStayed list game =
     let
         fn ( pos, ( id, _ ) ) =
             updateTile id pos Stayed
     in
-    List.foldl fn board list
+    List.foldl fn game list
 
 
 type alias IdVal =
