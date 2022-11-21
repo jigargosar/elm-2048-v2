@@ -349,6 +349,8 @@ view game =
                 [ Global.body
                     [ backgroundColor <| colorDark1
                     , color <| hsl 1 1 1
+                    , fontSize <| px 30
+                    , fontFamily monospace
                     ]
                 ]
             , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
