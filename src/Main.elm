@@ -357,10 +357,15 @@ view game =
                     , onClick NewGame
                     ]
                     [ button [] [ text "New Game" ] ]
-                , div [] [ text (game |> gameToBoard |> boardToScore |> scoreToDisplayString) ]
+                , div [] [ text <| gameToScoreDisplayString game ]
                 , viewGame game
                 ]
             ]
+
+
+gameToScoreDisplayString : Game -> String
+gameToScoreDisplayString game =
+    game |> gameToBoard |> boardToScore |> scoreToDisplayString
 
 
 gameToTiles : Game -> List Tile
