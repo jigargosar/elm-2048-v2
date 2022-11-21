@@ -210,17 +210,19 @@ move dir game =
     )
 
 
-gameFromBoard : Board -> Game
-gameFromBoard board =
+isGameOver : Board -> Bool
+isGameOver board =
     let
         grid =
             boardToEntries board
-
-        isGameOver =
-            [ Up, Down, Left, Right ]
-                |> List.all (\dir -> slideAndMerge dir grid == Nothing)
     in
-    if isGameOver then
+    [ Up, Down, Left, Right ]
+        |> List.all (\dir -> slideAndMerge dir grid == Nothing)
+
+
+gameFromBoard : Board -> Game
+gameFromBoard board =
+    if isGameOver board then
         Over board
 
     else
