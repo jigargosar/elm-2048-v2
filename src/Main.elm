@@ -204,11 +204,24 @@ update msg model =
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
-    , runningBoard game
-        |> Maybe.andThen (boardAttemptMove dir)
-        |> Maybe.map (Random.map gameFromBoard)
-        |> maybeGenerate GotGame
+    , moveHelp dir game
     )
+
+
+moveHelp : Dir -> Game -> Cmd Msg
+moveHelp dir game =
+    case game of
+        Running board ->
+            case boardAttemptMove dir board of
+                Just boardGen ->
+                    Random.map gameFromBoard boardGen
+                        |> Random.generate GotGame
+
+                Nothing ->
+                    Cmd.none
+
+        Over _ ->
+            Cmd.none
 
 
 gameFromBoard : Board -> Game
@@ -218,21 +231,6 @@ gameFromBoard board =
 
     else
         Running board
-
-
-maybeGenerate : (a -> msg) -> Maybe (Generator a) -> Cmd msg
-maybeGenerate msg =
-    Maybe.map (Random.generate msg) >> Maybe.withDefault Cmd.none
-
-
-runningBoard : Game -> Maybe Board
-runningBoard game =
-    case game of
-        Over _ ->
-            Nothing
-
-        Running board ->
-            Just board
 
 
 boardAttemptMove : Dir -> Board -> Maybe (Generator Board)
