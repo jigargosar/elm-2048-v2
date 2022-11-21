@@ -142,11 +142,16 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialIdSeed (Score [ 0 ]) Dict.empty
+            Game initialIdSeed zeroScore Dict.empty
     in
     ( initialModel
     , generateNewGame initialModel
     )
+
+
+zeroScore : Score
+zeroScore =
+    Score []
 
 
 generateNewGame game =
@@ -154,8 +159,8 @@ generateNewGame game =
 
 
 newGame : Game -> Generator Game
-newGame =
-    addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions
+newGame (Game i _ _) =
+    addRandomTilesHelp 2 InitialEnter Grid.allPositions (Game i zeroScore Dict.empty)
 
 
 subscriptions : Game -> Sub Msg
@@ -338,9 +343,35 @@ viewScore (Score scores) =
         total =
             String.fromInt (List.sum scores)
     in
-    div [ css [ displayGrid ] ]
-        [ div [ css [ gridArea11 ] ] [ text total ]
+    div [ css [ displayGrid, placeContentCenter ] ]
+        (div [ css [ gridArea11 ] ] [ text total ]
+            :: List.map viewScoreDelta scores
+        )
+
+
+viewScoreDelta : Int -> Html msg
+viewScoreDelta s =
+    div
+        [ css
+            [ right <| pct 100
+            , gridArea11
+            , position relative
+            , animationName <|
+                keyframes
+                    [ ( 100
+                      , [ A.transform [ translateY <| px -100 ]
+
+                        --, A.opacity zero
+                        ]
+                      )
+                    ]
+            , animationDuration <| ms 2000
+            , animFillBoth
+
+            --, fontSize <| em 0.5
+            ]
         ]
+        [ text "+", text <| String.fromInt s ]
 
 
 viewGame : Game -> Html Msg
