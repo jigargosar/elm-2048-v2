@@ -65,8 +65,8 @@ scoreZero =
     Score 0
 
 
-scoreAdd : Val -> Score -> Score
-scoreAdd val (Score i) =
+scoreAddDelta : Val -> Score -> Score
+scoreAddDelta val (Score i) =
     Score (Val.toScore val + i)
 
 
@@ -270,7 +270,7 @@ updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
 
 addScore : Val -> Game -> Game
 addScore val (Game ids s td) =
-    Game ids (scoreAdd val s) td
+    Game ids (scoreAddDelta val s) td
 
 
 updateStayedEntries : List ( Pos, IdVal ) -> Game -> Game
