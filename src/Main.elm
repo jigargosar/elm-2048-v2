@@ -18,6 +18,32 @@ import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
 import Val exposing (Val)
 
 
+
+--type NewTile
+--    = NewTile Pos Val
+--
+--
+--type Tile_
+--    = Tile_ Id Pos Val
+--
+--
+--type NewAnimTile
+--    = NewAnimTile Anim NewTile
+--
+--
+--type AnimTile
+--    = AnimTile Anim Tile_
+--
+--type IdDict a
+--    = IdDict (Dict Id a)
+--
+--idDictFromListBy : (a -> Id) -> List a -> IdDict a
+--idDictFromListBy fn list =
+--    List.foldl (\ a -> Dict.insert (fn a) a) Dict.empty list
+--        |> IdDict
+--
+
+
 main : Program Flags Game Msg
 main =
     Browser.element
@@ -53,18 +79,6 @@ initialIdSeed =
 generateId : IdSeed -> ( Id, IdSeed )
 generateId (IdSeed nextId) =
     ( nextId, IdSeed (nextId + 1) )
-
-
-withNextId : (Id -> x) -> IdSeed -> ( x, IdSeed )
-withNextId fn seed =
-    generateId seed
-        |> Tuple.mapFirst fn
-
-
-boardWithNextId : (Id -> a) -> Board -> ( a, Board )
-boardWithNextId fn (Board ids td) =
-    withNextId fn ids
-        |> Tuple.mapSecond (\newIdSeed -> Board newIdSeed td)
 
 
 type alias Id =
@@ -124,15 +138,15 @@ insertNewTiles anim list board =
 
 
 insertNewTile : Anim -> ( Pos, Val ) -> Board -> Board
-insertNewTile anim ( pos, val ) board =
-    board
-        |> boardWithNextId (tileInit pos val anim)
-        |> insertNewTileHelp
+insertNewTile anim ( pos, val ) (Board ids td) =
+    let
+        ( id, newIdSeed ) =
+            generateId ids
 
-
-insertNewTileHelp : ( Tile, Board ) -> Board
-insertNewTileHelp ( t, Board ids td ) =
-    insertBy .id t td |> Board ids
+        tile =
+            tileInit pos val anim id
+    in
+    Board newIdSeed (insertBy .id tile td)
 
 
 updateTile : Id -> Pos -> Anim -> Board -> Board
@@ -312,7 +326,7 @@ type alias IdVal =
 
 
 boardToEntries : Board -> List ( Pos, IdVal )
-boardToEntries (Board _ tiles) =
+boardToEntries (Board _ td) =
     let
         toEntry t =
             case t.anim of
@@ -331,7 +345,7 @@ boardToEntries (Board _ tiles) =
                 Stayed ->
                     Just ( t.pos, ( t.id, t.val ) )
     in
-    Dict.values tiles
+    Dict.values td
         |> List.filterMap toEntry
 
 
@@ -352,11 +366,11 @@ view game =
 gameToTileList : Game -> List Tile
 gameToTileList game =
     case game of
-        Running (Board _ tilesDict) ->
-            Dict.values tilesDict
+        Running (Board _ td) ->
+            Dict.values td
 
-        Over (Board _ tilesDict) ->
-            Dict.values tilesDict
+        Over (Board _ td) ->
+            Dict.values td
 
 
 viewGame : Game -> Html Msg
