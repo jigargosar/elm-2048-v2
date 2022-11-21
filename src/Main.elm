@@ -92,7 +92,7 @@ randomBoard =
         emptyBoard =
             Board initialIdSeed Dict.empty
     in
-    addRandomTilesHelp 2 InitialEnter Grid.allPositions emptyBoard
+    addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions emptyBoard
 
 
 addRandomTile : List Pos -> Board -> Generator Board
@@ -436,11 +436,11 @@ paddingForTileAndBoard =
 
 
 animDurationDefault =
-    animationDuration <| ms 300
+    animationDuration <| ms 200
 
 
 animationDelayForNew =
-    animationDelay <| ms 400
+    animationDelay <| ms 200
 
 
 animFillBoth =
