@@ -338,7 +338,9 @@ viewScore (Score scores) =
         total =
             String.fromInt (List.sum scores)
     in
-    div [] [ text total ]
+    div [ css [ displayGrid ] ]
+        [ div [ css [ gridArea11 ] ] [ text total ]
+        ]
 
 
 viewGame : Game -> Html Msg
