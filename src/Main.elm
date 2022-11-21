@@ -58,7 +58,20 @@ type Game
 
 
 type Board
-    = Board IdSeed (Dict Id Tile)
+    = Board IdSeed Score (Dict Id Tile)
+
+
+type Score
+    = Score Int
+
+
+scoreZero =
+    Score 0
+
+
+scoreAdd : Val -> Score -> Score
+scoreAdd val (Score i) =
+    Score (Val.toScore val + i)
 
 
 type alias Id =
@@ -91,7 +104,7 @@ randomBoard : Generator Board
 randomBoard =
     let
         emptyBoard =
-            Board initialIdSeed Dict.empty
+            Board initialIdSeed scoreZero Dict.empty
     in
     addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions emptyBoard
 
@@ -108,7 +121,7 @@ addRandomTilesHelp n anim emptyPositions board =
 
 
 insertTile : Anim -> NewTile -> Board -> Board
-insertTile anim newTile (Board ids td) =
+insertTile anim newTile (Board ids s td) =
     let
         ( id, newIdSeed ) =
             generateId ids
@@ -116,13 +129,13 @@ insertTile anim newTile (Board ids td) =
         tile =
             initTile id anim newTile
     in
-    Board newIdSeed (Dict.insert id tile td)
+    Board newIdSeed s (Dict.insert id tile td)
 
 
 updateTile : Id -> Pos -> Anim -> Board -> Board
-updateTile id pos anim (Board ids td) =
+updateTile id pos anim (Board ids s td) =
     Dict.update id (Maybe.map (setTilePosAndAnim pos anim)) td
-        |> Board ids
+        |> Board ids s
 
 
 randomNewTiles : Int -> List Pos -> Generator (List NewTile)
@@ -274,19 +287,21 @@ updateMerged list board =
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> insertTile MergedEnter (initNewTile pos mergedVal)
-                |> addScore mergedVal
+                |> addMergedTileAndUpdateScore pos mergedVal
     in
     List.foldl fn board list
 
 
+addMergedTileAndUpdateScore : Pos -> Val -> Board -> Board
+addMergedTileAndUpdateScore pos mergedVal board =
+    board
+        |> insertTile MergedEnter (initNewTile pos mergedVal)
+        |> addScore mergedVal
+
+
 addScore : Val -> Board -> Board
-addScore val (Board ids td) =
-    let
-        newScore =
-            Val.toScore val
-    in
-    Board ids td
+addScore val (Board ids s td) =
+    Board ids (scoreAdd val s) td
 
 
 updateStayed : List ( Pos, IdVal ) -> Board -> Board
