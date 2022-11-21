@@ -252,7 +252,7 @@ boardAttemptMove dir board =
     let
         updateThenAddRandomTile result =
             board
-                |> updateMerged result.merged
+                |> updateMergedAndScore result.merged
                 |> updateStayed result.stayed
                 |> addRandomTile result.empty
     in
@@ -276,8 +276,8 @@ slideAndMerge =
     Grid.slideAndMerge (eqBy Tuple.second)
 
 
-updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
-updateMerged list board =
+updateMergedAndScore : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
+updateMergedAndScore list board =
     let
         fn ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
             let
