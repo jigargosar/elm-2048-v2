@@ -86,8 +86,8 @@ type Anim
     | Stayed
 
 
-randomInitialBoard : Generator Board
-randomInitialBoard =
+randomBoard : Generator Board
+randomBoard =
     let
         emptyBoard =
             Board initialIdSeed Dict.empty
@@ -151,7 +151,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         ( game, _ ) =
-            Random.step randomInitialGame (Random.initialSeed 0)
+            Random.step randomGame (Random.initialSeed 0)
     in
     ( game
     , generateNewGame
@@ -160,12 +160,12 @@ init _ =
 
 generateNewGame : Cmd Msg
 generateNewGame =
-    Random.generate GotGame randomInitialGame
+    Random.generate GotGame randomGame
 
 
-randomInitialGame : Generator Game
-randomInitialGame =
-    randomInitialBoard |> Random.map Running
+randomGame : Generator Game
+randomGame =
+    randomBoard |> Random.map gameFromBoard
 
 
 subscriptions : Game -> Sub Msg
