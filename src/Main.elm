@@ -243,10 +243,14 @@ slideAndMerge =
 updateMergedEntries : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
 updateMergedEntries list game =
     let
-        ( scoreDelta, Game ids (Score score) td ) =
+        ( scoreDelta, Game ids (Score scores) td ) =
             List.foldl updateMergedEntry ( 0, game ) list
     in
-    Game ids (Score (scoreDelta :: score)) td
+    if scoreDelta > 0 then
+        Game ids (Score (scoreDelta :: scores)) td
+
+    else
+        Game ids (Score scores) td
 
 
 updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> ( Int, Game ) -> ( Int, Game )
