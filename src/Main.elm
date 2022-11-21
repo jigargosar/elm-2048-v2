@@ -315,7 +315,7 @@ globalStyleNode =
 
 
 viewStyled : Game -> Html Msg
-viewStyled ((Game _ (Score scores) _) as game) =
+viewStyled ((Game _ score _) as game) =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
@@ -325,11 +325,20 @@ viewStyled ((Game _ (Score scores) _) as game) =
                 , onClick NewGame
                 ]
                 [ button [] [ text "New Game" ]
-                , div [] [ text <| String.fromInt (List.sum scores) ]
+                , viewScore score
                 ]
             , viewGame game
             ]
         ]
+
+
+viewScore : Score -> Html msg
+viewScore (Score scores) =
+    let
+        total =
+            String.fromInt (List.sum scores)
+    in
+    div [] [ text total ]
 
 
 viewGame : Game -> Html Msg
