@@ -60,15 +60,15 @@ type Game
 
 
 type Board
-    = Board IdSeed TilesDict
+    = Board IdSeed (Dict Id Tile)
 
 
-type alias TilesDict =
-    Dict Id Tile
+type alias Id =
+    Int
 
 
 type IdSeed
-    = IdSeed Int
+    = IdSeed Id -- nextId
 
 
 initialIdSeed : IdSeed
@@ -79,10 +79,6 @@ initialIdSeed =
 generateId : IdSeed -> ( Id, IdSeed )
 generateId (IdSeed nextId) =
     ( nextId, IdSeed (nextId + 1) )
-
-
-type alias Id =
-    Int
 
 
 type alias Tile =
