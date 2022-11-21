@@ -15,6 +15,7 @@ import Json.Decode as JD
 import Random exposing (Generator, Seed)
 import Random.List
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
+import Val exposing (Val)
 
 
 main : Program Flags Game Msg
@@ -96,26 +97,6 @@ type Anim
     | Stayed
 
 
-type Val
-    = Val Int
-
-
-nextVal : Val -> Val
-nextVal (Val i) =
-    Val (i + 1)
-
-
-valDisplayString : Val -> String
-valDisplayString (Val i) =
-    2 ^ i |> String.fromInt
-
-
-randomVal : Generator Val
-randomVal =
-    Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
-        |> Random.map Val
-
-
 randomInitialBoard : Generator Board
 randomInitialBoard =
     addInitialRandomTiles emptyBoard
@@ -164,7 +145,7 @@ randomPosValEntries : Int -> List Pos -> Generator (List ( Pos, Val ))
 randomPosValEntries n posList =
     Random.map2 (List.map2 Tuple.pair)
         (randomTake n posList)
-        (Random.list n randomVal)
+        (Random.list n Val.randomVal)
 
 
 randomTake : Int -> List a -> Generator (List a)
@@ -307,7 +288,7 @@ updateMerged list board =
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> insertNewTile MergedEnter ( pos, nextVal val )
+                |> insertNewTile MergedEnter ( pos, Val.nextVal val )
     in
     List.foldl fn board list
 
@@ -557,7 +538,7 @@ tileKey t =
 
 tileDisplayString : Tile -> String
 tileDisplayString t =
-    valDisplayString t.val
+    Val.valDisplayString t.val
 
 
 viewTile : Tile -> ( String, Html Msg )
@@ -592,8 +573,8 @@ viewTile t =
     )
 
 
-valBackgroundColor (Val i) =
-    case i of
+valBackgroundColor val =
+    case Val.toIndex val of
         1 ->
             hsl 0 0 0.2
 
