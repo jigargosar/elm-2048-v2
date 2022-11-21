@@ -9,7 +9,7 @@ import Css.Transitions as T exposing (transition)
 import Dict exposing (Dict)
 import Html
 import Html.Styled exposing (Html, button, div, text, toUnstyled)
-import Html.Styled.Attributes as HA exposing (css)
+import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
@@ -356,6 +356,7 @@ view game =
             , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
                 [ div
                     [ css [ displayFlex, gap "20px" ]
+                    , autofocus True
                     , onClick NewGame
                     ]
                     [ button [] [ text "New Game" ]
