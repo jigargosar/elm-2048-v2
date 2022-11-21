@@ -1,4 +1,4 @@
-module Val exposing (Val, next, random, toDisplayString, toIndex)
+module Val exposing (Val, next, random, toDisplayString, toIndex, toScore)
 
 import Random exposing (Generator)
 
@@ -13,8 +13,13 @@ next (Val i) =
 
 
 toDisplayString : Val -> String
-toDisplayString (Val i) =
-    2 ^ i |> String.fromInt
+toDisplayString =
+    toScore >> String.fromInt
+
+
+toScore : Val -> Int
+toScore (Val i) =
+    2 ^ i
 
 
 random : Generator Val

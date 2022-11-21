@@ -267,12 +267,26 @@ updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
 updateMerged list board =
     let
         fn ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
+            let
+                mergedVal =
+                    Val.next val
+            in
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> insertTile MergedEnter (initNewTile pos (Val.next val))
+                |> insertTile MergedEnter (initNewTile pos mergedVal)
+                |> addScore mergedVal
     in
     List.foldl fn board list
+
+
+addScore : Val -> Board -> Board
+addScore val (Board ids td) =
+    let
+        newScore =
+            Val.toScore val
+    in
+    Board ids td
 
 
 updateStayed : List ( Pos, IdVal ) -> Board -> Board
