@@ -70,6 +70,11 @@ scoreAdd val (Score i) =
     Score (Val.toScore val + i)
 
 
+totalScore : Score -> Int
+totalScore (Score i) =
+    i
+
+
 type alias Id =
     Int
 
@@ -325,7 +330,7 @@ globalStyleNode =
 
 
 viewStyled : Game -> Html Msg
-viewStyled game =
+viewStyled ((Game _ score _) as game) =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
@@ -335,21 +340,11 @@ viewStyled game =
                 , onClick NewGame
                 ]
                 [ button [] [ text "New Game" ]
-                , div [] [ text <| gameToScoreDisplayString game ]
+                , div [] [ text <| String.fromInt <| totalScore score ]
                 ]
             , viewGame game
             ]
         ]
-
-
-gameToScoreDisplayString : Game -> String
-gameToScoreDisplayString (Game _ s _) =
-    scoreToDisplayString s
-
-
-scoreToDisplayString : Score -> String
-scoreToDisplayString (Score i) =
-    String.fromInt i
 
 
 viewGame : Game -> Html Msg
