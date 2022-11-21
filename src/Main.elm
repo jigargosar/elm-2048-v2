@@ -151,26 +151,21 @@ type alias Flags =
 init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
-        ( game, _ ) =
-            Random.step randomGame (Random.initialSeed 0)
+        initialModel =
+            Game initialIdSeed scoreZero Dict.empty
     in
-    ( game
-    , generateNewGame
+    ( initialModel
+    , generateNewGame initialModel
     )
 
 
-generateNewGame : Cmd Msg
-generateNewGame =
-    Random.generate GotGame randomGame
+generateNewGame game =
+    Random.generate GotGame (newGame game)
 
 
-randomGame : Generator Game
-randomGame =
-    let
-        emptyBoard =
-            Game initialIdSeed scoreZero Dict.empty
-    in
-    addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions emptyBoard
+newGame : Game -> Generator Game
+newGame =
+    addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions
 
 
 subscriptions : Game -> Sub Msg
@@ -200,7 +195,7 @@ update msg model =
             ( model, Cmd.none )
 
         NewGame ->
-            ( model, generateNewGame )
+            ( model, generateNewGame model )
 
         GotGame game ->
             ( game, Cmd.none )
