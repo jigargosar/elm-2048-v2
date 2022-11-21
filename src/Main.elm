@@ -245,7 +245,7 @@ runningBoard game =
 boardAttemptMove : Dir -> Board -> Maybe (Generator Board)
 boardAttemptMove dir board =
     let
-        updateBoardFromResultThenAddNewRandomTile result =
+        updateThenAddRandomTile result =
             board
                 |> updateMerged result.merged
                 |> updateStayed result.stayed
@@ -253,7 +253,7 @@ boardAttemptMove dir board =
     in
     boardToEntries board
         |> slideAndMerge dir
-        |> Maybe.map updateBoardFromResultThenAddNewRandomTile
+        |> Maybe.map updateThenAddRandomTile
 
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
