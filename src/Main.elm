@@ -65,8 +65,8 @@ scoreZero =
     Score 0
 
 
-scoreAddDelta : Val -> Score -> Score
-scoreAddDelta val (Score i) =
+scoreAdd : Val -> Score -> Score
+scoreAdd val (Score i) =
     Score (Val.toScore val + i)
 
 
@@ -220,16 +220,17 @@ move dir game =
 
 attemptMove : Dir -> Game -> Maybe (Generator Game)
 attemptMove dir game =
-    let
-        updateFromResult result =
-            game
-                |> updateMergedEntries result.merged
-                |> updateStayedEntries result.stayed
-                |> addRandomTile result.empty
-    in
     entriesForSlideAndMerge game
         |> slideAndMerge dir
-        |> Maybe.map updateFromResult
+        |> Maybe.map (\r -> updateFromResult r game)
+
+
+updateFromResult : Grid.Result IdVal -> Game -> Generator Game
+updateFromResult result game =
+    game
+        |> updateMergedEntries result.merged
+        |> updateStayedEntries result.stayed
+        |> addRandomTile result.empty
 
 
 isGameOver : Game -> Bool
@@ -270,7 +271,7 @@ updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
 
 addScore : Val -> Game -> Game
 addScore val (Game ids s td) =
-    Game ids (scoreAddDelta val s) td
+    Game ids (scoreAdd val s) td
 
 
 updateStayedEntries : List ( Pos, IdVal ) -> Game -> Game
