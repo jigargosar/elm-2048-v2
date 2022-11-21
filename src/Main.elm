@@ -353,15 +353,13 @@ viewScoreDelta : Int -> Html msg
 viewScoreDelta s =
     div
         [ css
-            [ right <| pct 100
-            , gridArea11
-            , position relative
+            [ gridArea11
+            , opacity <| num 0.5
             , animationName <|
                 keyframes
                     [ ( 100
                       , [ A.transform [ translateY <| px -100 ]
-
-                        --, A.opacity zero
+                        , A.opacity zero
                         ]
                       )
                     ]
