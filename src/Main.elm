@@ -218,7 +218,7 @@ attemptMove dir game =
     let
         updateThenAddRandomTile result =
             game
-                |> updateMergedAndScore result.merged
+                |> updateMerged result.merged
                 |> updateStayed result.stayed
                 |> addRandomTile result.empty
     in
@@ -245,21 +245,22 @@ slideAndMerge =
     Grid.slideAndMerge (eqBy Tuple.second)
 
 
-updateMergedAndScore : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
-updateMergedAndScore list game =
+updateMerged : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
+updateMerged list game =
+    List.foldl updateMergedEntry game list
+
+
+updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> Game -> Game
+updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
     let
-        fn ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
-            let
-                mergedVal =
-                    Val.next val
-            in
-            acc
-                |> updateTile id1 pos MergedExit
-                |> updateTile id2 pos MergedExit
-                |> insertTile MergedEnter (initNewTile pos mergedVal)
-                |> addScore mergedVal
+        mergedVal =
+            Val.next val
     in
-    List.foldl fn game list
+    acc
+        |> updateTile id1 pos MergedExit
+        |> updateTile id2 pos MergedExit
+        |> insertTile MergedEnter (initNewTile pos mergedVal)
+        |> addScore mergedVal
 
 
 addScore : Val -> Game -> Game
