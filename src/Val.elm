@@ -1,4 +1,4 @@
-module Val exposing (Val, nextVal, randomVal, toIndex, valDisplayString)
+module Val exposing (Val, next, random, toDisplayString, toIndex)
 
 import Random exposing (Generator)
 
@@ -7,18 +7,18 @@ type Val
     = Val Int
 
 
-nextVal : Val -> Val
-nextVal (Val i) =
+next : Val -> Val
+next (Val i) =
     Val (i + 1)
 
 
-valDisplayString : Val -> String
-valDisplayString (Val i) =
+toDisplayString : Val -> String
+toDisplayString (Val i) =
     2 ^ i |> String.fromInt
 
 
-randomVal : Generator Val
-randomVal =
+random : Generator Val
+random =
     Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
         |> Random.map Val
 

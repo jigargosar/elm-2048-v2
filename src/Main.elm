@@ -145,7 +145,7 @@ randomPosValEntries : Int -> List Pos -> Generator (List ( Pos, Val ))
 randomPosValEntries n posList =
     Random.map2 (List.map2 Tuple.pair)
         (randomTake n posList)
-        (Random.list n Val.randomVal)
+        (Random.list n Val.random)
 
 
 randomTake : Int -> List a -> Generator (List a)
@@ -288,7 +288,7 @@ updateMerged list board =
             acc
                 |> updateTile id1 pos MergedExit
                 |> updateTile id2 pos MergedExit
-                |> insertNewTile MergedEnter ( pos, Val.nextVal val )
+                |> insertNewTile MergedEnter ( pos, Val.next val )
     in
     List.foldl fn board list
 
@@ -538,7 +538,7 @@ tileKey t =
 
 tileDisplayString : Tile -> String
 tileDisplayString t =
-    Val.valDisplayString t.val
+    Val.toDisplayString t.val
 
 
 viewTile : Tile -> ( String, Html Msg )
