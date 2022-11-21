@@ -223,11 +223,11 @@ isGameOver game =
         entries =
             entriesForSlideAndMerge game
 
-        invalidMove dir =
-            slideAndMerge dir entries /= Nothing
+        isInvalidMove dir =
+            slideAndMerge dir entries == Nothing
     in
     [ Up, Down, Left, Right ]
-        |> List.all invalidMove
+        |> List.all isInvalidMove
 
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
@@ -315,7 +315,7 @@ globalStyleNode =
 
 
 viewStyled : Game -> Html Msg
-viewStyled ((Game _ (Score score) _) as game) =
+viewStyled ((Game _ (Score scores) _) as game) =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
@@ -325,7 +325,7 @@ viewStyled ((Game _ (Score score) _) as game) =
                 , onClick NewGame
                 ]
                 [ button [] [ text "New Game" ]
-                , div [] [ text <| String.fromInt score ]
+                , div [] [ text <| String.fromInt (List.sum scores) ]
                 ]
             , viewGame game
             ]
