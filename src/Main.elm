@@ -353,11 +353,12 @@ view game =
                 ]
             , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
                 [ div
-                    [ css [ displayFlex ]
+                    [ css [ displayFlex, gap "20px" ]
                     , onClick NewGame
                     ]
-                    [ button [] [ text "New Game" ] ]
-                , div [] [ text <| gameToScoreDisplayString game ]
+                    [ button [] [ text "New Game" ]
+                    , div [] [ text <| gameToScoreDisplayString game ]
+                    ]
                 , viewGame game
                 ]
             ]
