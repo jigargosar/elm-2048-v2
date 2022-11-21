@@ -158,6 +158,7 @@ init _ =
     )
 
 
+generateNewGame : Cmd Msg
 generateNewGame =
     Random.generate GotGame randomInitialGame
 
