@@ -220,17 +220,16 @@ move dir game =
 
 attemptMove : Dir -> Game -> Maybe (Generator Game)
 attemptMove dir game =
+    let
+        updateFromResult result =
+            game
+                |> updateMergedEntries result.merged
+                |> updateStayedEntries result.stayed
+                |> addRandomTile result.empty
+    in
     entriesForSlideAndMerge game
         |> slideAndMerge dir
-        |> Maybe.map (\r -> updateFromResult r game)
-
-
-updateFromResult : Grid.Result IdVal -> Game -> Generator Game
-updateFromResult result game =
-    game
-        |> updateMergedEntries result.merged
-        |> updateStayedEntries result.stayed
-        |> addRandomTile result.empty
+        |> Maybe.map updateFromResult
 
 
 isGameOver : Game -> Bool
