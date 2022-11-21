@@ -53,18 +53,14 @@ main =
 
 
 type Game
-    = Running Board
-    | Over Board
-
-
-type Board
-    = Board IdSeed Score (Dict Id Tile)
+    = Game IdSeed Score (Dict Id Tile)
 
 
 type Score
     = Score Int
 
 
+scoreZero : Score
 scoreZero =
     Score 0
 
@@ -100,28 +96,19 @@ type Anim
     | Stayed
 
 
-randomBoard : Generator Board
-randomBoard =
-    let
-        emptyBoard =
-            Board initialIdSeed scoreZero Dict.empty
-    in
-    addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions emptyBoard
-
-
-addRandomTile : List Pos -> Board -> Generator Board
+addRandomTile : List Pos -> Game -> Generator Game
 addRandomTile emptyPositions =
     addRandomTilesHelp 1 NewDelayedEnter emptyPositions
 
 
-addRandomTilesHelp : Int -> Anim -> List Pos -> Board -> Generator Board
+addRandomTilesHelp : Int -> Anim -> List Pos -> Game -> Generator Game
 addRandomTilesHelp n anim emptyPositions board =
     randomNewTiles n emptyPositions
         |> Random.map (List.foldl (insertTile anim) board)
 
 
-insertTile : Anim -> NewTile -> Board -> Board
-insertTile anim newTile (Board ids s td) =
+insertTile : Anim -> NewTile -> Game -> Game
+insertTile anim newTile (Game ids s td) =
     let
         ( id, newIdSeed ) =
             generateId ids
@@ -129,13 +116,13 @@ insertTile anim newTile (Board ids s td) =
         tile =
             initTile id anim newTile
     in
-    Board newIdSeed s (Dict.insert id tile td)
+    Game newIdSeed s (Dict.insert id tile td)
 
 
-updateTile : Id -> Pos -> Anim -> Board -> Board
-updateTile id pos anim (Board ids s td) =
+updateTile : Id -> Pos -> Anim -> Game -> Game
+updateTile id pos anim (Game ids s td) =
     Dict.update id (Maybe.map (setTilePosAndAnim pos anim)) td
-        |> Board ids s
+        |> Game ids s
 
 
 randomNewTiles : Int -> List Pos -> Generator (List NewTile)
@@ -179,7 +166,11 @@ generateNewGame =
 
 randomGame : Generator Game
 randomGame =
-    randomBoard |> Random.map gameFromBoard
+    let
+        emptyBoard =
+            Game initialIdSeed scoreZero Dict.empty
+    in
+    addRandomTilesHelp 2 NewDelayedEnter Grid.allPositions emptyBoard
 
 
 subscriptions : Game -> Sub Msg
@@ -218,37 +209,17 @@ update msg model =
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
-    , moveHelp dir game
+    , case attemptMove dir game of
+        Just gen ->
+            Random.generate GotGame gen
+
+        Nothing ->
+            Cmd.none
     )
 
 
-moveHelp : Dir -> Game -> Cmd Msg
-moveHelp dir game =
-    case game of
-        Running board ->
-            case boardAttemptMove dir board of
-                Just boardGen ->
-                    Random.map gameFromBoard boardGen
-                        |> Random.generate GotGame
-
-                Nothing ->
-                    Cmd.none
-
-        Over _ ->
-            Cmd.none
-
-
-gameFromBoard : Board -> Game
-gameFromBoard board =
-    if isGameOver board then
-        Over board
-
-    else
-        Running board
-
-
-boardAttemptMove : Dir -> Board -> Maybe (Generator Board)
-boardAttemptMove dir board =
+attemptMove : Dir -> Game -> Maybe (Generator Game)
+attemptMove dir board =
     let
         updateThenAddRandomTile result =
             board
@@ -256,19 +227,22 @@ boardAttemptMove dir board =
                 |> updateStayed result.stayed
                 |> addRandomTile result.empty
     in
-    boardToEntries board
+    entriesForSlideAndMerge board
         |> slideAndMerge dir
         |> Maybe.map updateThenAddRandomTile
 
 
-isGameOver : Board -> Bool
+isGameOver : Game -> Bool
 isGameOver board =
     let
         entries =
-            boardToEntries board
+            entriesForSlideAndMerge board
+
+        canSlideAndMerge dir =
+            slideAndMerge dir entries /= Nothing
     in
     [ Up, Down, Left, Right ]
-        |> List.all (\dir -> slideAndMerge dir entries == Nothing)
+        |> List.any canSlideAndMerge
 
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
@@ -276,7 +250,7 @@ slideAndMerge =
     Grid.slideAndMerge (eqBy Tuple.second)
 
 
-updateMergedAndScore : List ( Pos, ( IdVal, IdVal ) ) -> Board -> Board
+updateMergedAndScore : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
 updateMergedAndScore list board =
     let
         fn ( pos, ( ( id1, val ), ( id2, _ ) ) ) acc =
@@ -292,19 +266,19 @@ updateMergedAndScore list board =
     List.foldl fn board list
 
 
-addMergedTileAndUpdateScore : Pos -> Val -> Board -> Board
+addMergedTileAndUpdateScore : Pos -> Val -> Game -> Game
 addMergedTileAndUpdateScore pos mergedVal board =
     board
         |> insertTile MergedEnter (initNewTile pos mergedVal)
         |> addScore mergedVal
 
 
-addScore : Val -> Board -> Board
-addScore val (Board ids s td) =
-    Board ids (scoreAdd val s) td
+addScore : Val -> Game -> Game
+addScore val (Game ids s td) =
+    Game ids (scoreAdd val s) td
 
 
-updateStayed : List ( Pos, IdVal ) -> Board -> Board
+updateStayed : List ( Pos, IdVal ) -> Game -> Game
 updateStayed list board =
     let
         fn ( pos, ( id, _ ) ) =
@@ -317,8 +291,8 @@ type alias IdVal =
     ( Id, Val )
 
 
-boardToEntries : Board -> List ( Pos, IdVal )
-boardToEntries (Board _ _ td) =
+entriesForSlideAndMerge : Game -> List ( Pos, IdVal )
+entriesForSlideAndMerge (Game _ _ td) =
     let
         toEntry (Tile id anim pos val) =
             case anim of
@@ -379,33 +353,8 @@ viewStyled game =
 
 
 gameToScoreDisplayString : Game -> String
-gameToScoreDisplayString game =
-    game |> gameToBoard |> boardToScore |> scoreToDisplayString
-
-
-gameToTiles : Game -> List Tile
-gameToTiles game =
-    case game of
-        Running (Board _ _ td) ->
-            Dict.values td
-
-        Over (Board _ _ td) ->
-            Dict.values td
-
-
-gameToBoard : Game -> Board
-gameToBoard game =
-    case game of
-        Running board ->
-            board
-
-        Over board ->
-            board
-
-
-boardToScore : Board -> Score
-boardToScore (Board _ score _) =
-    score
+gameToScoreDisplayString (Game _ s _) =
+    scoreToDisplayString s
 
 
 scoreToDisplayString : Score -> String
@@ -414,7 +363,7 @@ scoreToDisplayString (Score i) =
 
 
 viewGame : Game -> Html Msg
-viewGame game =
+viewGame ((Game _ _ td) as game) =
     div
         [ css
             [ displayInlineGrid
@@ -425,9 +374,9 @@ viewGame game =
         [ viewBackgroundGrid
         , Keyed.node "div"
             [ css [ boardStyle ] ]
-            (List.map viewTile (gameToTiles game))
-        , case game of
-            Over _ ->
+            (List.map viewTile (Dict.values td))
+        , case isGameOver game of
+            True ->
                 div
                     [ css
                         [ gridArea11
@@ -439,7 +388,7 @@ viewGame game =
                     ]
                     [ text "game over" ]
 
-            Running _ ->
+            False ->
                 text ""
         ]
 
