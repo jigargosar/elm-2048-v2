@@ -13,9 +13,13 @@ import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
+import Process
 import Random exposing (Generator, Seed)
 import Random.List
+import Set exposing (Set)
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
+import Task
+import Time
 import Val exposing (Val)
 
 
@@ -132,6 +136,7 @@ type Msg
     = OnKeyDown String
     | NewGame
     | GotGame Game
+    | DeleteTilesWithIds (Set Id)
 
 
 type alias Flags =
@@ -197,7 +202,32 @@ update msg model =
             ( model, generateNewGame model )
 
         GotGame game ->
-            ( game, Cmd.none )
+            ( game
+            , Process.sleep 200 |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
+            )
+
+        DeleteTilesWithIds idSet ->
+            ( deleteTilesWithIds idSet model, Cmd.none )
+
+
+deleteTilesWithIds : Set Id -> Game -> Game
+deleteTilesWithIds set (Game i s d) =
+    Dict.filter (\id _ -> Set.member id set) d
+        |> Game i s
+
+
+exitTileIdSet : Game -> Set Id
+exitTileIdSet (Game _ _ td) =
+    Dict.values td
+        |> List.filterMap
+            (\(Tile id anim _ _) ->
+                if anim == MergedExit then
+                    Just id
+
+                else
+                    Nothing
+            )
+        |> Set.fromList
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
