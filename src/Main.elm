@@ -203,7 +203,8 @@ update msg model =
 
         GotGame game ->
             ( game
-            , Process.sleep 200 |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
+            , Process.sleep (defaultAnimMills * 3)
+                |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
             )
 
         DeleteTilesWithIds idSet ->
@@ -222,10 +223,10 @@ exitTileIdSet (Game _ _ td) =
         |> List.filterMap
             (\(Tile id anim _ _) ->
                 if anim == MergedExit then
-                    Just id
+                    Nothing
 
                 else
-                    Nothing
+                    Just id
             )
         |> Set.fromList
 
@@ -506,12 +507,16 @@ paddingForTileAndBoard =
     padding <| px 8
 
 
+defaultAnimMills =
+    200
+
+
 animDurationDefault =
-    animationDuration <| ms 200
+    animationDuration <| ms defaultAnimMills
 
 
 animationDelayForNew =
-    animationDelay <| ms 200
+    animationDelay <| ms defaultAnimMills
 
 
 animFillBoth =
