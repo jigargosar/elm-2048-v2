@@ -19,7 +19,6 @@ import Random.List
 import Set exposing (Set)
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
 import Task
-import Time
 import Val exposing (Val)
 
 
