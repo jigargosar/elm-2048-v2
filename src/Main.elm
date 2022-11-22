@@ -157,12 +157,6 @@ randomNewTiles n posList =
         (Random.list n Val.random)
 
 
-randomTake : Int -> List a -> Generator (List a)
-randomTake n list =
-    Random.List.choices n list
-        |> Random.map Tuple.first
-
-
 type Msg
     = OnKeyDown String
     | NewGame
@@ -190,10 +184,12 @@ zeroScore =
     Score []
 
 
+generateNewGame : Game -> Cmd Msg
 generateNewGame game =
     generateGame (newGame game)
 
 
+generateGame : Generator Game -> Cmd Msg
 generateGame =
     Random.generate GotGame
 
@@ -694,7 +690,7 @@ gridArea11 =
 
 
 
--- BASICS
+-- BASICS EXTRA
 
 
 eqBy : (b -> a) -> b -> b -> Bool
@@ -715,3 +711,13 @@ mapBothWith fn =
 mul : number -> number -> number
 mul =
     (*)
+
+
+
+-- RANDOM EXTRA
+
+
+randomTake : Int -> List a -> Generator (List a)
+randomTake n list =
+    Random.List.choices n list
+        |> Random.map Tuple.first
