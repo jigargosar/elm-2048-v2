@@ -177,16 +177,21 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game (Time.millisToPosix 0) initialIdSeed zeroScore Dict.empty
+            Game initialTime initialIdSeed initialScore Dict.empty
     in
     ( initialModel
     , generateNewGame initialModel
     )
 
 
-zeroScore : Score
-zeroScore =
+initialScore : Score
+initialScore =
     Score []
+
+
+initialTime : Posix
+initialTime =
+    Time.millisToPosix 0
 
 
 generateNewGame : Game -> Cmd Msg
@@ -202,10 +207,10 @@ generateGame =
 newGame : Game -> Generator Game
 newGame game =
     let
-        gameWithSeed =
-            Game (idSeed game) zeroScore Dict.empty
+        clearedGameScoreAndTiles =
+            Game (lastUpdatedAt game) (idSeed game) initialScore Dict.empty
     in
-    addRandomTilesHelp 2 InitialEnter Grid.allPositions gameWithSeed
+    addRandomTilesHelp 2 InitialEnter Grid.allPositions clearedGameScoreAndTiles
 
 
 subscriptions : Game -> Sub Msg
