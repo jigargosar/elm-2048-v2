@@ -19,6 +19,7 @@ import Random.List
 import Set exposing (Set)
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
 import Task
+import Time exposing (Posix)
 import Val exposing (Val)
 
 
@@ -56,7 +57,7 @@ main =
 
 
 type Game
-    = Game IdSeed Score (Dict Id Tile)
+    = Game Posix IdSeed Score (Dict Id Tile)
 
 
 type Score
@@ -90,31 +91,36 @@ type Anim
 
 
 idSeed : Game -> IdSeed
-idSeed (Game i _ _) =
+idSeed (Game _ i _ _) =
     i
 
 
+lastUpdatedAt : Game -> Posix
+lastUpdatedAt (Game u _ _ _) =
+    u
+
+
 mapIdSeedAndTilesDict : (IdSeed -> Dict Id Tile -> ( IdSeed, Dict Id Tile )) -> Game -> Game
-mapIdSeedAndTilesDict fn (Game i s d) =
+mapIdSeedAndTilesDict fn (Game u i s d) =
     let
         ( i2, d2 ) =
             fn i d
     in
-    Game i2 s d2
+    Game u i2 s d2
 
 
 mapTilesDict : (Dict Id Tile -> Dict Id Tile) -> Game -> Game
-mapTilesDict fn (Game i s d) =
-    fn d |> Game i s
+mapTilesDict fn (Game u i s d) =
+    fn d |> Game u i s
 
 
 tileList : Game -> List Tile
-tileList (Game _ _ d) =
+tileList (Game _ _ _ d) =
     Dict.values d
 
 
 toScore : Game -> Score
-toScore (Game _ s _) =
+toScore (Game _ _ s _) =
     s
 
 
@@ -171,7 +177,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialIdSeed zeroScore Dict.empty
+            Game (Time.millisToPosix 0) initialIdSeed zeroScore Dict.empty
     in
     ( initialModel
     , generateNewGame initialModel
@@ -307,15 +313,22 @@ slideAndMerge =
 
 updateMergedEntries : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
 updateMergedEntries list game =
-    let
-        ( scoreDelta, Game ids (Score scores) td ) =
-            List.foldl updateMergedEntry ( 0, game ) list
-    in
+    List.foldl updateMergedEntry ( 0, game ) list
+        |> addScoreDelta
+
+
+addScoreDelta : ( Int, Game ) -> Game
+addScoreDelta ( scoreDelta, game ) =
     if scoreDelta > 0 then
-        Game ids (Score (scoreDelta :: scores)) td
+        mapScore (\(Score scores) -> Score (scoreDelta :: scores)) game
 
     else
-        Game ids (Score scores) td
+        game
+
+
+mapScore : (Score -> Score) -> Game -> Game
+mapScore fn (Game u i s d) =
+    Game u i (fn s) d
 
 
 updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> ( Int, Game ) -> ( Int, Game )
