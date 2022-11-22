@@ -90,6 +90,35 @@ type Anim
     | Stayed
 
 
+idSeed : Game -> IdSeed
+idSeed (Game i _ _) =
+    i
+
+
+mapIdSeedAndTilesDict : (IdSeed -> Dict Id Tile -> ( IdSeed, Dict Id Tile )) -> Game -> Game
+mapIdSeedAndTilesDict fn (Game i s d) =
+    let
+        ( i2, d2 ) =
+            fn i d
+    in
+    Game i2 s d2
+
+
+mapTilesDict : (Dict Id Tile -> Dict Id Tile) -> Game -> Game
+mapTilesDict fn (Game i s d) =
+    fn d |> Game i s
+
+
+tileList : Game -> List Tile
+tileList (Game _ _ d) =
+    Dict.values d
+
+
+toScore : Game -> Score
+toScore (Game _ s _) =
+    s
+
+
 addRandomTile : List Pos -> Game -> Generator Game
 addRandomTile emptyPositions =
     addRandomTilesHelp 1 NewDelayedEnter emptyPositions
@@ -102,21 +131,23 @@ addRandomTilesHelp n anim emptyPositions game =
 
 
 insertTile : Anim -> NewTile -> Game -> Game
-insertTile anim newTile (Game ids s td) =
-    let
-        ( id, newIdSeed ) =
-            generateId ids
+insertTile anim newTile =
+    mapIdSeedAndTilesDict
+        (\ids td ->
+            let
+                ( id, newIdSeed ) =
+                    generateId ids
 
-        tile =
-            initTile id anim newTile
-    in
-    Game newIdSeed s (Dict.insert id tile td)
+                tile =
+                    initTile id anim newTile
+            in
+            ( newIdSeed, Dict.insert id tile td )
+        )
 
 
 updateTile : Id -> Pos -> Anim -> Game -> Game
-updateTile id pos anim (Game ids s td) =
-    Dict.update id (Maybe.map (setTilePosAndAnim pos anim)) td
-        |> Game ids s
+updateTile id pos anim =
+    mapTilesDict (Dict.update id (Maybe.map (setTilePosAndAnim pos anim)))
 
 
 randomNewTiles : Int -> List Pos -> Generator (List NewTile)
@@ -168,8 +199,12 @@ generateGame =
 
 
 newGame : Game -> Generator Game
-newGame (Game i _ _) =
-    addRandomTilesHelp 2 InitialEnter Grid.allPositions (Game i zeroScore Dict.empty)
+newGame game =
+    let
+        gameWithSeed =
+            Game (idSeed game) zeroScore Dict.empty
+    in
+    addRandomTilesHelp 2 InitialEnter Grid.allPositions gameWithSeed
 
 
 subscriptions : Game -> Sub Msg
@@ -212,14 +247,14 @@ update msg model =
 
 
 deleteTilesWithIds : Set Id -> Game -> Game
-deleteTilesWithIds set (Game i s d) =
-    Dict.filter (\id _ -> Set.member id set) d
-        |> Game i s
+deleteTilesWithIds set =
+    mapTilesDict (Dict.filter (\id _ -> Set.member id set))
 
 
 exitTileIdSet : Game -> Set Id
-exitTileIdSet (Game _ _ td) =
-    Dict.values td
+exitTileIdSet game =
+    game
+        |> tileList
         |> List.filterMap
             (\(Tile id anim _ _) ->
                 if anim == MergedExit then
@@ -316,7 +351,7 @@ type alias IdVal =
 
 
 entriesForSlideAndMerge : Game -> List ( Pos, IdVal )
-entriesForSlideAndMerge (Game _ _ td) =
+entriesForSlideAndMerge game =
     let
         toEntry (Tile id anim pos val) =
             case anim of
@@ -335,8 +370,7 @@ entriesForSlideAndMerge (Game _ _ td) =
                 Stayed ->
                     Just ( pos, ( id, val ) )
     in
-    Dict.values td
-        |> List.filterMap toEntry
+    tileList game |> List.filterMap toEntry
 
 
 view : Game -> Html.Html Msg
@@ -359,13 +393,13 @@ globalStyleNode =
 
 
 viewStyled : Game -> Html Msg
-viewStyled ((Game _ score _) as game) =
+viewStyled game =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
             [ div [ css [ displayFlex, gap "20px" ] ]
                 [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
-                , viewScore score
+                , viewScore (toScore game)
                 ]
             , viewGame game
             ]
@@ -408,7 +442,7 @@ viewScoreDelta s =
 
 
 viewGame : Game -> Html Msg
-viewGame ((Game _ _ td) as game) =
+viewGame game =
     div
         [ css
             [ displayInlineGrid
@@ -419,7 +453,7 @@ viewGame ((Game _ _ td) as game) =
         [ viewBackgroundGrid
         , Keyed.node "div"
             [ css [ boardStyle ] ]
-            (List.map viewTile (Dict.values td))
+            (List.map viewTile (tileList game))
         , case isGameOver game of
             True ->
                 div
