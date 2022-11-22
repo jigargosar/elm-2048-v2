@@ -155,7 +155,11 @@ zeroScore =
 
 
 generateNewGame game =
-    Random.generate GotGame (newGame game)
+    generateGame (newGame game)
+
+
+generateGame =
+    Random.generate GotGame
 
 
 newGame : Game -> Generator Game
@@ -201,7 +205,7 @@ move dir game =
     ( game
     , case attemptMove dir game of
         Just gen ->
-            Random.generate GotGame gen
+            generateGame gen
 
         Nothing ->
             Cmd.none
