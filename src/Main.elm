@@ -100,6 +100,20 @@ lastUpdatedAt (Game u _ _ _) =
     u
 
 
+mapLastUpdatedAt : (Posix -> Posix) -> Game -> Game
+mapLastUpdatedAt fn (Game u i s d) =
+    Game (fn u) i s d
+
+
+mapLastUpdatedAtAndTilesDict : (Posix -> Dict Id Tile -> ( Posix, Dict Id Tile )) -> Game -> Game
+mapLastUpdatedAtAndTilesDict fn (Game u i s d) =
+    let
+        ( u2, d2 ) =
+            fn u d
+    in
+    Game u2 i s d2
+
+
 mapIdSeedAndTilesDict : (IdSeed -> Dict Id Tile -> ( IdSeed, Dict Id Tile )) -> Game -> Game
 mapIdSeedAndTilesDict fn (Game u i s d) =
     let
@@ -200,8 +214,39 @@ generateNewGame game =
 
 
 generateGame : Generator Game -> Cmd Msg
-generateGame =
-    Random.generate GotGame
+generateGame gen =
+    Time.now
+        |> Task.map
+            (\now ->
+                Random.initialSeed (Time.posixToMillis now)
+                    |> Random.step gen
+                    |> Tuple.first
+                    |> mapLastUpdatedAtAndTilesDict
+                        (\u d ->
+                            let
+                                elapsedMillis =
+                                    Time.posixToMillis now - Time.posixToMillis u
+                            in
+                            ( now
+                            , if elapsedMillis > defaultAnimMills * 3 then
+                                List.foldl
+                                    (\(Tile id anim pos val) ->
+                                        case anim of
+                                            MergedExit ->
+                                                identity
+
+                                            _ ->
+                                                Dict.insert id (Tile id Stayed pos val)
+                                    )
+                                    Dict.empty
+                                    (Dict.values d)
+
+                              else
+                                d
+                            )
+                        )
+            )
+        |> Task.perform GotGame
 
 
 newGame : Game -> Generator Game
