@@ -654,20 +654,9 @@ animToStyle anim =
 
         MergedExit ->
             batch
-                [ animationName <|
-                    keyframes
-                        [ ( 99
-                          , [ A.transform [ scale 1 ]
-                            , A.opacity <| num 1
-                            ]
-                          )
-                        , ( 100
-                          , [ A.transform [ scale 0 ]
-                            , A.opacity zero
-                            ]
-                          )
-                        ]
-                , animDurationForEnter
+                [ animationNameDisappear
+                , animationDuration <| ms moveTransitionMillis
+                , animationDelay <| ms moveTransitionMillis
                 , animFillBoth
                 ]
 
@@ -689,6 +678,15 @@ animationNameAppear =
         keyframes
             [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
             , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+            ]
+
+
+animationNameDisappear : Style
+animationNameDisappear =
+    animationName <|
+        keyframes
+            [ ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+            , ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
             ]
 
 
