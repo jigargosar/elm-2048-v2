@@ -604,26 +604,32 @@ paddingForTileAndBoard =
     padding <| px 8
 
 
+shortDurationMillis : number
 shortDurationMillis =
     100
 
 
+mediumDurationMillis : number
 mediumDurationMillis =
     shortDurationMillis * 2
 
 
+verLongDurationMillis : number
 verLongDurationMillis =
     1000
 
 
+animDurationMedium : Style
 animDurationMedium =
     animationDuration <| ms mediumDurationMillis
 
 
+animDurationShort : Style
 animDurationShort =
     animationDuration <| ms shortDurationMillis
 
 
+animDelayShort : Style
 animDelayShort =
     animationDelay <| ms shortDurationMillis
 
