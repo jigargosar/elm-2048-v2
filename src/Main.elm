@@ -670,7 +670,11 @@ animToStyle anim =
 
         MergedEnter ->
             batch
-                [ animationNameEnter
+                [ animationName <|
+                    keyframes
+                        [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
+                        , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+                        ]
                 , animDurationDefault
                 , animFillBoth
                 ]
