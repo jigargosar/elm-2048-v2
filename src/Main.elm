@@ -605,11 +605,15 @@ scoreDeltaAnimMills =
     1000
 
 
-animDurationForEnter =
+animDurationMedium =
     animationDuration <| ms (shortDurationMillis * 2)
 
 
-animationDelayForDelayedEnter =
+animDurationShort =
+    animationDuration <| ms shortDurationMillis
+
+
+animDelayShort =
     animationDelay <| ms shortDurationMillis
 
 
@@ -622,27 +626,62 @@ animFillBoth =
     property "animation-fill-mode" "both"
 
 
+appearAnimStyle =
+    batch
+        [ animNameAppear
+        , animDurationMedium
+        , animFillBoth
+        ]
+
+
+delayedAppearAnimStyle =
+    batch
+        [ animNameAppear
+        , animDurationMedium
+        , animDelayShort
+        , animFillBoth
+        ]
+
+
+delayedPopInAnimStyle =
+    batch
+        [ animNamePop
+        , animDurationMedium
+        , animDelayShort
+        , animFillBoth
+        ]
+
+
+delayedDisappearAnimStyle =
+    batch
+        [ animNameDisappear
+        , animDurationShort
+        , animDelayShort
+        , animFillBoth
+        ]
+
+
 animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
         InitialEnter ->
             batch
-                [ animationNameAppear
-                , animDurationForEnter
+                [ animNameAppear
+                , animDurationMedium
                 , animFillBoth
                 ]
 
         MergedEnter ->
             batch
-                [ animationNamePop
-                , animDurationForEnter
-                , animationDelayForDelayedEnter
+                [ animNamePop
+                , animDurationMedium
+                , animDelayShort
                 , animFillBoth
                 ]
 
         MergedExit ->
             batch
-                [ animationNameDisappear
+                [ animNameDisappear
                 , animationDuration <| ms shortDurationMillis
                 , animationDelay <| ms shortDurationMillis
                 , animFillBoth
@@ -650,9 +689,9 @@ animToStyle anim =
 
         NewDelayedEnter ->
             batch
-                [ animationNameAppear
-                , animDurationForEnter
-                , animationDelayForDelayedEnter
+                [ animNameAppear
+                , animDurationMedium
+                , animDelayShort
                 , animFillBoth
                 ]
 
@@ -660,8 +699,8 @@ animToStyle anim =
             batch []
 
 
-animationNameAppear : Style
-animationNameAppear =
+animNameAppear : Style
+animNameAppear =
     animationName <|
         keyframes
             [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
@@ -669,8 +708,8 @@ animationNameAppear =
             ]
 
 
-animationNameDisappear : Style
-animationNameDisappear =
+animNameDisappear : Style
+animNameDisappear =
     animationName <|
         keyframes
             [ ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
@@ -678,8 +717,8 @@ animationNameDisappear =
             ]
 
 
-animationNamePop : Style
-animationNamePop =
+animNamePop : Style
+animNamePop =
     animationName <|
         keyframes
             [ ( 0, [ A.transform [ scale 0 ] ] )
