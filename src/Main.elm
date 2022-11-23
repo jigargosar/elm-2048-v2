@@ -597,12 +597,25 @@ paddingForTileAndBoard =
 
 
 maxAnimDurationMillis =
-    [ defaultAnimMills, defaultAnimMills * 2, scoreDeltaAnimMills ]
-        |> List.maximum
-        |> Maybe.withDefault defaultAnimMills
+    let
+        maxAnimDelayMillis =
+            [ newEnterDelayAnimMills ]
+                |> List.maximum
+                |> Maybe.withDefault 0
+
+        maxDurationWithoutDelay =
+            [ defaultAnimMills, scoreDeltaAnimMills ]
+                |> List.maximum
+                |> Maybe.withDefault 0
+    in
+    maxAnimDelayMillis + maxDurationWithoutDelay
 
 
 defaultAnimMills =
+    150
+
+
+newEnterDelayAnimMills =
     150
 
 
@@ -619,7 +632,7 @@ animDurationDefault =
 
 
 animationDelayForNew =
-    animationDelay <| ms defaultAnimMills
+    animationDelay <| ms newEnterDelayAnimMills
 
 
 animFillBoth =
@@ -640,7 +653,16 @@ animToStyle anim =
             batch
                 [ animationName <|
                     keyframes
-                        [ ( 100, [ A.opacity zero, A.transform [ scale 0 ] ] )
+                        [ ( 99
+                          , [ A.transform [ scale 0.8 ]
+                            , A.opacity <| num 1
+                            ]
+                          )
+                        , ( 100
+                          , [ A.transform [ scale 0 ]
+                            , A.opacity zero
+                            ]
+                          )
                         ]
                 , animDurationDefault
                 , animFillBoth
