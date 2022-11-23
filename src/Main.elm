@@ -626,79 +626,6 @@ animFillBoth =
     property "animation-fill-mode" "both"
 
 
-appearAnimStyle =
-    batch
-        [ animNameAppear
-        , animDurationMedium
-        , animFillBoth
-        ]
-
-
-delayedAppearAnimStyle =
-    batch
-        [ animNameAppear
-        , animDurationMedium
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-delayedPopInAnimStyle =
-    batch
-        [ animNamePop
-        , animDurationMedium
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-delayedDisappearAnimStyle =
-    batch
-        [ animNameDisappear
-        , animDurationShort
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-animToStyle : Anim -> Style
-animToStyle anim =
-    case anim of
-        InitialEnter ->
-            batch
-                [ animNameAppear
-                , animDurationMedium
-                , animFillBoth
-                ]
-
-        MergedEnter ->
-            batch
-                [ animNamePop
-                , animDurationMedium
-                , animDelayShort
-                , animFillBoth
-                ]
-
-        MergedExit ->
-            batch
-                [ animNameDisappear
-                , animationDuration <| ms shortDurationMillis
-                , animationDelay <| ms shortDurationMillis
-                , animFillBoth
-                ]
-
-        NewDelayedEnter ->
-            batch
-                [ animNameAppear
-                , animDurationMedium
-                , animDelayShort
-                , animFillBoth
-                ]
-
-        Stayed ->
-            batch []
-
-
 animNameAppear : Style
 animNameAppear =
     animationName <|
@@ -725,6 +652,64 @@ animNamePop =
             , ( 50, [ A.transform [ scale 1.2 ] ] )
             , ( 100, [ A.transform [ scale 1 ] ] )
             ]
+
+
+appearAnimStyle : Style
+appearAnimStyle =
+    batch
+        [ animNameAppear
+        , animDurationMedium
+        , animFillBoth
+        ]
+
+
+delayedAppearAnimStyle : Style
+delayedAppearAnimStyle =
+    batch
+        [ animNameAppear
+        , animDurationMedium
+        , animDelayShort
+        , animFillBoth
+        ]
+
+
+delayedPopInAnimStyle : Style
+delayedPopInAnimStyle =
+    batch
+        [ animNamePop
+        , animDurationMedium
+        , animDelayShort
+        , animFillBoth
+        ]
+
+
+delayedDisappearAnimStyle : Style
+delayedDisappearAnimStyle =
+    batch
+        [ animNameDisappear
+        , animDurationShort
+        , animDelayShort
+        , animFillBoth
+        ]
+
+
+animToStyle : Anim -> Style
+animToStyle anim =
+    case anim of
+        InitialEnter ->
+            appearAnimStyle
+
+        MergedEnter ->
+            delayedPopInAnimStyle
+
+        MergedExit ->
+            delayedDisappearAnimStyle
+
+        NewDelayedEnter ->
+            delayedAppearAnimStyle
+
+        Stayed ->
+            batch []
 
 
 viewTile : Tile -> ( String, Html Msg )
