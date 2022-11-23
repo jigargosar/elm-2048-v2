@@ -223,30 +223,6 @@ generateGame gen =
                     |> Random.step gen
                     |> Tuple.first
                     |> setLastUpdatedAt now
-             --|> mapLastUpdatedAtAndTilesDict
-             --    (\u d ->
-             --        let
-             --            elapsedMillis =
-             --                Time.posixToMillis now - Time.posixToMillis u
-             --        in
-             --        ( now
-             --        , if elapsedMillis > defaultAnimMills * 3 then
-             --            List.foldl
-             --                (\(Tile id anim pos val) ->
-             --                    case anim of
-             --                        MergedExit ->
-             --                            identity
-             --
-             --                        _ ->
-             --                            Dict.insert id (Tile id Stayed pos val)
-             --                )
-             --                Dict.empty
-             --                (Dict.values d)
-             --
-             --          else
-             --            d
-             --        )
-             --    )
             )
         |> Task.perform GotGame
 
