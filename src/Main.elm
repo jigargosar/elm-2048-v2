@@ -100,11 +100,6 @@ lastUpdatedAt (Game u _ _ _) =
     u
 
 
-mapLastUpdatedAt : (Posix -> Posix) -> Game -> Game
-mapLastUpdatedAt fn (Game u i s d) =
-    Game (fn u) i s d
-
-
 mapLastUpdatedAtAndTilesDict : (Posix -> Dict Id Tile -> ( Posix, Dict Id Tile )) -> Game -> Game
 mapLastUpdatedAtAndTilesDict fn (Game u i s d) =
     let
@@ -213,6 +208,11 @@ generateNewGame game =
     generateGame (newGame game)
 
 
+setLastUpdatedAt : Posix -> Game -> Game
+setLastUpdatedAt u (Game _ i s d) =
+    Game u i s d
+
+
 generateGame : Generator Game -> Cmd Msg
 generateGame gen =
     Time.now
@@ -221,30 +221,31 @@ generateGame gen =
                 Random.initialSeed (Time.posixToMillis now)
                     |> Random.step gen
                     |> Tuple.first
-                    |> mapLastUpdatedAtAndTilesDict
-                        (\u d ->
-                            let
-                                elapsedMillis =
-                                    Time.posixToMillis now - Time.posixToMillis u
-                            in
-                            ( now
-                            , if elapsedMillis > defaultAnimMills * 3 then
-                                List.foldl
-                                    (\(Tile id anim pos val) ->
-                                        case anim of
-                                            MergedExit ->
-                                                identity
-
-                                            _ ->
-                                                Dict.insert id (Tile id Stayed pos val)
-                                    )
-                                    Dict.empty
-                                    (Dict.values d)
-
-                              else
-                                d
-                            )
-                        )
+                    |> setLastUpdatedAt now
+             --|> mapLastUpdatedAtAndTilesDict
+             --    (\u d ->
+             --        let
+             --            elapsedMillis =
+             --                Time.posixToMillis now - Time.posixToMillis u
+             --        in
+             --        ( now
+             --        , if elapsedMillis > defaultAnimMills * 3 then
+             --            List.foldl
+             --                (\(Tile id anim pos val) ->
+             --                    case anim of
+             --                        MergedExit ->
+             --                            identity
+             --
+             --                        _ ->
+             --                            Dict.insert id (Tile id Stayed pos val)
+             --                )
+             --                Dict.empty
+             --                (Dict.values d)
+             --
+             --          else
+             --            d
+             --        )
+             --    )
             )
         |> Task.perform GotGame
 
@@ -289,8 +290,9 @@ update msg model =
 
         GotGame game ->
             ( game
-            , Process.sleep (defaultAnimMills * 3)
-                |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
+              --, Process.sleep (defaultAnimMills * 3)
+              --    |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
+            , Cmd.none
             )
 
         DeleteTilesWithIds idSet ->
