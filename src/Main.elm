@@ -258,8 +258,6 @@ update msg model =
 
         GotGame game ->
             ( game
-              --, Process.sleep (defaultAnimMills * 3)
-              --    |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
             , Process.sleep minimumElapsedMillisBeforeCleanup
                 |> Task.andThen (always Time.now)
                 |> Task.perform Cleanup
