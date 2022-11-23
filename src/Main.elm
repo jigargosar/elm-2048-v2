@@ -535,6 +535,7 @@ viewGame game =
         ]
 
 
+viewBackgroundGrid : Html msg
 viewBackgroundGrid =
     div
         [ css
