@@ -176,6 +176,7 @@ type Msg
     | NewGame
     | GotGame Game
     | DeleteTilesWithIds (Set Id)
+    | Cleanup Posix
 
 
 type alias Flags =
@@ -292,11 +293,44 @@ update msg model =
             ( game
               --, Process.sleep (defaultAnimMills * 3)
               --    |> Task.perform (\_ -> DeleteTilesWithIds (exitTileIdSet game))
-            , Cmd.none
+            , Process.sleep minimumElapsedMillisBeforeCleanup
+                |> Task.andThen (always Time.now)
+                |> Task.perform Cleanup
             )
+
+        Cleanup now ->
+            ( attemptCleanup now model, Cmd.none )
 
         DeleteTilesWithIds idSet ->
             ( deleteTilesWithIds idSet model, Cmd.none )
+
+
+minimumElapsedMillisBeforeCleanup =
+    defaultAnimMills * 3
+
+
+attemptCleanup : Posix -> Game -> Game
+attemptCleanup now ((Game u i s d) as game) =
+    let
+        elapsedMillis =
+            Time.posixToMillis now - Time.posixToMillis u
+    in
+    if elapsedMillis > minimumElapsedMillisBeforeCleanup then
+        List.foldl
+            (\(Tile id anim pos val) ->
+                case anim of
+                    MergedExit ->
+                        identity
+
+                    _ ->
+                        Dict.insert id (Tile id Stayed pos val)
+            )
+            Dict.empty
+            (Dict.values d)
+            |> Game u i s
+
+    else
+        game
 
 
 deleteTilesWithIds : Set Id -> Game -> Game
