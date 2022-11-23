@@ -6,7 +6,6 @@ import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
-import Dict exposing (Dict)
 import Html
 import Html.Styled exposing (Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
@@ -29,12 +28,12 @@ initNewTile =
 
 
 type Tile
-    = Tile Id Anim Pos Val
+    = Tile Anim Pos Val
 
 
-initTile : Id -> Anim -> NewTile -> Tile
-initTile id anim (NewTile pos val) =
-    Tile id anim pos val
+initTile : Anim -> NewTile -> Tile
+initTile anim (NewTile pos val) =
+    Tile anim pos val
 
 
 main : Program Flags Game Msg
@@ -48,7 +47,7 @@ main =
 
 
 type Game
-    = Game IdSeed Score (Dict Id Tile)
+    = Game Score (List Tile)
 
 
 type Score
@@ -59,24 +58,6 @@ type Score
         Int
 
 
-type alias Id =
-    Int
-
-
-type IdSeed
-    = IdSeed Id -- nextId
-
-
-initialIdSeed : IdSeed
-initialIdSeed =
-    IdSeed 1
-
-
-generateId : IdSeed -> ( Id, IdSeed )
-generateId (IdSeed nextId) =
-    ( nextId, IdSeed (nextId + 1) )
-
-
 type Anim
     = InitialEnter
     | MergedExit Pos
@@ -85,32 +66,18 @@ type Anim
     | Stayed Pos
 
 
-idSeed : Game -> IdSeed
-idSeed (Game i _ _) =
-    i
-
-
-mapIdSeedAndTilesDict : (IdSeed -> Dict Id Tile -> ( IdSeed, Dict Id Tile )) -> Game -> Game
-mapIdSeedAndTilesDict fn (Game i s d) =
-    let
-        ( i2, d2 ) =
-            fn i d
-    in
-    Game i2 s d2
-
-
-mapTilesDict : (Dict Id Tile -> Dict Id Tile) -> Game -> Game
-mapTilesDict fn (Game i s d) =
-    fn d |> Game i s
+mapTiles : (List Tile -> List Tile) -> Game -> Game
+mapTiles fn (Game s ts) =
+    fn ts |> Game s
 
 
 tileList : Game -> List Tile
-tileList (Game _ _ d) =
-    Dict.values d
+tileList (Game _ ts) =
+    ts
 
 
 toScore : Game -> Score
-toScore (Game _ s _) =
+toScore (Game s _) =
     s
 
 
@@ -127,27 +94,24 @@ addRandomTilesHelp n anim emptyPositions game =
 
 insertTile : Anim -> NewTile -> Game -> Game
 insertTile anim newTile =
-    mapIdSeedAndTilesDict
-        (\ids td ->
+    mapTiles
+        (\ts ->
             let
-                ( id, newIdSeed ) =
-                    generateId ids
-
                 tile =
-                    initTile id anim newTile
+                    initTile anim newTile
             in
-            ( newIdSeed, Dict.insert id tile td )
+            tile :: ts
         )
 
 
-updateTile : Id -> Pos -> (Pos -> Anim) -> Game -> Game
-updateTile id pos animFn =
-    mapTilesDict (Dict.update id (Maybe.map (tileUpdatePosAndAnim pos animFn)))
+updateTile : Pos -> (Pos -> Anim) -> Tile -> Game -> Game
+updateTile pos animFn tile =
+    mapTiles ((::) (tileUpdatePosAndAnim pos animFn tile))
 
 
 tileUpdatePosAndAnim : Pos -> (Pos -> Anim) -> Tile -> Tile
-tileUpdatePosAndAnim pos animFn (Tile id _ oldPos val) =
-    Tile id (animFn oldPos) pos val
+tileUpdatePosAndAnim pos animFn (Tile _ oldPos val) =
+    Tile (animFn oldPos) pos val
 
 
 randomNewTiles : Int -> List Pos -> Generator (List NewTile)
@@ -171,7 +135,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialIdSeed initialScore Dict.empty
+            Game initialScore []
     in
     ( initialModel
     , generateNewGame initialModel
@@ -194,10 +158,10 @@ generateGame gen =
 
 
 newGame : Game -> Generator Game
-newGame game =
+newGame _ =
     let
         clearedGameScoreAndTiles =
-            Game (idSeed game) initialScore Dict.empty
+            Game initialScore []
     in
     addRandomTilesHelp 2 InitialEnter Grid.allPositions clearedGameScoreAndTiles
 
@@ -252,7 +216,7 @@ attemptMove dir game =
     let
         updateFromResult result =
             game
-                |> removeExitEntries
+                |> mapTiles (always [])
                 |> updateMergedEntries result.merged
                 |> updateStayedEntries result.stayed
                 |> addRandomTile result.empty
@@ -260,21 +224,6 @@ attemptMove dir game =
     entriesForSlideAndMerge game
         |> slideAndMerge dir
         |> Maybe.map updateFromResult
-
-
-removeExitEntries : Game -> Game
-removeExitEntries =
-    mapTilesDict
-        (Dict.filter
-            (\_ (Tile _ anim _ _) ->
-                case anim of
-                    MergedExit _ ->
-                        False
-
-                    _ ->
-                        True
-            )
-        )
 
 
 isGameOver : Game -> Bool
@@ -290,17 +239,17 @@ isGameOver game =
         |> List.all isInvalidMove
 
 
-slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
+slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (Grid.Result Tile)
 slideAndMerge =
     Grid.slideAndMerge eqByVal
 
 
-eqByVal : IdVal -> IdVal -> Bool
-eqByVal (IdVal _ v1) (IdVal _ v2) =
+eqByVal : Tile -> Tile -> Bool
+eqByVal (Tile _ _ v1) (Tile _ _ v2) =
     v1 == v2
 
 
-updateMergedEntries : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
+updateMergedEntries : List ( Pos, ( Tile, Tile ) ) -> Game -> Game
 updateMergedEntries list game =
     List.foldl updateMergedEntry ( 0, game ) list
         |> addScoreDelta
@@ -320,56 +269,52 @@ addScoreDelta ( scoreDelta, game ) =
 
 
 mapScore : (Score -> Score) -> Game -> Game
-mapScore fn (Game i s d) =
-    Game i (fn s) d
+mapScore fn (Game s d) =
+    Game (fn s) d
 
 
-updateMergedEntry : ( Pos, ( IdVal, IdVal ) ) -> ( Int, Game ) -> ( Int, Game )
-updateMergedEntry ( pos, ( IdVal id1 val, IdVal id2 _ ) ) ( scoreAcc, game ) =
+updateMergedEntry : ( Pos, ( Tile, Tile ) ) -> ( Int, Game ) -> ( Int, Game )
+updateMergedEntry ( pos, ( (Tile _ _ val) as tile1, tile2 ) ) ( scoreAcc, game ) =
     let
         mergedVal =
             Val.next val
     in
     ( Val.toScore mergedVal + scoreAcc
     , game
-        |> updateTile id1 pos MergedExit
-        |> updateTile id2 pos MergedExit
+        |> updateTile pos MergedExit tile1
+        |> updateTile pos MergedExit tile2
         |> insertTile MergedEnter (initNewTile pos mergedVal)
     )
 
 
-updateStayedEntries : List ( Pos, IdVal ) -> Game -> Game
+updateStayedEntries : List ( Pos, Tile ) -> Game -> Game
 updateStayedEntries list game =
     let
-        fn ( pos, IdVal id _ ) =
-            updateTile id pos Stayed
+        fn ( pos, tile ) =
+            updateTile pos Stayed tile
     in
     List.foldl fn game list
 
 
-type IdVal
-    = IdVal Id Val
-
-
-entriesForSlideAndMerge : Game -> List ( Pos, IdVal )
+entriesForSlideAndMerge : Game -> List ( Pos, Tile )
 entriesForSlideAndMerge game =
     let
-        toEntry (Tile id anim pos val) =
+        toEntry ((Tile anim pos _) as tile) =
             case anim of
                 InitialEnter ->
-                    Just ( pos, IdVal id val )
+                    Just ( pos, tile )
 
                 MergedExit _ ->
                     Nothing
 
                 MergedEnter ->
-                    Just ( pos, IdVal id val )
+                    Just ( pos, tile )
 
                 NewDelayedEnter ->
-                    Just ( pos, IdVal id val )
+                    Just ( pos, tile )
 
                 Stayed _ ->
-                    Just ( pos, IdVal id val )
+                    Just ( pos, tile )
     in
     tileList game |> List.filterMap toEntry
 
@@ -712,7 +657,7 @@ animFromToStyle from to =
 
 
 viewTile : Tile -> Html Msg
-viewTile ((Tile _ anim pos val) as tile) =
+viewTile ((Tile anim pos val) as tile) =
     let
         ( dx, dy ) =
             pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
