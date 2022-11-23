@@ -616,7 +616,7 @@ defaultAnimMills =
 
 
 newEnterDelayAnimMills =
-    150
+    defaultAnimMills * 2
 
 
 scoreDeltaAnimMills =
@@ -654,7 +654,7 @@ animToStyle anim =
                 [ animationName <|
                     keyframes
                         [ ( 99
-                          , [ A.transform [ scale 0.8 ]
+                          , [ A.transform [ scale 1 ]
                             , A.opacity <| num 1
                             ]
                           )
