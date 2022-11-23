@@ -605,7 +605,7 @@ scoreDeltaAnimMills =
     1000
 
 
-animDurationForAppear =
+animDurationForEnter =
     animationDuration <| ms (shortDurationMillis * 2)
 
 
@@ -628,14 +628,14 @@ animToStyle anim =
         InitialEnter ->
             batch
                 [ animationNameAppear
-                , animDurationForAppear
+                , animDurationForEnter
                 , animFillBoth
                 ]
 
         MergedEnter ->
             batch
                 [ animationNamePop
-                , animDurationForAppear
+                , animDurationForEnter
                 , animationDelayForDelayedEnter
                 , animFillBoth
                 ]
@@ -643,15 +643,15 @@ animToStyle anim =
         MergedExit ->
             batch
                 [ animationNameDisappear
-                , animationDuration <| ms moveTransitionMillis
-                , animationDelay <| ms moveTransitionMillis
+                , animationDuration <| ms shortDurationMillis
+                , animationDelay <| ms shortDurationMillis
                 , animFillBoth
                 ]
 
         NewDelayedEnter ->
             batch
                 [ animationNameAppear
-                , animDurationForAppear
+                , animDurationForEnter
                 , animationDelayForDelayedEnter
                 , animFillBoth
                 ]
@@ -698,7 +698,7 @@ viewTile ((Tile id anim pos val) as tile) =
     , div
         [ css
             [ transforms [ translate2 dx dy ]
-            , transition [ T.transform3 moveTransitionMillis 0 T.easeInOut ]
+            , transition [ T.transform3 shortDurationMillis 0 T.easeInOut ]
             , gridArea11
             , displayGrid
             , paddingForTileAndBoard
