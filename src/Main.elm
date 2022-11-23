@@ -597,32 +597,20 @@ paddingForTileAndBoard =
     padding <| px 8
 
 
-unitAnimMills =
+shortDurationMillis =
     100
-
-
-newEnterAnimDurationMillis =
-    unitAnimMills * 2
-
-
-moveTransitionMillis =
-    unitAnimMills
-
-
-newEnterDelayAnimMills =
-    unitAnimMills
 
 
 scoreDeltaAnimMills =
     1000
 
 
-animDurationForEnter =
-    animationDuration <| ms newEnterAnimDurationMillis
+animDurationForAppear =
+    animationDuration <| ms (shortDurationMillis * 2)
 
 
 animationDelayForDelayedEnter =
-    animationDelay <| ms newEnterDelayAnimMills
+    animationDelay <| ms shortDurationMillis
 
 
 animDurationForScoreDelta =
@@ -640,14 +628,14 @@ animToStyle anim =
         InitialEnter ->
             batch
                 [ animationNameAppear
-                , animDurationForEnter
+                , animDurationForAppear
                 , animFillBoth
                 ]
 
         MergedEnter ->
             batch
                 [ animationNamePop
-                , animDurationForEnter
+                , animDurationForAppear
                 , animationDelayForDelayedEnter
                 , animFillBoth
                 ]
@@ -663,7 +651,7 @@ animToStyle anim =
         NewDelayedEnter ->
             batch
                 [ animationNameAppear
-                , animDurationForEnter
+                , animDurationForAppear
                 , animationDelayForDelayedEnter
                 , animFillBoth
                 ]
