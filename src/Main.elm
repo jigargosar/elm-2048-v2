@@ -646,13 +646,9 @@ animToStyle anim =
 
         MergedEnter ->
             batch
-                [ animationName <|
-                    keyframes
-                        [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
-                        , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-                        ]
+                [ animationNameEnter
                 , animDurationForEnter
-                , animationDelay <| ms 150
+                , animationDelayForDelayedEnter
                 , animFillBoth
                 , property "animation-timing-function" "linear"
                 , -- out-back
@@ -682,8 +678,8 @@ animToStyle anim =
             batch
                 [ animationNameEnter
                 , animDurationForEnter
-                , animFillBoth
                 , animationDelayForDelayedEnter
+                , animFillBoth
                 ]
 
         Stayed ->
