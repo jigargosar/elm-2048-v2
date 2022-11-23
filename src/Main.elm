@@ -41,11 +41,6 @@ initTile id anim (NewTile pos val) =
     Tile id anim pos val
 
 
-setTilePosAndAnim : Pos -> Anim -> Tile -> Tile
-setTilePosAndAnim pos anim (Tile id _ _ val) =
-    Tile id anim pos val
-
-
 main : Program Flags Game Msg
 main =
     Browser.element
@@ -84,10 +79,10 @@ generateId (IdSeed nextId) =
 
 type Anim
     = InitialEnter
-    | MergedExit
+    | MergedExit Pos
     | MergedEnter
     | NewDelayedEnter
-    | Stayed
+    | Stayed Pos
 
 
 idSeed : Game -> IdSeed
@@ -150,9 +145,14 @@ insertTile anim newTile =
         )
 
 
-updateTile : Id -> Pos -> Anim -> Game -> Game
-updateTile id pos anim =
-    mapTilesDict (Dict.update id (Maybe.map (setTilePosAndAnim pos anim)))
+updateTile : Id -> Pos -> (Pos -> Anim) -> Game -> Game
+updateTile id pos animFn =
+    mapTilesDict (Dict.update id (Maybe.map (tileUpdatePosAndAnim pos animFn)))
+
+
+tileUpdatePosAndAnim : Pos -> (Pos -> Anim) -> Tile -> Tile
+tileUpdatePosAndAnim pos animFn (Tile id _ oldPos val) =
+    Tile id (animFn oldPos) pos val
 
 
 randomNewTiles : Int -> List Pos -> Generator (List NewTile)
@@ -298,11 +298,11 @@ cleanupTilesDict d =
     List.foldl
         (\(Tile id anim pos val) ->
             case anim of
-                MergedExit ->
+                MergedExit _ ->
                     identity
 
                 _ ->
-                    Dict.insert id (Tile id Stayed pos val)
+                    Dict.insert id (Tile id (Stayed pos) pos val)
         )
         Dict.empty
         (Dict.values d)
@@ -330,6 +330,7 @@ attemptMove dir game =
     let
         updateFromResult result =
             game
+                |> removeExitEntries
                 |> updateMergedEntries result.merged
                 |> updateStayedEntries result.stayed
                 |> addRandomTile result.empty
@@ -337,6 +338,21 @@ attemptMove dir game =
     entriesForSlideAndMerge game
         |> slideAndMerge dir
         |> Maybe.map updateFromResult
+
+
+removeExitEntries : Game -> Game
+removeExitEntries =
+    mapTilesDict
+        (Dict.filter
+            (\_ (Tile _ anim _ _) ->
+                case anim of
+                    MergedExit _ ->
+                        False
+
+                    _ ->
+                        True
+            )
+        )
 
 
 isGameOver : Game -> Bool
@@ -421,7 +437,7 @@ entriesForSlideAndMerge game =
                 InitialEnter ->
                     Just ( pos, IdVal id val )
 
-                MergedExit ->
+                MergedExit _ ->
                     Nothing
 
                 MergedEnter ->
@@ -430,7 +446,7 @@ entriesForSlideAndMerge game =
                 NewDelayedEnter ->
                     Just ( pos, IdVal id val )
 
-                Stayed ->
+                Stayed _ ->
                     Just ( pos, IdVal id val )
     in
     tileList game |> List.filterMap toEntry
@@ -518,8 +534,13 @@ viewGame game =
         ]
         [ viewBackgroundGrid
         , Keyed.node "div"
-            [ css [ boardStyle ] ]
-            (List.map viewTile (tileList game))
+            [ css [ gridArea11, displayGrid ] ]
+            [ ( Debug.toString game
+              , Keyed.node "div"
+                    [ css [ boardStyle ] ]
+                    (List.map viewTile (tileList game))
+              )
+            ]
         , case isGameOver game of
             True ->
                 div
@@ -719,14 +740,53 @@ animToStyle anim =
         MergedEnter ->
             delayedPopInAnim
 
-        MergedExit ->
+        MergedExit _ ->
             delayedDisappearAnim
 
         NewDelayedEnter ->
             delayedAppearAnim
 
-        Stayed ->
+        Stayed _ ->
             batch []
+
+
+tileMovedToAnim to anim =
+    case anim of
+        InitialEnter ->
+            animFromToStyle to to
+
+        MergedExit from ->
+            animFromToStyle from to
+
+        MergedEnter ->
+            animFromToStyle to to
+
+        NewDelayedEnter ->
+            animFromToStyle to to
+
+        Stayed from ->
+            animFromToStyle from to
+
+
+animFromToStyle from to =
+    batch
+        [ animationName <|
+            keyframes
+                [ let
+                    ( dx, dy ) =
+                        from |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+                  in
+                  ( 0, [ A.transform [ translate2 dx dy ] ] )
+                , let
+                    ( dx, dy ) =
+                        to |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+                  in
+                  ( 100, [ A.transform [ translate2 dx dy ] ] )
+                ]
+        , animFillBoth
+        , animDurationShort
+        , property "animation-timing-function" "ease-in-out"
+        ]
 
 
 viewTile : Tile -> ( String, Html Msg )
@@ -740,6 +800,7 @@ viewTile ((Tile id anim pos val) as tile) =
         [ css
             [ transforms [ translate2 dx dy ]
             , transition [ T.transform3 shortDurationMillis 0 T.easeInOut ]
+            , tileMovedToAnim pos anim
             , gridArea11
             , displayGrid
             , paddingForTileAndBoard
