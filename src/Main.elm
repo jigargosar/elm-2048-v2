@@ -639,20 +639,17 @@ animToStyle anim =
     case anim of
         InitialEnter ->
             batch
-                [ animationNameEnter
+                [ animationNameAppear
                 , animDurationForEnter
                 , animFillBoth
                 ]
 
         MergedEnter ->
             batch
-                [ animationNameEnter
+                [ animationNamePop
                 , animDurationForEnter
                 , animationDelayForDelayedEnter
                 , animFillBoth
-                , property "animation-timing-function" "linear"
-                , -- out-back
-                  property "animation-timing-function" "cubic-bezier(0.18, 0.89, 0.32, 1.28)"
                 ]
 
         MergedExit ->
@@ -676,7 +673,7 @@ animToStyle anim =
 
         NewDelayedEnter ->
             batch
-                [ animationNameEnter
+                [ animationNameAppear
                 , animDurationForEnter
                 , animationDelayForDelayedEnter
                 , animFillBoth
@@ -686,12 +683,22 @@ animToStyle anim =
             batch []
 
 
-animationNameEnter : Style
-animationNameEnter =
+animationNameAppear : Style
+animationNameAppear =
     animationName <|
         keyframes
             [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
             , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+            ]
+
+
+animationNamePop : Style
+animationNamePop =
+    animationName <|
+        keyframes
+            [ ( 0, [ A.transform [ scale 0 ] ] )
+            , ( 50, [ A.transform [ scale 1.2 ] ] )
+            , ( 100, [ A.transform [ scale 1 ] ] )
             ]
 
 
@@ -705,7 +712,7 @@ viewTile ((Tile id anim pos val) as tile) =
     , div
         [ css
             [ transforms [ translate2 dx dy ]
-            , transition [ T.transform3 moveTransitionMillis 0 T.easeOut ]
+            , transition [ T.transform3 moveTransitionMillis 0 T.easeInOut ]
             , gridArea11
             , displayGrid
             , paddingForTileAndBoard
