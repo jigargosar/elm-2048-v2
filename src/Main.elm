@@ -267,13 +267,14 @@ update msg model =
 
         Cleanup now ->
             ( attemptCleanup now model, Cmd.none )
+                |> always ( model, Cmd.none )
 
         DeleteTilesWithIds idSet ->
             ( deleteTilesWithIds idSet model, Cmd.none )
 
 
 minimumElapsedMillisBeforeCleanup =
-    maxAnimDurationMillis * 3
+    3000
 
 
 attemptCleanup : Posix -> Game -> Game
@@ -596,45 +597,39 @@ paddingForTileAndBoard =
     padding <| px 8
 
 
-maxAnimDurationMillis =
-    let
-        maxAnimDelayMillis =
-            [ newEnterDelayAnimMills ]
-                |> List.maximum
-                |> Maybe.withDefault 0
-
-        maxDurationWithoutDelay =
-            [ defaultAnimMills, scoreDeltaAnimMills ]
-                |> List.maximum
-                |> Maybe.withDefault 0
-    in
-    maxAnimDelayMillis + maxDurationWithoutDelay
+unitAnimMills =
+    100
 
 
-defaultAnimMills =
-    150
+newEnterAnimDurationMillis =
+    unitAnimMills * 2
+
+
+moveTransitionMillis =
+    unitAnimMills
 
 
 newEnterDelayAnimMills =
-    defaultAnimMills * 2
+    unitAnimMills
 
 
 scoreDeltaAnimMills =
     1000
 
 
+animDurationForEnter =
+    animationDuration <| ms newEnterAnimDurationMillis
+
+
+animationDelayForDelayedEnter =
+    animationDelay <| ms newEnterDelayAnimMills
+
+
 animDurationForScoreDelta =
     animationDuration <| ms scoreDeltaAnimMills
 
 
-animDurationDefault =
-    animationDuration <| ms defaultAnimMills
-
-
-animationDelayForNew =
-    animationDelay <| ms newEnterDelayAnimMills
-
-
+animFillBoth : Style
 animFillBoth =
     property "animation-fill-mode" "both"
 
@@ -645,8 +640,23 @@ animToStyle anim =
         InitialEnter ->
             batch
                 [ animationNameEnter
-                , animDurationDefault
+                , animDurationForEnter
                 , animFillBoth
+                ]
+
+        MergedEnter ->
+            batch
+                [ animationName <|
+                    keyframes
+                        [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
+                        , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+                        ]
+                , animDurationForEnter
+                , animationDelay <| ms 150
+                , animFillBoth
+                , property "animation-timing-function" "linear"
+                , -- out-back
+                  property "animation-timing-function" "cubic-bezier(0.18, 0.89, 0.32, 1.28)"
                 ]
 
         MergedExit ->
@@ -664,27 +674,16 @@ animToStyle anim =
                             ]
                           )
                         ]
-                , animDurationDefault
-                , animFillBoth
-                ]
-
-        MergedEnter ->
-            batch
-                [ animationName <|
-                    keyframes
-                        [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
-                        , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-                        ]
-                , animDurationDefault
+                , animDurationForEnter
                 , animFillBoth
                 ]
 
         NewDelayedEnter ->
             batch
                 [ animationNameEnter
-                , animDurationDefault
+                , animDurationForEnter
                 , animFillBoth
-                , animationDelayForNew
+                , animationDelayForDelayedEnter
                 ]
 
         Stayed ->
@@ -710,7 +709,7 @@ viewTile ((Tile id anim pos val) as tile) =
     , div
         [ css
             [ transforms [ translate2 dx dy ]
-            , transition [ T.transform3 300 0 T.easeOut ]
+            , transition [ T.transform3 moveTransitionMillis 0 T.easeOut ]
             , gridArea11
             , displayGrid
             , paddingForTileAndBoard
