@@ -13,13 +13,9 @@ import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD
-import Process
 import Random exposing (Generator, Seed)
 import Random.List
-import Set exposing (Set)
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
-import Task
-import Time exposing (Posix)
 import Val exposing (Val)
 
 
@@ -52,11 +48,15 @@ main =
 
 
 type Game
-    = Game Posix IdSeed Score (Dict Id Tile)
+    = Game IdSeed Score (Dict Id Tile)
 
 
 type Score
-    = Score Int (List Int)
+    = Score
+        -- total
+        Int
+        -- last delta for animation
+        Int
 
 
 type alias Id =
@@ -86,36 +86,31 @@ type Anim
 
 
 idSeed : Game -> IdSeed
-idSeed (Game _ i _ _) =
+idSeed (Game i _ _) =
     i
 
 
-lastUpdatedAt : Game -> Posix
-lastUpdatedAt (Game u _ _ _) =
-    u
-
-
 mapIdSeedAndTilesDict : (IdSeed -> Dict Id Tile -> ( IdSeed, Dict Id Tile )) -> Game -> Game
-mapIdSeedAndTilesDict fn (Game u i s d) =
+mapIdSeedAndTilesDict fn (Game i s d) =
     let
         ( i2, d2 ) =
             fn i d
     in
-    Game u i2 s d2
+    Game i2 s d2
 
 
 mapTilesDict : (Dict Id Tile -> Dict Id Tile) -> Game -> Game
-mapTilesDict fn (Game u i s d) =
-    fn d |> Game u i s
+mapTilesDict fn (Game i s d) =
+    fn d |> Game i s
 
 
 tileList : Game -> List Tile
-tileList (Game _ _ _ d) =
+tileList (Game _ _ d) =
     Dict.values d
 
 
 toScore : Game -> Score
-toScore (Game _ _ s _) =
+toScore (Game _ s _) =
     s
 
 
@@ -166,8 +161,6 @@ type Msg
     = OnKeyDown String
     | NewGame
     | GotGame Game
-    | DeleteTilesWithIds (Set Id)
-    | Cleanup Posix
 
 
 type alias Flags =
@@ -178,7 +171,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialTime initialIdSeed initialScore Dict.empty
+            Game initialIdSeed initialScore Dict.empty
     in
     ( initialModel
     , generateNewGame initialModel
@@ -187,12 +180,7 @@ init _ =
 
 initialScore : Score
 initialScore =
-    Score 0 []
-
-
-initialTime : Posix
-initialTime =
-    Time.millisToPosix 0
+    Score 0 0
 
 
 generateNewGame : Game -> Cmd Msg
@@ -200,29 +188,16 @@ generateNewGame game =
     generateGame (newGame game)
 
 
-setLastUpdatedAt : Posix -> Game -> Game
-setLastUpdatedAt u (Game _ i s d) =
-    Game u i s d
-
-
 generateGame : Generator Game -> Cmd Msg
 generateGame gen =
-    Time.now
-        |> Task.map
-            (\now ->
-                Random.initialSeed (Time.posixToMillis now)
-                    |> Random.step gen
-                    |> Tuple.first
-                    |> setLastUpdatedAt now
-            )
-        |> Task.perform GotGame
+    Random.generate GotGame gen
 
 
 newGame : Game -> Generator Game
 newGame game =
     let
         clearedGameScoreAndTiles =
-            Game (lastUpdatedAt game) (idSeed game) initialScore Dict.empty
+            Game (idSeed game) initialScore Dict.empty
     in
     addRandomTilesHelp 2 InitialEnter Grid.allPositions clearedGameScoreAndTiles
 
@@ -257,60 +232,7 @@ update msg model =
             ( model, generateNewGame model )
 
         GotGame game ->
-            ( game
-            , Process.sleep minimumElapsedMillisBeforeCleanup
-                |> Task.andThen (always Time.now)
-                |> Task.perform Cleanup
-            )
-
-        Cleanup now ->
-            ( attemptCleanup now model, Cmd.none )
-                |> always ( model, Cmd.none )
-
-        DeleteTilesWithIds idSet ->
-            ( deleteTilesWithIds idSet model, Cmd.none )
-
-
-minimumElapsedMillisBeforeCleanup =
-    3000
-
-
-attemptCleanup : Posix -> Game -> Game
-attemptCleanup now ((Game u i s d) as game) =
-    let
-        elapsedMillis =
-            Time.posixToMillis now - Time.posixToMillis u
-    in
-    if elapsedMillis > minimumElapsedMillisBeforeCleanup then
-        Game u i (cleanupScore s) (cleanupTilesDict d)
-
-    else
-        game
-
-
-cleanupScore : Score -> Score
-cleanupScore (Score total _) =
-    Score total []
-
-
-cleanupTilesDict : Dict Id Tile -> Dict Id Tile
-cleanupTilesDict d =
-    List.foldl
-        (\(Tile id anim pos val) ->
-            case anim of
-                MergedExit _ ->
-                    identity
-
-                _ ->
-                    Dict.insert id (Tile id (Stayed pos) pos val)
-        )
-        Dict.empty
-        (Dict.values d)
-
-
-deleteTilesWithIds : Set Id -> Game -> Game
-deleteTilesWithIds set =
-    mapTilesDict (Dict.filter (\id _ -> Set.member id set))
+            ( game, Cmd.none )
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
@@ -389,7 +311,7 @@ addScoreDelta ( scoreDelta, game ) =
     if scoreDelta > 0 then
         mapScore
             (\(Score total _) ->
-                Score (total + scoreDelta) (scoreDelta :: [])
+                Score (total + scoreDelta) scoreDelta
             )
             game
 
@@ -398,8 +320,8 @@ addScoreDelta ( scoreDelta, game ) =
 
 
 mapScore : (Score -> Score) -> Game -> Game
-mapScore fn (Game u i s d) =
-    Game u i (fn s) d
+mapScore fn (Game i s d) =
+    Game i (fn s) d
 
 
 updateMergedEntry : ( Pos, ( IdVal, IdVal ) ) -> ( Int, Game ) -> ( Int, Game )
@@ -491,11 +413,11 @@ viewStyled game =
 
 
 viewScore : Score -> Html msg
-viewScore (Score total scores) =
+viewScore (Score total delta) =
     div [ css [ displayGrid ] ]
-        (div [ css [ gridArea11 ] ] [ text <| String.fromInt total ]
-            :: List.foldl (viewScoreDelta >> (::)) [] scores
-        )
+        [ div [ css [ gridArea11 ] ] [ text <| String.fromInt total ]
+        , viewScoreDelta delta
+        ]
 
 
 viewScoreDelta : Int -> Html msg
@@ -538,14 +460,9 @@ viewGame game =
             ]
         ]
         [ viewBackgroundGrid
-        , Keyed.node "div"
-            [ css [ gridArea11, displayGrid ] ]
-            [ ( Debug.toString game
-              , Keyed.node "div"
-                    [ css [ boardStyle ] ]
-                    (List.map viewTile (tileList game))
-              )
-            ]
+        , div
+            [ css [ boardStyle ] ]
+            (List.map viewTile (tileList game))
         , case isGameOver game of
             True ->
                 div
@@ -794,14 +711,13 @@ animFromToStyle from to =
         ]
 
 
-viewTile : Tile -> ( String, Html Msg )
-viewTile ((Tile id anim pos val) as tile) =
+viewTile : Tile -> Html Msg
+viewTile ((Tile _ anim pos val) as tile) =
     let
         ( dx, dy ) =
             pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
     in
-    ( String.fromInt id
-    , div
+    div
         [ css
             [ transforms [ translate2 dx dy ]
             , transition [ T.transform3 shortDurationMillis 0 T.easeInOut ]
@@ -824,7 +740,6 @@ viewTile ((Tile id anim pos val) as tile) =
             [ text <| Val.toDisplayString val
             ]
         ]
-    )
 
 
 valBackgroundColor val =
