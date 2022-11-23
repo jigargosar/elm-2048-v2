@@ -474,8 +474,22 @@ viewScore (Score total scores) =
         )
 
 
-fadeUpAnimStyle : Style
-fadeUpAnimStyle =
+viewScoreDelta : Int -> Html msg
+viewScoreDelta s =
+    div
+        [ css
+            [ gridArea11
+            , fadeUpAnim
+            , position relative
+            , left <| pct 100
+            , fontSize <| em 0.8
+            ]
+        ]
+        [ text "+", text <| String.fromInt s ]
+
+
+fadeUpAnim : Style
+fadeUpAnim =
     batch
         [ animationName <|
             keyframes
@@ -488,20 +502,6 @@ fadeUpAnimStyle =
         , animationDuration <| ms verLongDurationMillis
         , animFillBoth
         ]
-
-
-viewScoreDelta : Int -> Html msg
-viewScoreDelta s =
-    div
-        [ css
-            [ gridArea11
-            , fadeUpAnimStyle
-            , position relative
-            , left <| pct 100
-            , fontSize <| em 0.8
-            ]
-        ]
-        [ text "+", text <| String.fromInt s ]
 
 
 viewGame : Game -> Html Msg
@@ -661,8 +661,8 @@ animNamePop =
             ]
 
 
-appearAnimStyle : Style
-appearAnimStyle =
+appearAnim : Style
+appearAnim =
     batch
         [ animNameAppear
         , animDurationMedium
@@ -670,8 +670,8 @@ appearAnimStyle =
         ]
 
 
-delayedAppearAnimStyle : Style
-delayedAppearAnimStyle =
+delayedAppearAnim : Style
+delayedAppearAnim =
     batch
         [ animNameAppear
         , animDurationMedium
@@ -680,8 +680,8 @@ delayedAppearAnimStyle =
         ]
 
 
-delayedPopInAnimStyle : Style
-delayedPopInAnimStyle =
+delayedPopInAnim : Style
+delayedPopInAnim =
     batch
         [ animNamePop
         , animDurationMedium
@@ -690,8 +690,8 @@ delayedPopInAnimStyle =
         ]
 
 
-delayedDisappearAnimStyle : Style
-delayedDisappearAnimStyle =
+delayedDisappearAnim : Style
+delayedDisappearAnim =
     batch
         [ animNameDisappear
         , animDurationShort
@@ -704,16 +704,16 @@ animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
         InitialEnter ->
-            appearAnimStyle
+            appearAnim
 
         MergedEnter ->
-            delayedPopInAnimStyle
+            delayedPopInAnim
 
         MergedExit ->
-            delayedDisappearAnimStyle
+            delayedDisappearAnim
 
         NewDelayedEnter ->
-            delayedAppearAnimStyle
+            delayedAppearAnim
 
         Stayed ->
             batch []
