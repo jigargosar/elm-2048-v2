@@ -489,7 +489,7 @@ viewScoreDelta s =
                         ]
                       )
                     ]
-            , animDurationForScoreDelta
+            , animationDuration <| ms verLongDurationMillis
             , animFillBoth
             , fontSize <| em 0.8
             ]
@@ -601,12 +601,16 @@ shortDurationMillis =
     100
 
 
-scoreDeltaAnimMills =
+mediumDurationMillis =
+    shortDurationMillis * 2
+
+
+verLongDurationMillis =
     1000
 
 
 animDurationMedium =
-    animationDuration <| ms (shortDurationMillis * 2)
+    animationDuration <| ms mediumDurationMillis
 
 
 animDurationShort =
@@ -615,10 +619,6 @@ animDurationShort =
 
 animDelayShort =
     animationDelay <| ms shortDurationMillis
-
-
-animDurationForScoreDelta =
-    animationDuration <| ms scoreDeltaAnimMills
 
 
 animFillBoth : Style
