@@ -381,7 +381,7 @@ mapScore fn (Game u i s d) =
     Game u i (fn s) d
 
 
-updateMergedEntry : ( Pos, ( ( Id, Val ), ( Id, Val ) ) ) -> ( Int, Game ) -> ( Int, Game )
+updateMergedEntry : ( Pos, ( IdVal, IdVal ) ) -> ( Int, Game ) -> ( Int, Game )
 updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) ( scoreAcc, game ) =
     let
         mergedVal =
@@ -405,7 +405,7 @@ updateStayedEntries list game =
 
 
 type alias IdVal =
-    ( Id, Val )
+    IdVal
 
 
 entriesForSlideAndMerge : Game -> List ( Pos, IdVal )
