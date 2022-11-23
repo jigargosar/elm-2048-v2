@@ -354,7 +354,12 @@ isGameOver game =
 
 slideAndMerge : Dir -> List ( Pos, IdVal ) -> Maybe (Grid.Result IdVal)
 slideAndMerge =
-    Grid.slideAndMerge (eqBy Tuple.second)
+    Grid.slideAndMerge eqByVal
+
+
+eqByVal : IdVal -> IdVal -> Bool
+eqByVal (IdVal _ v1) (IdVal _ v2) =
+    v1 == v2
 
 
 updateMergedEntries : List ( Pos, ( IdVal, IdVal ) ) -> Game -> Game
@@ -382,7 +387,7 @@ mapScore fn (Game u i s d) =
 
 
 updateMergedEntry : ( Pos, ( IdVal, IdVal ) ) -> ( Int, Game ) -> ( Int, Game )
-updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) ( scoreAcc, game ) =
+updateMergedEntry ( pos, ( IdVal id1 val, IdVal id2 _ ) ) ( scoreAcc, game ) =
     let
         mergedVal =
             Val.next val
@@ -398,14 +403,14 @@ updateMergedEntry ( pos, ( ( id1, val ), ( id2, _ ) ) ) ( scoreAcc, game ) =
 updateStayedEntries : List ( Pos, IdVal ) -> Game -> Game
 updateStayedEntries list game =
     let
-        fn ( pos, ( id, _ ) ) =
+        fn ( pos, IdVal id _ ) =
             updateTile id pos Stayed
     in
     List.foldl fn game list
 
 
-type alias IdVal =
-    IdVal
+type IdVal
+    = IdVal Id Val
 
 
 entriesForSlideAndMerge : Game -> List ( Pos, IdVal )
@@ -414,19 +419,19 @@ entriesForSlideAndMerge game =
         toEntry (Tile id anim pos val) =
             case anim of
                 InitialEnter ->
-                    Just ( pos, ( id, val ) )
+                    Just ( pos, IdVal id val )
 
                 MergedExit ->
                     Nothing
 
                 MergedEnter ->
-                    Just ( pos, ( id, val ) )
+                    Just ( pos, IdVal id val )
 
                 NewDelayedEnter ->
-                    Just ( pos, ( id, val ) )
+                    Just ( pos, IdVal id val )
 
                 Stayed ->
-                    Just ( pos, ( id, val ) )
+                    Just ( pos, IdVal id val )
     in
     tileList game |> List.filterMap toEntry
 
@@ -814,11 +819,6 @@ gridArea11 =
 
 
 -- BASICS EXTRA
-
-
-eqBy : (b -> a) -> b -> b -> Bool
-eqBy fn a b =
-    fn a == fn b
 
 
 add : number -> number -> number
