@@ -603,7 +603,7 @@ maxAnimDurationMillis =
 
 
 defaultAnimMills =
-    200
+    150
 
 
 scoreDeltaAnimMills =
