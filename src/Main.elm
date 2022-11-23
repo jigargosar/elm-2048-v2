@@ -282,7 +282,7 @@ update msg model =
 
 
 minimumElapsedMillisBeforeCleanup =
-    defaultAnimMills * 3
+    maxAnimDurationMillis * 3
 
 
 attemptCleanup : Posix -> Game -> Game
@@ -503,7 +503,7 @@ viewScoreDelta s =
                         ]
                       )
                     ]
-            , animationDuration <| ms 1000
+            , animDurationForScoreDelta
             , animFillBoth
             , fontSize <| em 0.8
             ]
@@ -611,8 +611,22 @@ paddingForTileAndBoard =
     padding <| px 8
 
 
+maxAnimDurationMillis =
+    [ defaultAnimMills, defaultAnimMills * 2, scoreDeltaAnimMills ]
+        |> List.maximum
+        |> Maybe.withDefault defaultAnimMills
+
+
 defaultAnimMills =
     200
+
+
+scoreDeltaAnimMills =
+    1000
+
+
+animDurationForScoreDelta =
+    animationDuration <| ms scoreDeltaAnimMills
 
 
 animDurationDefault =
