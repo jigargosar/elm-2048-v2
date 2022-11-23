@@ -653,8 +653,8 @@ animNameDisappear : Style
 animNameDisappear =
     animationName <|
         keyframes
-            [ ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-            , ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
+            [ ( 0, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
+            , ( 100, [ A.opacity zero, A.transform [ scale 0 ] ] )
             ]
 
 
