@@ -388,8 +388,8 @@ addScoreDelta : ( Int, Game ) -> Game
 addScoreDelta ( scoreDelta, game ) =
     if scoreDelta > 0 then
         mapScore
-            (\(Score total scoreDeltas) ->
-                Score (total + scoreDelta) (scoreDelta :: scoreDeltas)
+            (\(Score total _) ->
+                Score (total + scoreDelta) (scoreDelta :: [])
             )
             game
 
@@ -475,12 +475,17 @@ viewStyled : Game -> Html Msg
 viewStyled game =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
-        , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
-            [ div [ css [ displayFlex, gap "20px" ] ]
-                [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
-                , viewScore (toScore game)
-                ]
-            , viewGame game
+        , Keyed.node "div"
+            []
+            [ ( Debug.toString game
+              , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
+                    [ div [ css [ displayFlex, gap "20px" ] ]
+                        [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
+                        , viewScore (toScore game)
+                        ]
+                    , viewGame game
+                    ]
+              )
             ]
         ]
 
