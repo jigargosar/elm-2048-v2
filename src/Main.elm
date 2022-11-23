@@ -474,23 +474,30 @@ viewScore (Score total scores) =
         )
 
 
+fadeUpAnimStyle : Style
+fadeUpAnimStyle =
+    batch
+        [ animationName <|
+            keyframes
+                [ ( 100
+                  , [ A.transform [ translateY <| em -1 ]
+                    , A.opacity zero
+                    ]
+                  )
+                ]
+        , animationDuration <| ms verLongDurationMillis
+        , animFillBoth
+        ]
+
+
 viewScoreDelta : Int -> Html msg
 viewScoreDelta s =
     div
         [ css
             [ gridArea11
+            , fadeUpAnimStyle
             , position relative
             , left <| pct 100
-            , animationName <|
-                keyframes
-                    [ ( 100
-                      , [ A.transform [ translateY <| em -1 ]
-                        , A.opacity zero
-                        ]
-                      )
-                    ]
-            , animationDuration <| ms verLongDurationMillis
-            , animFillBoth
             , fontSize <| em 0.8
             ]
         ]
