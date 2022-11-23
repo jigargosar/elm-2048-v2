@@ -61,7 +61,7 @@ type Game
 
 
 type Score
-    = Score (List Int)
+    = Score Int (List Int)
 
 
 type alias Id =
@@ -98,15 +98,6 @@ idSeed (Game _ i _ _) =
 lastUpdatedAt : Game -> Posix
 lastUpdatedAt (Game u _ _ _) =
     u
-
-
-mapLastUpdatedAtAndTilesDict : (Posix -> Dict Id Tile -> ( Posix, Dict Id Tile )) -> Game -> Game
-mapLastUpdatedAtAndTilesDict fn (Game u i s d) =
-    let
-        ( u2, d2 ) =
-            fn u d
-    in
-    Game u2 i s d2
 
 
 mapIdSeedAndTilesDict : (IdSeed -> Dict Id Tile -> ( IdSeed, Dict Id Tile )) -> Game -> Game
@@ -196,7 +187,7 @@ init _ =
 
 initialScore : Score
 initialScore =
-    Score []
+    Score 0 []
 
 
 initialTime : Posix
@@ -292,41 +283,35 @@ attemptCleanup now ((Game u i s d) as game) =
             Time.posixToMillis now - Time.posixToMillis u
     in
     if elapsedMillis > minimumElapsedMillisBeforeCleanup then
-        List.foldl
-            (\(Tile id anim pos val) ->
-                case anim of
-                    MergedExit ->
-                        identity
-
-                    _ ->
-                        Dict.insert id (Tile id Stayed pos val)
-            )
-            Dict.empty
-            (Dict.values d)
-            |> Game u i s
+        Game u i (cleanupScore s) (cleanupTilesDict d)
 
     else
         game
 
 
+cleanupScore : Score -> Score
+cleanupScore (Score total _) =
+    Score total []
+
+
+cleanupTilesDict : Dict Id Tile -> Dict Id Tile
+cleanupTilesDict d =
+    List.foldl
+        (\(Tile id anim pos val) ->
+            case anim of
+                MergedExit ->
+                    identity
+
+                _ ->
+                    Dict.insert id (Tile id Stayed pos val)
+        )
+        Dict.empty
+        (Dict.values d)
+
+
 deleteTilesWithIds : Set Id -> Game -> Game
 deleteTilesWithIds set =
     mapTilesDict (Dict.filter (\id _ -> Set.member id set))
-
-
-exitTileIdSet : Game -> Set Id
-exitTileIdSet game =
-    game
-        |> tileList
-        |> List.filterMap
-            (\(Tile id anim _ _) ->
-                if anim == MergedExit then
-                    Nothing
-
-                else
-                    Just id
-            )
-        |> Set.fromList
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
@@ -382,7 +367,11 @@ updateMergedEntries list game =
 addScoreDelta : ( Int, Game ) -> Game
 addScoreDelta ( scoreDelta, game ) =
     if scoreDelta > 0 then
-        mapScore (\(Score scores) -> Score (scoreDelta :: scores)) game
+        mapScore
+            (\(Score total scoreDeltas) ->
+                Score (total + scoreDelta) (scoreDelta :: scoreDeltas)
+            )
+            game
 
     else
         game
@@ -477,13 +466,9 @@ viewStyled game =
 
 
 viewScore : Score -> Html msg
-viewScore (Score scores) =
-    let
-        total =
-            String.fromInt (List.sum scores)
-    in
+viewScore (Score total scores) =
     div [ css [ displayGrid ] ]
-        (div [ css [ gridArea11 ] ] [ text total ]
+        (div [ css [ gridArea11 ] ] [ text <| String.fromInt total ]
             :: List.foldl (viewScoreDelta >> (::)) [] scores
         )
 
