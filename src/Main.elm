@@ -48,7 +48,7 @@ main =
 
 
 type Game
-    = Game Score (List Tile)
+    = Game Posix Score (List Tile)
 
 
 type Score
@@ -68,17 +68,17 @@ type Anim
 
 
 mapTiles : (List Tile -> List Tile) -> Game -> Game
-mapTiles fn (Game s ts) =
-    fn ts |> Game s
+mapTiles fn (Game c s ts) =
+    fn ts |> Game c s
 
 
 tileList : Game -> List Tile
-tileList (Game _ ts) =
+tileList (Game _ _ ts) =
     ts
 
 
 toScore : Game -> Score
-toScore (Game s _) =
+toScore (Game _ s _) =
     s
 
 
@@ -137,7 +137,7 @@ init : Flags -> ( Game, Cmd Msg )
 init _ =
     let
         initialModel =
-            Game initialScore []
+            Game (Time.millisToPosix 0) initialScore []
     in
     ( initialModel
     , generateNewGame initialModel
@@ -163,7 +163,7 @@ newGame : Game -> Generator Game
 newGame _ =
     let
         clearedGameScoreAndTiles =
-            Game initialScore []
+            Game (Time.millisToPosix 0) initialScore []
     in
     addRandomTilesHelp 2 InitialEnter Grid.allPositions clearedGameScoreAndTiles
 
@@ -205,8 +205,20 @@ update msg model =
         GotGame game ->
             ( game, Cmd.none )
 
-        OnAnimationFrame posix ->
-            ( model, Cmd.none )
+        OnAnimationFrame c ->
+            ( setClock c model, Cmd.none )
+
+
+absDiffMillis start now =
+    abs (Time.posixToMillis start - Time.posixToMillis now)
+
+
+setClock now (Game start s ts) =
+    if absDiffMillis start now > 2000 then
+        Game now s ts
+
+    else
+        Game start s ts
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
@@ -279,8 +291,8 @@ addScoreDelta ( scoreDelta, game ) =
 
 
 mapScore : (Score -> Score) -> Game -> Game
-mapScore fn (Game s d) =
-    Game (fn s) d
+mapScore fn (Game c s d) =
+    Game c (fn s) d
 
 
 updateMergedEntry : ( Pos, ( Tile, Tile ) ) -> ( Int, Game ) -> ( Int, Game )
@@ -355,6 +367,7 @@ viewStyled game =
         , Keyed.node "div"
             []
             [ ( Debug.toString game
+                    |> Debug.log "Debug: "
               , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
                     [ div [ css [ displayFlex, gap "20px" ] ]
                         [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
