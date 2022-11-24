@@ -11,10 +11,11 @@ import Html.Styled exposing (Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
-import Json.Decode as JD
+import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
 import Random.List
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
+import Time exposing (Posix)
 import Val exposing (Val)
 
 
@@ -125,6 +126,7 @@ type Msg
     = OnKeyDown String
     | NewGame
     | GotGame Game
+    | OnAnimationFrame Posix
 
 
 type alias Flags =
@@ -168,10 +170,15 @@ newGame _ =
 
 subscriptions : Game -> Sub Msg
 subscriptions _ =
-    Browser.Events.onKeyDown
-        (JD.field "key" JD.string
-            |> JD.map OnKeyDown
-        )
+    [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
+    , Browser.Events.onAnimationFrame OnAnimationFrame
+    ]
+        |> Sub.batch
+
+
+keyDecoder : Decoder String
+keyDecoder =
+    JD.field "key" JD.string
 
 
 update : Msg -> Game -> ( Game, Cmd Msg )
@@ -197,6 +204,9 @@ update msg model =
 
         GotGame game ->
             ( game, Cmd.none )
+
+        OnAnimationFrame posix ->
+            ( model, Cmd.none )
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
