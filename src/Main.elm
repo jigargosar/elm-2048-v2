@@ -214,7 +214,7 @@ move dir game =
 
 attemptMove : Clock -> Dir -> Game -> Maybe (Generator Game)
 attemptMove c dir (Game s ts) =
-    tilesToEntriesForSlideAndMerge ts
+    entriesForSlideAndMerge ts
         |> slideAndMerge dir
         |> Maybe.map (gameFromMergeResult c s)
 
@@ -253,7 +253,7 @@ isGameOver : Game -> Bool
 isGameOver game =
     let
         entries =
-            tilesToEntriesForSlideAndMerge (tileList game)
+            entriesForSlideAndMerge (tileList game)
 
         isInvalidMove dir =
             slideAndMerge dir entries == Nothing
@@ -304,8 +304,8 @@ tilesFromStayed c list =
     List.map fn list
 
 
-tilesToEntriesForSlideAndMerge : List Tile -> List ( Pos, Tile )
-tilesToEntriesForSlideAndMerge =
+entriesForSlideAndMerge : List Tile -> List ( Pos, Tile )
+entriesForSlideAndMerge =
     let
         toEntry ((Tile anim pos _) as tile) =
             case anim of
