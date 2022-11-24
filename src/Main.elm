@@ -84,8 +84,8 @@ randomTiles n anim emptyPositions =
         (Random.list n Val.random)
 
 
-tileUpdatePosAndAnim : Pos -> (Pos -> Anim) -> Tile -> Tile
-tileUpdatePosAndAnim pos animFn (Tile _ oldPos val) =
+tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
+tileUpdate pos animFn (Tile _ oldPos val) =
     Tile (animFn oldPos) pos val
 
 
@@ -277,8 +277,8 @@ updateMergedEntry c ( pos, ( (Tile _ _ val) as tile1, tile2 ) ) ( scoreAcc, acc 
             Val.next val
     in
     ( Val.toScore mergedVal + scoreAcc
-    , tileUpdatePosAndAnim pos (MergedExit c) tile1
-        :: tileUpdatePosAndAnim pos (MergedExit c) tile2
+    , tileUpdate pos (MergedExit c) tile1
+        :: tileUpdate pos (MergedExit c) tile2
         :: initTile (MergedEnter c) pos mergedVal
         :: acc
     )
@@ -288,7 +288,7 @@ updateStayedEntries : Clock -> List ( Pos, Tile ) -> List Tile
 updateStayedEntries c list =
     let
         fn ( pos, tile ) =
-            tileUpdatePosAndAnim pos (Stayed c) tile
+            tileUpdate pos (Stayed c) tile
     in
     List.map fn list
 
