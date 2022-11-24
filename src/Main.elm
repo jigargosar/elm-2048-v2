@@ -233,7 +233,7 @@ gameFromMergeResultHelp c score result newTile =
             scoreAndTilesFromMerged c result.merged
 
         stayedTiles =
-            updateStayedEntries c result.stayed
+            tilesFromStayed c result.stayed
     in
     Game (scoreAddDelta scoreDelta score) (mergedTiles ++ stayedTiles ++ newTile)
 
@@ -293,8 +293,8 @@ scoreAndTilesFromMerged c =
     List.foldl fn ( 0, [] )
 
 
-updateStayedEntries : Clock -> List ( Pos, Tile ) -> List Tile
-updateStayedEntries c list =
+tilesFromStayed : Clock -> List ( Pos, Tile ) -> List Tile
+tilesFromStayed c list =
     let
         fn ( pos, tile ) =
             tileUpdate pos (Stayed c) tile
