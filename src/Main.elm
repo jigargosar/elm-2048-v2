@@ -364,19 +364,12 @@ viewStyled : Game -> Html Msg
 viewStyled game =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
-        , Keyed.node "div"
-            []
-            [ ( ""
-                --Debug.toString game
-                --|> Debug.log "Debug: "
-              , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
-                    [ div [ css [ displayFlex, gap "20px" ] ]
-                        [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
-                        , viewScore (toScore game)
-                        ]
-                    , viewGame game
-                    ]
-              )
+        , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
+            [ div [ css [ displayFlex, gap "20px" ] ]
+                [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
+                , viewScore (toScore game)
+                ]
+            , viewGame game
             ]
         ]
 
