@@ -363,8 +363,23 @@ entriesForSlideAndMerge =
 
 
 view : Model -> Html.Html Msg
-view =
-    viewStyled >> toUnstyled
+view (Model c game) =
+    div [ css [ padding <| px 30 ] ]
+        [ globalStyleNode
+        , viewGame c game
+        ]
+        |> toUnstyled
+
+
+viewGame : Clock -> Game -> Html Msg
+viewGame c game =
+    div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
+        [ div [ css [ displayFlex, gap "20px" ] ]
+            [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
+            , viewScore (toScore game)
+            ]
+        , viewBoard c game
+        ]
 
 
 globalStyleNode : Html msg
@@ -375,20 +390,6 @@ globalStyleNode =
             , color <| hsl 1 1 1
             , fontSize <| px 30
             , fontFamily monospace
-            ]
-        ]
-
-
-viewStyled : Model -> Html Msg
-viewStyled (Model c game) =
-    div [ css [ padding <| px 30 ] ]
-        [ globalStyleNode
-        , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
-            [ div [ css [ displayFlex, gap "20px" ] ]
-                [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
-                , viewScore (toScore game)
-                ]
-            , viewGame c game
             ]
         ]
 
@@ -431,8 +432,8 @@ fadeUpAnim =
         ]
 
 
-viewGame : Clock -> Game -> Html Msg
-viewGame c game =
+viewBoard : Clock -> Game -> Html Msg
+viewBoard c game =
     div
         [ css
             [ displayInlineGrid
@@ -441,13 +442,13 @@ viewGame c game =
             ]
         ]
         [ viewBackgroundGrid
-        , viewTilesGrid game
+        , viewTiles game
         , viewGameOver game
         ]
 
 
-viewTilesGrid : Game -> Html Msg
-viewTilesGrid ts =
+viewTiles : Game -> Html Msg
+viewTiles ts =
     div
         [ css [ boardStyle ] ]
         (List.map viewTile (tileList ts))
