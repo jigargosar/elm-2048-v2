@@ -366,8 +366,9 @@ viewStyled game =
         [ globalStyleNode
         , Keyed.node "div"
             []
-            [ ( Debug.toString game
-                    |> Debug.log "Debug: "
+            [ ( ""
+                --Debug.toString game
+                --|> Debug.log "Debug: "
               , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
                     [ div [ css [ displayFlex, gap "20px" ] ]
                         [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
