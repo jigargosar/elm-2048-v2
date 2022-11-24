@@ -230,7 +230,7 @@ gameFromMergeResultHelp : Clock -> Score -> Grid.Result Tile -> List Tile -> Gam
 gameFromMergeResultHelp c score result newTile =
     let
         ( scoreDelta, mergedTiles ) =
-            List.foldl (updateMergedEntry c) ( 0, [] ) result.merged
+            scoreAndTilesFromMerged c result.merged
 
         stayedTiles =
             updateStayedEntries c result.stayed
@@ -275,18 +275,22 @@ tileNextVal (Tile _ _ val) =
     Val.next val
 
 
-updateMergedEntry : Clock -> ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile ) -> ( Int, List Tile )
-updateMergedEntry c ( pos, ( tile1, tile2 ) ) ( scoreAcc, acc ) =
+scoreAndTilesFromMerged : Clock -> List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
+scoreAndTilesFromMerged c =
     let
-        mergedVal =
-            tileNextVal tile1
+        fn ( pos, ( tile1, tile2 ) ) ( scoreDelta, tiles ) =
+            let
+                mergedVal =
+                    tileNextVal tile1
+            in
+            ( Val.toScore mergedVal + scoreDelta
+            , tileUpdate pos (MergedExit c) tile1
+                :: tileUpdate pos (MergedExit c) tile2
+                :: initTile (MergedEnter c) pos mergedVal
+                :: tiles
+            )
     in
-    ( Val.toScore mergedVal + scoreAcc
-    , tileUpdate pos (MergedExit c) tile1
-        :: tileUpdate pos (MergedExit c) tile2
-        :: initTile (MergedEnter c) pos mergedVal
-        :: acc
-    )
+    List.foldl fn ( 0, [] )
 
 
 updateStayedEntries : Clock -> List ( Pos, Tile ) -> List Tile
