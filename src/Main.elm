@@ -10,30 +10,21 @@ import Html
 import Html.Styled exposing (Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
-import Html.Styled.Keyed as Keyed
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
 import Random.List
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
+import Task
 import Time exposing (Posix)
 import Val exposing (Val)
-
-
-type NewTile
-    = NewTile Pos Val
-
-
-initNewTile : Pos -> Val -> NewTile
-initNewTile =
-    NewTile
 
 
 type Tile
     = Tile Anim Pos Val
 
 
-initTile : Anim -> NewTile -> Tile
-initTile anim (NewTile pos val) =
+initTile : Anim -> Pos -> Val -> Tile
+initTile anim pos val =
     Tile anim pos val
 
 
@@ -48,7 +39,7 @@ main =
 
 
 type Game
-    = Game Posix Score (List Tile)
+    = Game Score (List Tile)
 
 
 type Score
@@ -59,67 +50,43 @@ type Score
         Int
 
 
+type Clock
+    = Clock Posix
+
+
 type Anim
-    = InitialEnter
-    | MergedExit Pos
-    | MergedEnter
-    | NewDelayedEnter
-    | Stayed Pos
-
-
-mapTiles : (List Tile -> List Tile) -> Game -> Game
-mapTiles fn (Game c s ts) =
-    fn ts |> Game c s
+    = InitialEnter Clock
+    | MergedExit Clock Pos
+    | MergedEnter Clock
+    | NewDelayedEnter Clock
+    | Stayed Clock Pos
 
 
 tileList : Game -> List Tile
-tileList (Game _ _ ts) =
+tileList (Game _ ts) =
     ts
 
 
 toScore : Game -> Score
-toScore (Game _ s _) =
+toScore (Game s _) =
     s
 
 
-addRandomTile : List Pos -> Game -> Generator Game
-addRandomTile emptyPositions =
-    addRandomTilesHelp 1 NewDelayedEnter emptyPositions
+randomTileAfterMerge : Clock -> List Pos -> Generator (List Tile)
+randomTileAfterMerge c emptyPositions =
+    randomTiles 1 (NewDelayedEnter c) emptyPositions
 
 
-addRandomTilesHelp : Int -> Anim -> List Pos -> Game -> Generator Game
-addRandomTilesHelp n anim emptyPositions game =
-    randomNewTiles n emptyPositions
-        |> Random.map (List.foldl (insertTile anim) game)
-
-
-insertTile : Anim -> NewTile -> Game -> Game
-insertTile anim newTile =
-    mapTiles
-        (\ts ->
-            let
-                tile =
-                    initTile anim newTile
-            in
-            tile :: ts
-        )
-
-
-updateTile : Pos -> (Pos -> Anim) -> Tile -> Game -> Game
-updateTile pos animFn tile =
-    mapTiles ((::) (tileUpdatePosAndAnim pos animFn tile))
+randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
+randomTiles n anim emptyPositions =
+    Random.map2 (List.map2 (initTile anim))
+        (randomTake n emptyPositions)
+        (Random.list n Val.random)
 
 
 tileUpdatePosAndAnim : Pos -> (Pos -> Anim) -> Tile -> Tile
 tileUpdatePosAndAnim pos animFn (Tile _ oldPos val) =
     Tile (animFn oldPos) pos val
-
-
-randomNewTiles : Int -> List Pos -> Generator (List NewTile)
-randomNewTiles n posList =
-    Random.map2 (List.map2 initNewTile)
-        (randomTake n posList)
-        (Random.list n Val.random)
 
 
 type Msg
@@ -135,12 +102,8 @@ type alias Flags =
 
 init : Flags -> ( Game, Cmd Msg )
 init _ =
-    let
-        initialModel =
-            Game (Time.millisToPosix 0) initialScore []
-    in
-    ( initialModel
-    , generateNewGame initialModel
+    ( Game initialScore []
+    , generateNewGame
     )
 
 
@@ -149,23 +112,36 @@ initialScore =
     Score 0 0
 
 
-generateNewGame : Game -> Cmd Msg
-generateNewGame game =
-    generateGame (newGame game)
+generateNewGame : Cmd Msg
+generateNewGame =
+    Time.now
+        |> Task.map
+            (\now ->
+                Random.step (newGame (Clock now)) (Random.initialSeed (Time.posixToMillis now))
+                    |> Tuple.first
+            )
+        |> Task.perform GotGame
 
 
-generateGame : Generator Game -> Cmd Msg
-generateGame gen =
-    Random.generate GotGame gen
+generateGameWithClock fn =
+    Time.now
+        |> Task.map
+            (\now ->
+                Random.step (fn (Clock now)) (Random.initialSeed (Time.posixToMillis now))
+                    |> Tuple.first
+            )
+        |> Task.perform GotGame
 
 
-newGame : Game -> Generator Game
-newGame _ =
-    let
-        clearedGameScoreAndTiles =
-            Game (Time.millisToPosix 0) initialScore []
-    in
-    addRandomTilesHelp 2 InitialEnter Grid.allPositions clearedGameScoreAndTiles
+newGame : Clock -> Generator Game
+newGame c =
+    randomInitialTiles c
+        |> Random.map (Game initialScore)
+
+
+randomInitialTiles : Clock -> Generator (List Tile)
+randomInitialTiles c =
+    randomTiles 2 (InitialEnter c) Grid.allPositions
 
 
 subscriptions : Game -> Sub Msg
@@ -200,59 +176,82 @@ update msg model =
             ( model, Cmd.none )
 
         NewGame ->
-            ( model, generateNewGame model )
+            ( model, generateNewGame )
 
         GotGame game ->
             ( game, Cmd.none )
 
-        OnAnimationFrame c ->
-            ( setClock c model, Cmd.none )
+        OnAnimationFrame _ ->
+            --( setClock (Clock c) model, Cmd.none )
+            ( model, Cmd.none )
 
 
-absDiffMillis start now =
-    abs (Time.posixToMillis start - Time.posixToMillis now)
 
-
-setClock now (Game start s ts) =
-    if absDiffMillis start now > 2000 then
-        Game now s ts
-
-    else
-        Game start s ts
+--
+--absDiffMillis (Clock start) (Clock now) =
+--    abs (Time.posixToMillis start - Time.posixToMillis now)
+--
+--
+--setClock now (Game  s ts) =
+--    if absDiffMillis start now > 2000 then
+--        Game now s ts
+--
+--    else
+--        Game start s ts
+--
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
-    , case attemptMove dir game of
-        Just gen ->
-            generateGame gen
-
-        Nothing ->
-            Cmd.none
+    , generateGameWithClock
+        (\c ->
+            attemptMove c dir game
+                |> Maybe.withDefault (Random.constant game)
+        )
     )
 
 
-attemptMove : Dir -> Game -> Maybe (Generator Game)
-attemptMove dir game =
-    let
-        updateFromResult result =
-            game
-                |> mapTiles (always [])
-                |> updateMergedEntries result.merged
-                |> updateStayedEntries result.stayed
-                |> addRandomTile result.empty
-    in
-    entriesForSlideAndMerge game
+attemptMove : Clock -> Dir -> Game -> Maybe (Generator Game)
+attemptMove c dir (Game s ts) =
+    tilesToEntriesForSlideAndMerge ts
         |> slideAndMerge dir
-        |> Maybe.map updateFromResult
+        |> Maybe.map (gameFromMergeResult c s)
+
+
+gameFromMergeResult : Clock -> Score -> Grid.Result Tile -> Generator Game
+gameFromMergeResult c score result =
+    Random.map
+        (gameFromMergeResultHelp c score result)
+        (randomTileAfterMerge c result.empty)
+
+
+gameFromMergeResultHelp : Clock -> Score -> Grid.Result Tile -> List Tile -> Game
+gameFromMergeResultHelp c score result newTile =
+    let
+        ( scoreDelta, mergedTiles ) =
+            List.foldl (updateMergedEntry c) ( 0, [] ) result.merged
+
+        stayedTiles =
+            updateStayedEntries c result.stayed
+    in
+    Game (scoreAddDelta scoreDelta score) (mergedTiles ++ stayedTiles ++ newTile)
+
+
+scoreAddDelta : Int -> Score -> Score
+scoreAddDelta scoreDelta ((Score total _) as score) =
+    if scoreDelta > 0 then
+        Score (total + scoreDelta) scoreDelta
+
+    else
+        score
 
 
 isGameOver : Game -> Bool
 isGameOver game =
     let
         entries =
-            entriesForSlideAndMerge game
+            tilesToEntriesForSlideAndMerge (tileList game)
 
         isInvalidMove dir =
             slideAndMerge dir entries == Nothing
@@ -271,74 +270,50 @@ eqByVal (Tile _ _ v1) (Tile _ _ v2) =
     v1 == v2
 
 
-updateMergedEntries : List ( Pos, ( Tile, Tile ) ) -> Game -> Game
-updateMergedEntries list game =
-    List.foldl updateMergedEntry ( 0, game ) list
-        |> addScoreDelta
-
-
-addScoreDelta : ( Int, Game ) -> Game
-addScoreDelta ( scoreDelta, game ) =
-    if scoreDelta > 0 then
-        mapScore
-            (\(Score total _) ->
-                Score (total + scoreDelta) scoreDelta
-            )
-            game
-
-    else
-        game
-
-
-mapScore : (Score -> Score) -> Game -> Game
-mapScore fn (Game c s d) =
-    Game c (fn s) d
-
-
-updateMergedEntry : ( Pos, ( Tile, Tile ) ) -> ( Int, Game ) -> ( Int, Game )
-updateMergedEntry ( pos, ( (Tile _ _ val) as tile1, tile2 ) ) ( scoreAcc, game ) =
+updateMergedEntry : Clock -> ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile ) -> ( Int, List Tile )
+updateMergedEntry c ( pos, ( (Tile _ _ val) as tile1, tile2 ) ) ( scoreAcc, acc ) =
     let
         mergedVal =
             Val.next val
     in
     ( Val.toScore mergedVal + scoreAcc
-    , game
-        |> updateTile pos MergedExit tile1
-        |> updateTile pos MergedExit tile2
-        |> insertTile MergedEnter (initNewTile pos mergedVal)
+    , tileUpdatePosAndAnim pos (MergedExit c) tile1
+        :: tileUpdatePosAndAnim pos (MergedExit c) tile2
+        :: initTile (MergedEnter c) pos mergedVal
+        :: acc
     )
 
 
-updateStayedEntries : List ( Pos, Tile ) -> Game -> Game
-updateStayedEntries list game =
+updateStayedEntries : Clock -> List ( Pos, Tile ) -> List Tile
+updateStayedEntries c list =
     let
         fn ( pos, tile ) =
-            updateTile pos Stayed tile
+            tileUpdatePosAndAnim pos (Stayed c) tile
     in
-    List.foldl fn game list
+    List.map fn list
 
 
-entriesForSlideAndMerge : Game -> List ( Pos, Tile )
-entriesForSlideAndMerge game =
+tilesToEntriesForSlideAndMerge : List Tile -> List ( Pos, Tile )
+tilesToEntriesForSlideAndMerge =
     let
         toEntry ((Tile anim pos _) as tile) =
             case anim of
-                InitialEnter ->
+                InitialEnter _ ->
                     Just ( pos, tile )
 
-                MergedExit _ ->
+                MergedExit _ _ ->
                     Nothing
 
-                MergedEnter ->
+                MergedEnter _ ->
                     Just ( pos, tile )
 
-                NewDelayedEnter ->
+                NewDelayedEnter _ ->
                     Just ( pos, tile )
 
-                Stayed _ ->
+                Stayed _ _ ->
                     Just ( pos, tile )
     in
-    tileList game |> List.filterMap toEntry
+    List.filterMap toEntry
 
 
 view : Game -> Html.Html Msg
@@ -618,37 +593,37 @@ delayedDisappearAnim =
 animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
-        InitialEnter ->
+        InitialEnter _ ->
             appearAnim
 
-        MergedEnter ->
+        MergedEnter _ ->
             delayedPopInAnim
 
-        MergedExit _ ->
+        MergedExit _ _ ->
             delayedDisappearAnim
 
-        NewDelayedEnter ->
+        NewDelayedEnter _ ->
             delayedAppearAnim
 
-        Stayed _ ->
+        Stayed _ _ ->
             batch []
 
 
 tileMovedToAnim to anim =
     case anim of
-        InitialEnter ->
+        InitialEnter _ ->
             moveFromToAnim to to
 
-        MergedExit from ->
+        MergedExit _ from ->
             moveFromToAnim from to
 
-        MergedEnter ->
+        MergedEnter _ ->
             moveFromToAnim to to
 
-        NewDelayedEnter ->
+        NewDelayedEnter _ ->
             moveFromToAnim to to
 
-        Stayed from ->
+        Stayed _ from ->
             moveFromToAnim from to
 
 
