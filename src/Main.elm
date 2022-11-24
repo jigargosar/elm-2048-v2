@@ -438,11 +438,7 @@ fadeUpAnim =
 viewBoard : Clock -> Game -> Html Msg
 viewBoard c game =
     div
-        [ css
-            [ displayInlineGrid
-            , fontFamily monospace
-            , fontSize <| px 50
-            ]
+        [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
         ]
         [ viewBackgroundTiles
         , viewTiles c game
