@@ -444,14 +444,14 @@ viewBoard c game =
             , fontSize <| px 50
             ]
         ]
-        [ viewBackgroundGrid
-        , viewTiles game
+        [ viewBackgroundTiles
+        , viewTiles c game
         , viewGameOver game
         ]
 
 
-viewTiles : Game -> Html Msg
-viewTiles ts =
+viewTiles : Clock -> Game -> Html Msg
+viewTiles c ts =
     div
         [ css [ boardStyle ] ]
         (List.map viewTile (tileList ts))
@@ -476,8 +476,8 @@ viewGameOver game =
             text ""
 
 
-viewBackgroundGrid : Html msg
-viewBackgroundGrid =
+viewBackgroundTiles : Html msg
+viewBackgroundTiles =
     div
         [ css
             [ boardStyle
