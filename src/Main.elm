@@ -235,7 +235,9 @@ gameFromMergeResultHelp c score result newTile =
         stayedTiles =
             tilesFromStayed c result.stayed
     in
-    Game (scoreAddDelta scoreDelta score) (mergedTiles ++ stayedTiles ++ newTile)
+    Game
+        (scoreAddDelta scoreDelta score)
+        (mergedTiles ++ stayedTiles ++ newTile)
 
 
 scoreAddDelta : Int -> Score -> Score
