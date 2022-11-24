@@ -28,7 +28,11 @@ initTile anim pos val =
     Tile anim pos val
 
 
-main : Program Flags Game Msg
+type Model
+    = Model Clock Game
+
+
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
@@ -51,7 +55,22 @@ type Score
 
 
 type Clock
-    = Clock Posix
+    = Clock Float
+
+
+initialClock : Clock
+initialClock =
+    Clock 0
+
+
+clockFromPosix : Posix -> Clock
+clockFromPosix =
+    Time.posixToMillis >> toFloat >> Clock
+
+
+clockMax : Clock -> Clock -> Clock
+clockMax (Clock a) (Clock b) =
+    Clock (max a b)
 
 
 type Anim
@@ -92,19 +111,23 @@ tileUpdate pos animFn (Tile _ oldPos val) =
 type Msg
     = OnKeyDown String
     | NewGame
-    | GotGame Game
-    | OnAnimationFrame Posix
+    | GotGame Clock Game
+    | GotClockOnAnimationFrame Clock
 
 
 type alias Flags =
     ()
 
 
-init : Flags -> ( Game, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( Game initialScore []
+    ( Model initialClock initialGame
     , generateNewGame
     )
+
+
+initialGame =
+    Game initialScore []
 
 
 initialScore : Score
@@ -114,23 +137,28 @@ initialScore =
 
 generateNewGame : Cmd Msg
 generateNewGame =
-    Time.now
-        |> Task.map
-            (\now ->
-                Random.step (newGame (Clock now)) (Random.initialSeed (Time.posixToMillis now))
-                    |> Tuple.first
-            )
-        |> Task.perform GotGame
+    generateGameWithClock newGame
 
 
+generateGameWithClock : (Clock -> Generator Game) -> Cmd Msg
 generateGameWithClock fn =
     Time.now
         |> Task.map
             (\now ->
-                Random.step (fn (Clock now)) (Random.initialSeed (Time.posixToMillis now))
-                    |> Tuple.first
+                let
+                    seed =
+                        Random.initialSeed (Time.posixToMillis now)
+
+                    clock =
+                        clockFromPosix now
+
+                    game =
+                        Random.step (fn clock) seed
+                            |> Tuple.first
+                in
+                GotGame clock game
             )
-        |> Task.perform GotGame
+        |> Task.perform identity
 
 
 newGame : Clock -> Generator Game
@@ -147,7 +175,7 @@ randomInitialTiles c =
 subscriptions : Game -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
-    , Browser.Events.onAnimationFrame OnAnimationFrame
+    , Browser.Events.onAnimationFrame (clockFromPosix >> GotClockOnAnimationFrame)
     ]
         |> Sub.batch
 
@@ -157,8 +185,8 @@ keyDecoder =
     JD.field "key" JD.string
 
 
-update : Msg -> Game -> ( Game, Cmd Msg )
-update msg model =
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg ((Model c g) as model) =
     case msg of
         OnKeyDown "ArrowRight" ->
             move Right model
@@ -178,12 +206,11 @@ update msg model =
         NewGame ->
             ( model, generateNewGame )
 
-        GotGame game ->
-            ( game, Cmd.none )
+        GotGame newClock game ->
+            ( Model (clockMax c newClock) game, Cmd.none )
 
-        OnAnimationFrame _ ->
-            --( setClock (Clock c) model, Cmd.none )
-            ( model, Cmd.none )
+        GotClockOnAnimationFrame newClock ->
+            ( Model (clockMax c newClock) g, Cmd.none )
 
 
 
@@ -201,9 +228,9 @@ update msg model =
 --
 
 
-move : Dir -> Game -> ( Game, Cmd Msg )
-move dir game =
-    ( game
+move : Dir -> Model -> ( Model, Cmd Msg )
+move dir ((Model _ game) as model) =
+    ( model
     , generateGameWithClock
         (\c ->
             attemptMove c dir game
