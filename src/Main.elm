@@ -72,8 +72,8 @@ toScore (Game s _) =
     s
 
 
-randomTileAfterMerge : Clock -> List Pos -> Generator (List Tile)
-randomTileAfterMerge c emptyPositions =
+randomTilesAfterMove : Clock -> List Pos -> Generator (List Tile)
+randomTilesAfterMove c emptyPositions =
     randomTiles 1 (NewDelayedEnter c) emptyPositions
 
 
@@ -223,7 +223,7 @@ gameFromMergeResult : Clock -> Score -> Grid.Result Tile -> Generator Game
 gameFromMergeResult c score result =
     Random.map
         (gameFromMergeResultHelp c score result)
-        (randomTileAfterMerge c result.empty)
+        (randomTilesAfterMove c result.empty)
 
 
 gameFromMergeResultHelp : Clock -> Score -> Grid.Result Tile -> List Tile -> Game
