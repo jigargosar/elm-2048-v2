@@ -137,28 +137,29 @@ initialScore =
 
 generateNewGame : Cmd Msg
 generateNewGame =
-    generateGameWithClock newGame
+    generateGame newGame
 
 
-generateGameWithClock : (Clock -> Generator Game) -> Cmd Msg
-generateGameWithClock fn =
-    Time.now
-        |> Task.map
-            (\now ->
-                let
-                    seed =
-                        Random.initialSeed (Time.posixToMillis now)
+generateGame : (Clock -> Generator Game) -> Cmd Msg
+generateGame fn =
+    performWithNow
+        (\now ->
+            let
+                seed =
+                    Random.initialSeed (Time.posixToMillis now)
 
-                    clock =
-                        clockFromPosix now
+                clock =
+                    clockFromPosix now
 
-                    game =
-                        Random.step (fn clock) seed
-                            |> Tuple.first
-                in
-                GotGame clock game
-            )
-        |> Task.perform identity
+                game =
+                    Random.step (fn clock) seed |> Tuple.first
+            in
+            GotGame clock game
+        )
+
+
+performWithNow fn =
+    Time.now |> Task.map fn |> Task.perform identity
 
 
 newGame : Clock -> Generator Game
@@ -172,7 +173,7 @@ randomInitialTiles c =
     randomTiles 2 (InitialEnter c) Grid.allPositions
 
 
-subscriptions : Game -> Sub Msg
+subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
     , Browser.Events.onAnimationFrame (clockFromPosix >> GotClockOnAnimationFrame)
@@ -188,6 +189,15 @@ keyDecoder =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ((Model c g) as model) =
     case msg of
+        NewGame ->
+            ( model, generateNewGame )
+
+        GotGame newClock game ->
+            ( Model (clockMax c newClock) game, Cmd.none )
+
+        GotClockOnAnimationFrame newClock ->
+            ( Model (clockMax c newClock) g, Cmd.none )
+
         OnKeyDown "ArrowRight" ->
             move Right model
 
@@ -202,15 +212,6 @@ update msg ((Model c g) as model) =
 
         OnKeyDown _ ->
             ( model, Cmd.none )
-
-        NewGame ->
-            ( model, generateNewGame )
-
-        GotGame newClock game ->
-            ( Model (clockMax c newClock) game, Cmd.none )
-
-        GotClockOnAnimationFrame newClock ->
-            ( Model (clockMax c newClock) g, Cmd.none )
 
 
 
@@ -229,21 +230,28 @@ update msg ((Model c g) as model) =
 
 
 move : Dir -> Model -> ( Model, Cmd Msg )
-move dir ((Model _ game) as model) =
+move dir ((Model _ (Game s ts)) as model) =
     ( model
-    , generateGameWithClock
-        (\c ->
-            attemptMove c dir game
-                |> Maybe.withDefault (Random.constant game)
-        )
+    , case
+        entriesForSlideAndMerge ts |> slideAndMerge dir
+      of
+        Nothing ->
+            Cmd.none
+
+        Just result ->
+            generateGame
+                (\c ->
+                    gameFromMergeResult c s result
+                )
     )
 
 
-attemptMove : Clock -> Dir -> Game -> Maybe (Generator Game)
-attemptMove c dir (Game s ts) =
-    entriesForSlideAndMerge ts
-        |> slideAndMerge dir
-        |> Maybe.map (gameFromMergeResult c s)
+
+--attemptMove : Clock -> Dir -> Game -> Maybe (Generator Game)
+--attemptMove c dir (Game s ts) =
+--    entriesForSlideAndMerge ts
+--        |> slideAndMerge dir
+--        |> Maybe.map (gameFromMergeResult c s)
 
 
 gameFromMergeResult : Clock -> Score -> Grid.Result Tile -> Generator Game
@@ -354,11 +362,9 @@ entriesForSlideAndMerge =
     List.filterMap toEntry
 
 
-view : Game -> Html.Html Msg
-view game =
-    game
-        |> viewStyled
-        |> toUnstyled
+view : Model -> Html.Html Msg
+view =
+    viewStyled >> toUnstyled
 
 
 globalStyleNode : Html msg
@@ -373,8 +379,8 @@ globalStyleNode =
         ]
 
 
-viewStyled : Game -> Html Msg
-viewStyled game =
+viewStyled : Model -> Html Msg
+viewStyled (Model c game) =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
         , div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
@@ -382,7 +388,7 @@ viewStyled game =
                 [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
                 , viewScore (toScore game)
                 ]
-            , viewGame game
+            , viewGame c game
             ]
         ]
 
@@ -425,8 +431,8 @@ fadeUpAnim =
         ]
 
 
-viewGame : Game -> Html Msg
-viewGame game =
+viewGame : Clock -> Game -> Html Msg
+viewGame c game =
     div
         [ css
             [ displayInlineGrid
@@ -435,25 +441,35 @@ viewGame game =
             ]
         ]
         [ viewBackgroundGrid
-        , div
-            [ css [ boardStyle ] ]
-            (List.map viewTile (tileList game))
-        , case isGameOver game of
-            True ->
-                div
-                    [ css
-                        [ gridArea11
-                        , position relative
-                        , displayGrid
-                        , placeContentCenter
-                        , backgroundColor <| hsla 0 0 1 0.8
-                        ]
-                    ]
-                    [ text "game over" ]
-
-            False ->
-                text ""
+        , viewTilesGrid game
+        , viewGameOver game
         ]
+
+
+viewTilesGrid : Game -> Html Msg
+viewTilesGrid ts =
+    div
+        [ css [ boardStyle ] ]
+        (List.map viewTile (tileList ts))
+
+
+viewGameOver : Game -> Html msg
+viewGameOver game =
+    case isGameOver game of
+        True ->
+            div
+                [ css
+                    [ gridArea11
+                    , position relative
+                    , displayGrid
+                    , placeContentCenter
+                    , backgroundColor <| hsla 0 0 1 0.8
+                    ]
+                ]
+                [ text "game over" ]
+
+        False ->
+            text ""
 
 
 viewBackgroundGrid : Html msg
