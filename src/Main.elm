@@ -620,22 +620,22 @@ animToStyle anim =
 tileMovedToAnim to anim =
     case anim of
         InitialEnter ->
-            animMoveFromToStyle to to
+            moveFromToAnim to to
 
         MergedExit from ->
-            animMoveFromToStyle from to
+            moveFromToAnim from to
 
         MergedEnter ->
-            animMoveFromToStyle to to
+            moveFromToAnim to to
 
         NewDelayedEnter ->
-            animMoveFromToStyle to to
+            moveFromToAnim to to
 
         Stayed from ->
-            animMoveFromToStyle from to
+            moveFromToAnim from to
 
 
-animMoveFromToStyle from to =
+moveFromToAnim from to =
     batch
         [ animationName <|
             keyframes
