@@ -450,7 +450,7 @@ viewTiles : Clock -> Game -> Html Msg
 viewTiles c ts =
     div
         [ css [ boardStyle ] ]
-        (List.map viewTile (tileList ts))
+        (List.map (viewTile c) (tileList ts))
 
 
 viewGameOver : Game -> Html msg
@@ -702,8 +702,8 @@ moveFromToAnim from to =
         ]
 
 
-viewTile : Tile -> Html Msg
-viewTile ((Tile anim pos val) as tile) =
+viewTile : Clock -> Tile -> Html Msg
+viewTile c ((Tile anim pos val) as tile) =
     let
         ( dx, dy ) =
             pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
