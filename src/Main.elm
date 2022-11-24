@@ -375,11 +375,14 @@ viewGame : Clock -> Game -> Html Msg
 viewGame c game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
         [ div [ css [ displayFlex, gap "20px" ] ]
-            [ button [ autofocus True, onClick NewGame ] [ text "New Game" ]
-            , viewScore (toScore game)
-            ]
+            [ viewNewGameButton, viewScore (toScore game) ]
         , viewBoard c game
         ]
+
+
+viewNewGameButton : Html Msg
+viewNewGameButton =
+    button [ autofocus True, onClick NewGame ] [ text "New Game" ]
 
 
 globalStyleNode : Html msg
