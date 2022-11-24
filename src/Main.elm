@@ -270,11 +270,16 @@ eqByVal (Tile _ _ v1) (Tile _ _ v2) =
     v1 == v2
 
 
+tileNextVal : Tile -> Val
+tileNextVal (Tile _ _ val) =
+    Val.next val
+
+
 updateMergedEntry : Clock -> ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile ) -> ( Int, List Tile )
-updateMergedEntry c ( pos, ( (Tile _ _ val) as tile1, tile2 ) ) ( scoreAcc, acc ) =
+updateMergedEntry c ( pos, ( tile1, tile2 ) ) ( scoreAcc, acc ) =
     let
         mergedVal =
-            Val.next val
+            tileNextVal tile1
     in
     ( Val.toScore mergedVal + scoreAcc
     , tileUpdate pos (MergedExit c) tile1
