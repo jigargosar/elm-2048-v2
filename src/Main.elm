@@ -711,10 +711,43 @@ animToStyles now anim =
             ]
 
         MergedExit start _ ->
+            --let
+            --    elapsed =
+            --        clockElapsed start now
+            --
+            --    n =
+            --        rangeMap ( shortDurationMillis, shortDurationMillis + mediumDurationMillis )
+            --
+            --    o =
+            --        n ( 1, 0 ) elapsed
+            --
+            --    s =
+            --        n ( 1, 0 ) elapsed
+            --in
+            --[ style "opacity" (String.fromFloat o)
+            --, style "transform" ("scale(" ++ String.fromFloat s ++ ")")
+            --]
             []
 
         MergedEnter start ->
-            []
+            let
+                elapsed =
+                    clockElapsed start now
+
+                n =
+                    normClamped shortDurationMillis
+                        (shortDurationMillis + mediumDurationMillis)
+                        elapsed
+
+                s =
+                    if n < 0.5 then
+                        lerp 0 1.2 n
+
+                    else
+                        lerp 1.2 1 n
+            in
+            [ style "transform" ("scale(" ++ String.fromFloat s ++ ")")
+            ]
 
         Stayed start _ ->
             []
