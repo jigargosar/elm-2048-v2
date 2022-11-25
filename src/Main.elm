@@ -184,17 +184,16 @@ update msg model =
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
-move dir ((Game s ts) as game) =
+move dir game =
     ( game
     , case
-        entriesForSlideAndMerge ts |> slideAndMerge dir
+        attemptMove dir game
       of
         Nothing ->
             Cmd.none
 
-        Just result ->
-            gameFromMergeResult s result
-                |> generateGame
+        Just gen ->
+            generateGame gen
     )
 
 
@@ -203,14 +202,6 @@ attemptMove dir (Game s ts) =
     entriesForSlideAndMerge ts
         |> slideAndMerge dir
         |> Maybe.map (gameFromMergeResult s)
-
-
-
---attemptMove : Clock -> Dir -> Game -> Maybe (Generator Game)
---attemptMove c dir (Game s ts) =
---    entriesForSlideAndMerge ts
---        |> slideAndMerge dir
---        |> Maybe.map (gameFromMergeResult c s)
 
 
 gameFromMergeResult : Score -> Grid.Result Tile -> Generator Game
