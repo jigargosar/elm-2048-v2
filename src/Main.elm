@@ -7,8 +7,8 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
 import Html
-import Html.Styled exposing (Html, button, div, text, toUnstyled)
-import Html.Styled.Attributes as HA exposing (autofocus, css)
+import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
+import Html.Styled.Attributes as HA exposing (autofocus, css, style)
 import Html.Styled.Events exposing (onClick)
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
@@ -71,6 +71,10 @@ clockFromPosix =
 clockMax : Clock -> Clock -> Clock
 clockMax (Clock a) (Clock b) =
     Clock (max a b)
+
+
+clockElapsed (Clock a) (Clock b) =
+    abs (a - b)
 
 
 type Anim
@@ -648,7 +652,7 @@ animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
         InitialEnter _ ->
-            appearAnim
+            batch []
 
         MergedEnter _ ->
             delayedPopInAnim
@@ -661,6 +665,61 @@ animToStyle anim =
 
         Stayed _ _ ->
             batch []
+
+
+animToStyles : Clock -> Anim -> List (Attribute msg)
+animToStyles now anim =
+    case anim of
+        InitialEnter start ->
+            let
+                elapsed =
+                    clockElapsed start now
+
+                o =
+                    rangeMap ( 0, 200 ) ( 0, 1 ) elapsed
+
+                s =
+                    rangeMap ( 0, 200 ) ( 0, 1 ) elapsed
+            in
+            [ style "opacity" (String.fromFloat o)
+            , style "transform" ("scale(" ++ String.fromFloat s ++ ")")
+            ]
+
+        MergedExit start _ ->
+            []
+
+        MergedEnter start ->
+            []
+
+        NewDelayedEnter start ->
+            []
+
+        Stayed start _ ->
+            []
+
+
+norm a b x =
+    let
+        divisor =
+            b - a
+    in
+    if divisor == 0 then
+        a
+
+    else
+        x / (b - a)
+
+
+normClamped a b x =
+    clamp 0 1 (norm a b x)
+
+
+lerp a b n =
+    a + (b - a) * n
+
+
+rangeMap ( a, b ) ( c, d ) x =
+    normClamped a b x |> lerp c d
 
 
 tileMovedToAnim to anim =
@@ -719,15 +778,17 @@ viewTile c ((Tile anim pos val) as tile) =
             ]
         ]
         [ div
-            [ css
+            ([ css
                 [ backgroundColor <| valBackgroundColor val
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
                 , animToStyle anim
                 ]
-            , HA.title <| Debug.toString tile
-            ]
+             , HA.title <| Debug.toString tile
+             ]
+                ++ animToStyles c anim
+            )
             [ text <| Val.toDisplayString val
             ]
         ]
