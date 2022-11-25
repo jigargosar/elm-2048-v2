@@ -648,6 +648,10 @@ delayedDisappearAnim =
         ]
 
 
+
+--noinspection ElmUnusedSymbol
+
+
 animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
@@ -675,11 +679,32 @@ animToStyles now anim =
                 elapsed =
                     clockElapsed start now
 
+                n =
+                    rangeMap ( 0, mediumDurationMillis )
+
                 o =
-                    rangeMap ( 0, 200 ) ( 0, 1 ) elapsed
+                    n ( 0, 1 ) elapsed
 
                 s =
-                    rangeMap ( 0, 200 ) ( 0, 1 ) elapsed
+                    n ( 0, 1 ) elapsed
+            in
+            [ style "opacity" (String.fromFloat o)
+            , style "transform" ("scale(" ++ String.fromFloat s ++ ")")
+            ]
+
+        NewDelayedEnter start ->
+            let
+                elapsed =
+                    clockElapsed start now
+
+                n =
+                    rangeMap ( shortDurationMillis, shortDurationMillis + mediumDurationMillis )
+
+                o =
+                    n ( 0, 1 ) elapsed
+
+                s =
+                    n ( 0, 1 ) elapsed
             in
             [ style "opacity" (String.fromFloat o)
             , style "transform" ("scale(" ++ String.fromFloat s ++ ")")
@@ -689,9 +714,6 @@ animToStyles now anim =
             []
 
         MergedEnter start ->
-            []
-
-        NewDelayedEnter start ->
             []
 
         Stayed start _ ->
@@ -783,7 +805,8 @@ viewTile c ((Tile anim pos val) as tile) =
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
-                , animToStyle anim
+
+                --, animToStyle anim
                 ]
              , HA.title <| Debug.toString tile
              ]
