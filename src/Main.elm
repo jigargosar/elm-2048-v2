@@ -652,7 +652,7 @@ animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
         InitialEnter _ ->
-            batch []
+            appearAnim
 
         MergedEnter _ ->
             delayedPopInAnim
