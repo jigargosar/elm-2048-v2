@@ -86,7 +86,7 @@ tileUpdate pos animFn (Tile _ oldPos val) =
 
 type Msg
     = OnKeyDown String
-    | NewGame
+    | NewGameClicked
     | GotGame Game
 
 
@@ -101,6 +101,7 @@ init _ =
     )
 
 
+initialGame : Game
 initialGame =
     Game initialScore []
 
@@ -146,7 +147,7 @@ keyDecoder =
 update : Msg -> Game -> ( Game, Cmd Msg )
 update msg model =
     case msg of
-        NewGame ->
+        NewGameClicked ->
             ( model, generateNewGame )
 
         GotGame game ->
@@ -318,7 +319,7 @@ wrapInKeyed x el =
 
 viewNewGameButton : Html Msg
 viewNewGameButton =
-    button [ autofocus True, onClick NewGame ] [ text "New Game" ]
+    button [ autofocus True, onClick NewGameClicked ] [ text "New Game" ]
 
 
 globalStyleNode : Html msg
