@@ -6,17 +6,15 @@ import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
-import Ease
 import Html
 import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
-import Html.Styled.Attributes as HA exposing (autofocus, css, style)
+import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
+import Html.Styled.Keyed as Keyed
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
 import Random.List
 import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
-import Task
-import Time exposing (Posix)
 import Val exposing (Val)
 
 
@@ -29,11 +27,7 @@ initTile anim pos val =
     Tile anim pos val
 
 
-type Model
-    = Model Clock Game
-
-
-main : Program Flags Model Msg
+main : Program Flags Game Msg
 main =
     Browser.element
         { init = init
@@ -51,39 +45,16 @@ type Score
     = Score
         -- total
         Int
-        -- last delta for animation
-        Int
-
-
-type Clock
-    = Clock Float
-
-
-initialClock : Clock
-initialClock =
-    Clock 0
-
-
-clockFromPosix : Posix -> Clock
-clockFromPosix =
-    Time.posixToMillis >> toFloat >> Clock
-
-
-clockMax : Clock -> Clock -> Clock
-clockMax (Clock a) (Clock b) =
-    Clock (max a b)
-
-
-clockElapsed (Clock a) (Clock b) =
-    abs (a - b)
+        -- deltas for animation
+        (List Int)
 
 
 type Anim
-    = InitialEnter Clock
-    | MergedExit Clock Pos
-    | MergedEnter Clock
-    | NewDelayedEnter Clock
-    | Stayed Clock Pos
+    = InitialEnter
+    | MergedExit Pos
+    | MergedEnter
+    | NewDelayedEnter
+    | Stayed Pos
 
 
 tileList : Game -> List Tile
@@ -96,9 +67,9 @@ toScore (Game s _) =
     s
 
 
-randomTilesAfterMove : Clock -> List Pos -> Generator (List Tile)
-randomTilesAfterMove c emptyPositions =
-    randomTiles 1 (NewDelayedEnter c) emptyPositions
+randomTilesAfterMove : List Pos -> Generator (List Tile)
+randomTilesAfterMove emptyPositions =
+    randomTiles 1 NewDelayedEnter emptyPositions
 
 
 randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
@@ -116,17 +87,16 @@ tileUpdate pos animFn (Tile _ oldPos val) =
 type Msg
     = OnKeyDown String
     | NewGame
-    | GotGame Clock Game
-    | GotClockOnAnimationFrame Clock
+    | GotGame Game
 
 
 type alias Flags =
     ()
 
 
-init : Flags -> ( Model, Cmd Msg )
+init : Flags -> ( Game, Cmd Msg )
 init _ =
-    ( Model initialClock initialGame
+    ( initialGame
     , generateNewGame
     )
 
@@ -137,7 +107,7 @@ initialGame =
 
 initialScore : Score
 initialScore =
-    Score 0 0
+    Score 0 []
 
 
 generateNewGame : Cmd Msg
@@ -145,43 +115,25 @@ generateNewGame =
     generateGame newGame
 
 
-generateGame : (Clock -> Generator Game) -> Cmd Msg
-generateGame fn =
-    performWithNow
-        (\now ->
-            let
-                seed =
-                    Random.initialSeed (Time.posixToMillis now)
-
-                clock =
-                    clockFromPosix now
-
-                game =
-                    Random.step (fn clock) seed |> Tuple.first
-            in
-            GotGame clock game
-        )
+generateGame : Generator Game -> Cmd Msg
+generateGame =
+    Random.generate GotGame
 
 
-performWithNow fn =
-    Time.now |> Task.map fn |> Task.perform identity
-
-
-newGame : Clock -> Generator Game
-newGame c =
-    randomInitialTiles c
+newGame : Generator Game
+newGame =
+    randomInitialTiles
         |> Random.map (Game initialScore)
 
 
-randomInitialTiles : Clock -> Generator (List Tile)
-randomInitialTiles c =
-    randomTiles 2 (InitialEnter c) Grid.allPositions
+randomInitialTiles : Generator (List Tile)
+randomInitialTiles =
+    randomTiles 2 InitialEnter Grid.allPositions
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Game -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
-    , Browser.Events.onAnimationFrame (clockFromPosix >> GotClockOnAnimationFrame)
     ]
         |> Sub.batch
 
@@ -191,17 +143,14 @@ keyDecoder =
     JD.field "key" JD.string
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ((Model c g) as model) =
+update : Msg -> Game -> ( Game, Cmd Msg )
+update msg model =
     case msg of
         NewGame ->
             ( model, generateNewGame )
 
-        GotGame newClock game ->
-            ( Model (clockMax c newClock) game, Cmd.none )
-
-        GotClockOnAnimationFrame newClock ->
-            ( Model (clockMax c newClock) g, Cmd.none )
+        GotGame game ->
+            ( game, Cmd.none )
 
         OnKeyDown "ArrowRight" ->
             move Right model
@@ -234,9 +183,9 @@ update msg ((Model c g) as model) =
 --
 
 
-move : Dir -> Model -> ( Model, Cmd Msg )
-move dir ((Model _ (Game s ts)) as model) =
-    ( model
+move : Dir -> Game -> ( Game, Cmd Msg )
+move dir ((Game s ts) as game) =
+    ( game
     , case
         entriesForSlideAndMerge ts |> slideAndMerge dir
       of
@@ -244,10 +193,8 @@ move dir ((Model _ (Game s ts)) as model) =
             Cmd.none
 
         Just result ->
-            generateGame
-                (\c ->
-                    gameFromMergeResult c s result
-                )
+            gameFromMergeResult s result
+                |> generateGame
     )
 
 
@@ -259,21 +206,21 @@ move dir ((Model _ (Game s ts)) as model) =
 --        |> Maybe.map (gameFromMergeResult c s)
 
 
-gameFromMergeResult : Clock -> Score -> Grid.Result Tile -> Generator Game
-gameFromMergeResult c score result =
+gameFromMergeResult : Score -> Grid.Result Tile -> Generator Game
+gameFromMergeResult score result =
     Random.map
-        (gameFromMergeResultHelp c score result)
-        (randomTilesAfterMove c result.empty)
+        (gameFromMergeResultHelp score result)
+        (randomTilesAfterMove result.empty)
 
 
-gameFromMergeResultHelp : Clock -> Score -> Grid.Result Tile -> List Tile -> Game
-gameFromMergeResultHelp c score result newTile =
+gameFromMergeResultHelp : Score -> Grid.Result Tile -> List Tile -> Game
+gameFromMergeResultHelp score result newTile =
     let
         ( scoreDelta, mergedTiles ) =
-            scoreAndTilesFromMerged c result.merged
+            scoreAndTilesFromMerged result.merged
 
         stayedTiles =
-            tilesFromStayed c result.stayed
+            tilesFromStayed result.stayed
     in
     Game
         (scoreAddDelta scoreDelta score)
@@ -281,9 +228,9 @@ gameFromMergeResultHelp c score result newTile =
 
 
 scoreAddDelta : Int -> Score -> Score
-scoreAddDelta scoreDelta ((Score total _) as score) =
+scoreAddDelta scoreDelta ((Score total deltas) as score) =
     if scoreDelta > 0 then
-        Score (total + scoreDelta) scoreDelta
+        Score (total + scoreDelta) (scoreDelta :: deltas)
 
     else
         score
@@ -317,8 +264,8 @@ tileNextVal (Tile _ _ val) =
     Val.next val
 
 
-scoreAndTilesFromMerged : Clock -> List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
-scoreAndTilesFromMerged c =
+scoreAndTilesFromMerged : List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
+scoreAndTilesFromMerged =
     let
         fn ( pos, ( tile1, tile2 ) ) ( scoreDelta, tiles ) =
             let
@@ -326,20 +273,20 @@ scoreAndTilesFromMerged c =
                     tileNextVal tile1
             in
             ( Val.toScore mergedVal + scoreDelta
-            , tileUpdate pos (MergedExit c) tile1
-                :: tileUpdate pos (MergedExit c) tile2
-                :: initTile (MergedEnter c) pos mergedVal
+            , tileUpdate pos MergedExit tile1
+                :: tileUpdate pos MergedExit tile2
+                :: initTile MergedEnter pos mergedVal
                 :: tiles
             )
     in
     List.foldl fn ( 0, [] )
 
 
-tilesFromStayed : Clock -> List ( Pos, Tile ) -> List Tile
-tilesFromStayed c list =
+tilesFromStayed : List ( Pos, Tile ) -> List Tile
+tilesFromStayed list =
     let
         fn ( pos, tile ) =
-            tileUpdate pos (Stayed c) tile
+            tileUpdate pos Stayed tile
     in
     List.map fn list
 
@@ -349,40 +296,46 @@ entriesForSlideAndMerge =
     let
         toEntry ((Tile anim pos _) as tile) =
             case anim of
-                InitialEnter _ ->
+                InitialEnter ->
                     Just ( pos, tile )
 
-                MergedExit _ _ ->
+                MergedExit _ ->
                     Nothing
 
-                MergedEnter _ ->
+                MergedEnter ->
                     Just ( pos, tile )
 
-                NewDelayedEnter _ ->
+                NewDelayedEnter ->
                     Just ( pos, tile )
 
-                Stayed _ _ ->
+                Stayed _ ->
                     Just ( pos, tile )
     in
     List.filterMap toEntry
 
 
-view : Model -> Html.Html Msg
-view (Model c game) =
+view : Game -> Html.Html Msg
+view game =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
-        , viewGame c game
+        , viewGame game
         ]
         |> toUnstyled
 
 
-viewGame : Clock -> Game -> Html Msg
-viewGame c game =
+viewGame : Game -> Html Msg
+viewGame game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
         [ div [ css [ displayFlex, gap "20px" ] ]
-            [ viewNewGameButton, viewScore (toScore game) ]
-        , viewBoard c game
+            [ viewNewGameButton
+            , viewScore (toScore game)
+            ]
+        , wrapInKeyed game <| viewBoard game
         ]
+
+
+wrapInKeyed x el =
+    Keyed.node "div" [ css [ gridArea11, displayGrid ] ] [ ( Debug.toString x, el ) ]
 
 
 viewNewGameButton : Html Msg
@@ -403,11 +356,11 @@ globalStyleNode =
 
 
 viewScore : Score -> Html msg
-viewScore (Score total delta) =
+viewScore (Score total deltas) =
     div [ css [ displayGrid ] ]
-        [ div [ css [ gridArea11 ] ] [ text <| String.fromInt total ]
-        , viewScoreDelta delta
-        ]
+        (div [ css [ gridArea11 ] ] [ text <| String.fromInt total ]
+            :: List.foldl (\d -> (::) (viewScoreDelta d)) [] deltas
+        )
 
 
 viewScoreDelta : Int -> Html msg
@@ -440,22 +393,22 @@ fadeUpAnim =
         ]
 
 
-viewBoard : Clock -> Game -> Html Msg
-viewBoard c game =
+viewBoard : Game -> Html Msg
+viewBoard game =
     div
         [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
         ]
         [ viewBackgroundTiles
-        , viewTiles c game
+        , viewTiles game
         , viewGameOver game
         ]
 
 
-viewTiles : Clock -> Game -> Html Msg
-viewTiles c ts =
+viewTiles : Game -> Html Msg
+viewTiles ts =
     div
         [ css [ boardStyle ] ]
-        (List.map (viewTile c) (tileList ts))
+        (List.map viewTile (tileList ts))
 
 
 viewGameOver : Game -> Html msg
@@ -656,140 +609,37 @@ delayedDisappearAnim =
 animToStyle : Anim -> Style
 animToStyle anim =
     case anim of
-        InitialEnter _ ->
+        InitialEnter ->
             appearAnim
 
-        MergedEnter _ ->
+        MergedEnter ->
             delayedPopInAnim
 
-        MergedExit _ _ ->
+        MergedExit _ ->
             delayedDisappearAnim
 
-        NewDelayedEnter _ ->
+        NewDelayedEnter ->
             delayedAppearAnim
 
-        Stayed _ _ ->
+        Stayed _ ->
             batch []
-
-
-animToStyles : Clock -> Anim -> List (Attribute msg)
-animToStyles now anim =
-    case anim of
-        InitialEnter start ->
-            let
-                elapsed =
-                    clockElapsed start now
-
-                n =
-                    rangeMap ( 0, mediumDurationMillis )
-
-                o =
-                    n ( 0, 1 ) elapsed
-
-                s =
-                    n ( 0, 1 ) elapsed
-            in
-            [ style "opacity" (String.fromFloat o)
-            , style "transform" ("scale(" ++ String.fromFloat s ++ ")")
-            ]
-
-        NewDelayedEnter start ->
-            let
-                elapsed =
-                    clockElapsed start now
-
-                n =
-                    rangeMap ( shortDurationMillis, shortDurationMillis + mediumDurationMillis )
-
-                o =
-                    n ( 0, 1 ) elapsed
-
-                s =
-                    n ( 0, 1 ) elapsed
-            in
-            [ style "opacity" (String.fromFloat o)
-            , style "transform" ("scale(" ++ String.fromFloat s ++ ")")
-            ]
-
-        MergedExit start _ ->
-            --let
-            --    elapsed =
-            --        clockElapsed start now
-            --
-            --    n =
-            --        rangeMap ( shortDurationMillis, shortDurationMillis + mediumDurationMillis )
-            --
-            --    o =
-            --        n ( 1, 0 ) elapsed
-            --
-            --    s =
-            --        n ( 1, 0 ) elapsed
-            --in
-            --[ style "opacity" (String.fromFloat o)
-            --, style "transform" ("scale(" ++ String.fromFloat s ++ ")")
-            --]
-            []
-
-        MergedEnter start ->
-            let
-                elapsed =
-                    clockElapsed start now
-
-                n =
-                    normClamped shortDurationMillis
-                        (shortDurationMillis + mediumDurationMillis)
-                        elapsed
-                        |> Ease.outBack
-
-                s =
-                    lerp 0 1 n
-            in
-            [ style "transform" ("scale(" ++ String.fromFloat s ++ ")")
-            ]
-
-        Stayed start _ ->
-            []
-
-
-norm a b x =
-    let
-        denominator =
-            b - a
-    in
-    if denominator == 0 then
-        a
-
-    else
-        x / (b - a)
-
-
-normClamped a b x =
-    clamp 0 1 (norm a b x)
-
-
-lerp a b n =
-    a + (b - a) * n
-
-
-rangeMap ( a, b ) ( c, d ) x =
-    normClamped a b x |> lerp c d
 
 
 tileMovedToAnim to anim =
     case anim of
-        InitialEnter _ ->
+        InitialEnter ->
             moveFromToAnim to to
 
-        MergedExit _ from ->
+        MergedExit from ->
             moveFromToAnim from to
 
-        MergedEnter _ ->
+        MergedEnter ->
             moveFromToAnim to to
 
-        NewDelayedEnter _ ->
+        NewDelayedEnter ->
             moveFromToAnim to to
 
-        Stayed _ from ->
+        Stayed from ->
             moveFromToAnim from to
 
 
@@ -814,8 +664,8 @@ moveFromToAnim from to =
         ]
 
 
-viewTile : Clock -> Tile -> Html Msg
-viewTile c ((Tile anim pos val) as tile) =
+viewTile : Tile -> Html Msg
+viewTile ((Tile anim pos val) as tile) =
     let
         ( dx, dy ) =
             pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
@@ -831,18 +681,15 @@ viewTile c ((Tile anim pos val) as tile) =
             ]
         ]
         [ div
-            ([ css
+            [ css
                 [ backgroundColor <| valBackgroundColor val
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
-
-                --, animToStyle anim
+                , animToStyle anim
                 ]
-             , HA.title <| Debug.toString tile
-             ]
-                ++ animToStyles c anim
-            )
+            , HA.title <| Debug.toString tile
+            ]
             [ text <| Val.toDisplayString val
             ]
         ]
