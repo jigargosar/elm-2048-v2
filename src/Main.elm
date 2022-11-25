@@ -185,10 +185,11 @@ attemptMove dir (Game s ts) =
         |> Maybe.map (gameFromMergeResult s)
 
 
+gameFromMergeResult : Score -> Grid.Result Tile -> Generator Game
 gameFromMergeResult score result =
     let
         ( scoreDelta, mergedTiles ) =
-            scoreAndTilesFromMerged result.merged
+            scoreDeltaAndTilesFromMerged result.merged
 
         stayedTiles =
             tilesFromStayed result.stayed
@@ -240,8 +241,8 @@ tileNextVal (Tile _ _ val) =
     Val.next val
 
 
-scoreAndTilesFromMerged : List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
-scoreAndTilesFromMerged =
+scoreDeltaAndTilesFromMerged : List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
+scoreDeltaAndTilesFromMerged =
     let
         fn ( pos, ( tile1, tile2 ) ) ( scoreDelta, tiles ) =
             let
