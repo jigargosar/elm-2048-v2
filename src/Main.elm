@@ -6,6 +6,7 @@ import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import Css.Transitions as T exposing (transition)
+import Ease
 import Html
 import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css, style)
@@ -738,13 +739,10 @@ animToStyles now anim =
                     normClamped shortDurationMillis
                         (shortDurationMillis + mediumDurationMillis)
                         elapsed
+                        |> Ease.outBack
 
                 s =
-                    if n < 0.5 then
-                        lerp 0 1.2 n
-
-                    else
-                        lerp 1.2 1 n
+                    lerp 0 1 n
             in
             [ style "transform" ("scale(" ++ String.fromFloat s ++ ")")
             ]
