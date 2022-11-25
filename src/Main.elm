@@ -186,14 +186,9 @@ update msg model =
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
-    , case
-        attemptMove dir game
-      of
-        Nothing ->
-            Cmd.none
-
-        Just gen ->
-            generateGame gen
+    , attemptMove dir game
+        |> Maybe.map generateGame
+        |> Maybe.withDefault Cmd.none
     )
 
 
