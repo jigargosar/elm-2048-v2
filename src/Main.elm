@@ -753,10 +753,10 @@ animToStyles now anim =
 
 norm a b x =
     let
-        divisor =
+        denominator =
             b - a
     in
-    if divisor == 0 then
+    if denominator == 0 then
         a
 
     else
