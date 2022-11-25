@@ -185,25 +185,22 @@ attemptMove dir (Game s ts) =
         |> Maybe.map (gameFromMergeResult s)
 
 
-gameFromMergeResult : Score -> Grid.Result Tile -> Generator Game
 gameFromMergeResult score result =
-    Random.map
-        (gameFromMergeResultHelp score result)
-        (randomTilesAfterMove result.empty)
-
-
-gameFromMergeResultHelp : Score -> Grid.Result Tile -> List Tile -> Game
-gameFromMergeResultHelp score result newTile =
     let
         ( scoreDelta, mergedTiles ) =
             scoreAndTilesFromMerged result.merged
 
         stayedTiles =
             tilesFromStayed result.stayed
+
+        updatedScore =
+            scoreAddDelta scoreDelta score
+
+        updatedTiles =
+            randomTilesAfterMove result.empty
+                |> Random.map (List.append (mergedTiles ++ stayedTiles))
     in
-    Game
-        (scoreAddDelta scoreDelta score)
-        (mergedTiles ++ stayedTiles ++ newTile)
+    Random.map (Game updatedScore) updatedTiles
 
 
 scoreAddDelta : Int -> Score -> Score
