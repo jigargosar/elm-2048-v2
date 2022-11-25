@@ -198,6 +198,13 @@ move dir ((Game s ts) as game) =
     )
 
 
+attemptMove : Dir -> Game -> Maybe (Generator Game)
+attemptMove dir (Game s ts) =
+    entriesForSlideAndMerge ts
+        |> slideAndMerge dir
+        |> Maybe.map (gameFromMergeResult s)
+
+
 
 --attemptMove : Clock -> Dir -> Game -> Maybe (Generator Game)
 --attemptMove c dir (Game s ts) =
