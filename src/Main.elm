@@ -168,21 +168,6 @@ update msg model =
             ( model, Cmd.none )
 
 
-
---
---absDiffMillis (Clock start) (Clock now) =
---    abs (Time.posixToMillis start - Time.posixToMillis now)
---
---
---setClock now (Game  s ts) =
---    if absDiffMillis start now > 2000 then
---        Game now s ts
---
---    else
---        Game start s ts
---
-
-
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( game
