@@ -628,56 +628,12 @@ animToStyle anim =
             batch []
 
 
-tileMovedToAnim to anim =
-    case anim of
-        InitialEnter ->
-            moveFromToAnim to to
-
-        MergedExit from ->
-            moveFromToAnim from to
-
-        MergedEnter ->
-            moveFromToAnim to to
-
-        NewDelayedEnter ->
-            moveFromToAnim to to
-
-        Stayed from ->
-            moveFromToAnim from to
-
-
-moveFromToAnim from to =
-    batch
-        [ animationName <|
-            keyframes
-                [ let
-                    ( dx, dy ) =
-                        from |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-                  in
-                  ( 0, [ A.transform [ translate2 dx dy ] ] )
-                , let
-                    ( dx, dy ) =
-                        to |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-                  in
-                  ( 100, [ A.transform [ translate2 dx dy ] ] )
-                ]
-        , animFillBoth
-        , animDurationShort
-        , property "animation-timing-function" "ease-in-out"
-        ]
-
-
 viewTile : Tile -> Html Msg
 viewTile ((Tile anim pos val) as tile) =
-    let
-        ( dx, dy ) =
-            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-    in
     div
         [ css
-            [ transforms [ translate2 dx dy ]
+            [ tileTransform pos
             , transition [ T.transform3 shortDurationMillis 0 T.easeInOut ]
-            , tileMovedToAnim pos anim
             , gridArea11
             , displayGrid
             , paddingForTileAndBoard
@@ -696,6 +652,14 @@ viewTile ((Tile anim pos val) as tile) =
             [ text <| Val.toDisplayString val
             ]
         ]
+
+
+tileTransform pos =
+    let
+        ( dx, dy ) =
+            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+    in
+    transforms [ translate2 dx dy ]
 
 
 valBackgroundColor val =
