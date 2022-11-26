@@ -36,8 +36,8 @@ type Dir
     | Down
 
 
-slideAndMerge_ : (a -> a -> Bool) -> Dir -> List ( Pos, a ) -> Maybe (Result a)
-slideAndMerge_ eq dir list =
+slideAndMergeHelp : (a -> a -> Bool) -> Dir -> List ( Pos, a ) -> Maybe (Result a)
+slideAndMergeHelp eq dir list =
     let
         grid =
             Grid.fromEntries list
@@ -46,7 +46,7 @@ slideAndMerge_ eq dir list =
             Grid.map Stayed grid
 
         mergedGrid =
-            slideAndMergeHelp eq dir grid
+            slideAndMergeHelpHelp eq dir grid
     in
     if mergedGrid == unmergedGrid then
         Nothing
@@ -68,8 +68,8 @@ accumulateResult ( to, merged ) acc =
             { acc | stayed = ( to, a ) :: acc.stayed }
 
 
-slideAndMergeHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
-slideAndMergeHelp eq dir grid =
+slideAndMergeHelpHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
+slideAndMergeHelpHelp eq dir grid =
     let
         fn =
             slideLeftAndMerge eq
@@ -330,7 +330,7 @@ isGameOver game =
 
 slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (Result Tile)
 slideAndMerge =
-    slideAndMerge_ eqByVal
+    slideAndMergeHelp eqByVal
 
 
 eqByVal : Tile -> Tile -> Bool
