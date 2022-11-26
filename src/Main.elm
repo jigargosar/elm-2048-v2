@@ -29,33 +29,13 @@ type Dir
     | Down
 
 
-slideAndMergeGrid : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
-slideAndMergeGrid eq dir grid =
-    let
-        fn =
-            slideLeftAndMerge eq
-    in
-    case dir of
-        Left ->
-            Grid.mapRowsAsLists fn grid
-
-        Right ->
-            Grid.mapRowsAsReversedLists fn grid
-
-        Up ->
-            Grid.mapColumnsAsLists fn grid
-
-        Down ->
-            Grid.mapColumnsAsReversedLists fn grid
-
-
-slideLeftAndMerge : (a -> a -> Bool) -> List a -> List (Merged a)
-slideLeftAndMerge eq =
+slideLeftAndMergeRow : List Tile -> List (Merged Tile)
+slideLeftAndMergeRow =
     let
         step a acc =
             case acc of
                 (Stayed b) :: rest ->
-                    if eq a b then
+                    if eqByVal a b then
                         Merged a b :: rest
 
                     else
@@ -289,11 +269,22 @@ isGameOver game =
 attemptMoveGrid : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
 attemptMoveGrid dir grid =
     let
+        mergedGrid =
+            case dir of
+                Left ->
+                    Grid.mapRowsAsLists slideLeftAndMergeRow grid
+
+                Right ->
+                    Grid.mapRowsAsReversedLists slideLeftAndMergeRow grid
+
+                Up ->
+                    Grid.mapColumnsAsLists slideLeftAndMergeRow grid
+
+                Down ->
+                    Grid.mapColumnsAsReversedLists slideLeftAndMergeRow grid
+
         unmergedGrid =
             Grid.map Stayed grid
-
-        mergedGrid =
-            slideAndMergeGrid eqByVal dir grid
     in
     if mergedGrid == unmergedGrid then
         Nothing
