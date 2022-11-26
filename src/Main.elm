@@ -244,7 +244,7 @@ move dir game =
 attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
     tilesGrid game.tiles
-        |> gridAttempMove dir
+        |> gridAttemptMove dir
         |> Maybe.map (updateGame game)
 
 
@@ -280,14 +280,14 @@ isGameOver game =
             tilesGrid game.tiles
 
         isInvalidMove dir =
-            gridAttempMove dir grid == Nothing
+            gridAttemptMove dir grid == Nothing
     in
     [ Up, Down, Left, Right ]
         |> List.all isInvalidMove
 
 
-gridAttempMove : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
-gridAttempMove dir grid =
+gridAttemptMove : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
+gridAttemptMove dir grid =
     let
         unmergedGrid =
             Grid.map Stayed grid
