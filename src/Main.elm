@@ -487,7 +487,7 @@ viewTile ((Tile anim pos val) as tile) =
     div
         [ css
             [ gridArea11
-            , tileMovedToAnim pos anim
+            , tileMovedToAnimation pos anim
             , displayGrid
             , paddingForTileAndBoard
             ]
@@ -507,8 +507,8 @@ viewTile ((Tile anim pos val) as tile) =
         ]
 
 
-tileMovedToAnim : Pos -> Anim -> Style
-tileMovedToAnim to anim =
+tileMovedToAnimation : Pos -> Anim -> Style
+tileMovedToAnimation to anim =
     case anim of
         InitialEnter ->
             moveFromToAnim to to
