@@ -515,7 +515,17 @@ tileTransform pos =
         ( dx, dy ) =
             pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
     in
-    transforms [ translate2 dx dy ]
+    batch
+        [ transforms [ translate2 dx dy ]
+        , animationName <|
+            keyframes
+                [ ( 0, [ A.transform [ translate2 dx dy ] ] )
+                , ( 100, [ A.transform [ translate2 dx dy ] ] )
+                ]
+        , animDurationShort
+        , animFillBoth
+        , property "animation-timing-function" "ease-in-out"
+        ]
 
 
 tileAnimation : Anim -> Style
@@ -546,7 +556,7 @@ colorDark2 =
 
 
 colorDark3 =
-    hsl 0 0 0.6
+    hsl 0 0 0.5
 
 
 roundedBorder =
