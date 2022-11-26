@@ -316,14 +316,12 @@ tileNextVal (Tile _ _ val) =
 
 
 updateTiles : Grid (Merged Tile) -> ( Int, List Tile )
-updateTiles grid =
-    grid
-        |> Grid.toEntries
-        |> List.foldl mergeTilesHelp ( 0, [] )
+updateTiles =
+    Grid.foldl updateTilesHelp ( 0, [] )
 
 
-mergeTilesHelp : ( Pos, Merged Tile ) -> ( Int, List Tile ) -> ( Int, List Tile )
-mergeTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
+updateTilesHelp : ( Pos, Merged Tile ) -> ( Int, List Tile ) -> ( Int, List Tile )
+updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
     case merged of
         Merged tile1 tile2 ->
             let

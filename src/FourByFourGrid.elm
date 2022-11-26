@@ -13,7 +13,6 @@ module FourByFourGrid exposing
     , mapRowsAsLists
     , mapRowsAsReversedLists
     , posToInt
-    , toEntries
     )
 
 import Vector4 exposing (Index(..), Vector4)
