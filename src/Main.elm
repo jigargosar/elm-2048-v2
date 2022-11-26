@@ -46,7 +46,7 @@ type Score
         -- total
         Int
         -- deltas for animation
-        (List Int)
+        (Maybe Int)
 
 
 type Anim
@@ -108,7 +108,7 @@ initialGame =
 
 initialScore : Score
 initialScore =
-    Score 0 []
+    Score 0 Nothing
 
 
 generateNewGame : Cmd Msg
@@ -205,9 +205,9 @@ gameFromResult score result =
 
 
 scoreAddDelta : Int -> Score -> Score
-scoreAddDelta scoreDelta ((Score total deltas) as score) =
+scoreAddDelta scoreDelta ((Score total _) as score) =
     if scoreDelta > 0 then
-        Score (total + scoreDelta) (scoreDelta :: deltas)
+        Score (total + scoreDelta) (Just scoreDelta)
 
     else
         score
@@ -335,7 +335,7 @@ globalStyleNode =
 
 
 viewScore : Score -> ( String, Html msg )
-viewScore (Score total deltas) =
+viewScore (Score total delta) =
     let
         totalString =
             String.fromInt total
@@ -344,7 +344,7 @@ viewScore (Score total deltas) =
     , div
         [ css [ displayGrid ] ]
         [ div [ css [ gridArea11 ] ] [ text totalString ]
-        , case deltas |> List.head of
+        , case delta of
             Just d ->
                 viewScoreDelta d
 
