@@ -97,7 +97,6 @@ tileUpdate pos animFn (Tile _ oldPos val) =
 type Msg
     = OnKeyDown String
     | NewGameClicked
-    | GotGame Game
     | GotInitialSeed Seed
 
 
@@ -129,7 +128,7 @@ newGame game =
         ( newTiles, seed ) =
             Random.step randomInitialTiles game.seed
     in
-    { ct = initialCounter
+    { ct = game.ct
     , score = initialScore
     , tiles = newTiles
     , seed = seed
@@ -158,9 +157,6 @@ update msg model =
     case msg of
         NewGameClicked ->
             ( newGame model, Cmd.none )
-
-        GotGame game ->
-            ( game, Cmd.none )
 
         GotInitialSeed seed ->
             ( { score = initialScore
