@@ -37,23 +37,26 @@ main =
         }
 
 
-type Game
-    = Game MovesCounter Score (List Tile)
+type alias Game =
+    { score : Score
+    , ct : Counter
+    , tiles : List Tile
+    }
 
 
-type MovesCounter
-    = MovesCounter Int
+type Counter
+    = Counter Int
 
 
 initialCounter =
-    MovesCounter 0
+    Counter 0
 
 
-counterIncrement (MovesCounter i) =
-    MovesCounter <| i + 1
+counterIncrement (Counter i) =
+    Counter <| i + 1
 
 
-counterToString (MovesCounter i) =
+toKey (Counter i) =
     String.fromInt i
 
 
@@ -71,21 +74,6 @@ type Anim
     | MergedEnter
     | NewDelayedEnter
     | Stayed Pos
-
-
-tileList : Game -> List Tile
-tileList (Game _ _ ts) =
-    ts
-
-
-toScore : Game -> Score
-toScore (Game _ s _) =
-    s
-
-
-tilesKey : Game -> String
-tilesKey (Game c _ _) =
-    counterToString c
 
 
 randomTilesAfterMove : List Pos -> Generator (List Tile)
@@ -124,7 +112,7 @@ init _ =
 
 initialGame : Game
 initialGame =
-    Game initialCounter initialScore []
+    { ct = initialCounter, score = initialScore, tiles = [] }
 
 
 initialScore : Score
@@ -145,7 +133,13 @@ generateGame =
 newGame : Generator Game
 newGame =
     randomInitialTiles
-        |> Random.map (Game initialCounter initialScore)
+        |> Random.map
+            (\ts ->
+                { ct = initialCounter
+                , score = initialScore
+                , tiles = ts
+                }
+            )
 
 
 randomInitialTiles : Generator (List Tile)
@@ -200,13 +194,13 @@ move dir game =
 
 
 attemptMove : Dir -> Game -> Maybe (Generator Game)
-attemptMove dir (Game c s ts) =
-    tileEntriesInPlay ts
+attemptMove dir game =
+    tileEntriesInPlay game.tiles
         |> slideAndMerge dir
-        |> Maybe.map (gameFromResult c s)
+        |> Maybe.map (gameFromResult game.ct game.score)
 
 
-gameFromResult : MovesCounter -> Score -> Grid.Result Tile -> Generator Game
+gameFromResult : Counter -> Score -> Grid.Result Tile -> Generator Game
 gameFromResult c score result =
     let
         ( scoreDelta, mergedTiles ) =
@@ -225,7 +219,14 @@ gameFromResult c score result =
             randomTilesAfterMove result.empty
                 |> Random.map (List.append (mergedTiles ++ stayedTiles))
     in
-    Random.map (Game updatedCounter updatedScore) updatedTiles
+    Random.map
+        (\ts ->
+            { score = updatedScore
+            , ct = updatedCounter
+            , tiles = ts
+            }
+        )
+        updatedTiles
 
 
 scoreAddDelta : Int -> Score -> Score
@@ -241,7 +242,7 @@ isGameOver : Game -> Bool
 isGameOver game =
     let
         entries =
-            tileEntriesInPlay (tileList game)
+            tileEntriesInPlay game.tiles
 
         isInvalidMove dir =
             slideAndMerge dir entries == Nothing
@@ -331,7 +332,7 @@ viewGame game =
         [ Keyed.node "div"
             [ css [ displayFlex, gap "20px" ] ]
             [ ( "", viewNewGameButton )
-            , viewScore (toScore game)
+            , viewScore game.score
             ]
         , viewBoard game
         ]
@@ -417,10 +418,10 @@ viewBoard game =
 
 viewTiles : Game -> ( String, Html Msg )
 viewTiles game =
-    ( tilesKey game
+    ( toKey game.ct
     , div
         [ css [ boardStyle ] ]
-        (List.map viewTile (tileList game))
+        (List.map viewTile game.tiles)
     )
 
 
