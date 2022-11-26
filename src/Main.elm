@@ -208,17 +208,11 @@ gameFromResult game result =
         stayedTiles =
             toStayedTiles result.stayed
 
-        updatedCounter =
-            counterIncrement game.ct
-
-        updatedScore =
-            scoreAddDelta scoreDelta game.score
-
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove result.empty) game.seed
     in
-    { ct = updatedCounter
-    , score = updatedScore
+    { ct = counterIncrement game.ct
+    , score = scoreAddDelta scoreDelta game.score
     , tiles = mergedTiles ++ stayedTiles ++ newTiles
     , seed = seed
     }
