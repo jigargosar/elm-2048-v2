@@ -73,7 +73,7 @@ type Anim
     | MergedExit Pos
     | MergedEnter
     | NewDelayedEnter
-    | Stayed Pos
+    | Moved Pos
 
 
 randomTilesAfterMove : List Pos -> Generator (List Tile)
@@ -277,7 +277,7 @@ toStayedTiles : List ( Pos, Tile ) -> List Tile
 toStayedTiles list =
     let
         fn ( pos, tile ) =
-            tileUpdate pos Stayed tile
+            tileUpdate pos Moved tile
     in
     List.map fn list
 
@@ -299,7 +299,7 @@ tileEntriesInPlay =
                 NewDelayedEnter ->
                     Just ( pos, tile )
 
-                Stayed _ ->
+                Moved _ ->
                     Just ( pos, tile )
     in
     List.filterMap toEntry
@@ -522,7 +522,7 @@ tileMovedToAnim to anim =
         NewDelayedEnter ->
             moveFromToAnim to to
 
-        Stayed from ->
+        Moved from ->
             moveFromToAnim from to
 
 
@@ -564,7 +564,7 @@ tileAnimation anim =
         NewDelayedEnter ->
             delayedAppearAnim
 
-        Stayed _ ->
+        Moved _ ->
             batch []
 
 
