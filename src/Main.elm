@@ -270,18 +270,7 @@ attemptMoveGrid : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
 attemptMoveGrid dir grid =
     let
         mergedGrid =
-            case dir of
-                Left ->
-                    Grid.mapRowsAsLists slideLeftAndMergeRow grid
-
-                Right ->
-                    Grid.mapRowsAsReversedLists slideLeftAndMergeRow grid
-
-                Up ->
-                    Grid.mapColumnsAsLists slideLeftAndMergeRow grid
-
-                Down ->
-                    Grid.mapColumnsAsReversedLists slideLeftAndMergeRow grid
+            attemptMoveGridHelp dir grid
 
         unmergedGrid =
             Grid.map Stayed grid
@@ -291,6 +280,22 @@ attemptMoveGrid dir grid =
 
     else
         Just mergedGrid
+
+
+attemptMoveGridHelp : Dir -> Grid Tile -> Grid (Merged Tile)
+attemptMoveGridHelp dir =
+    case dir of
+        Left ->
+            Grid.mapRowsAsLists slideLeftAndMergeRow
+
+        Right ->
+            Grid.mapRowsAsReversedLists slideLeftAndMergeRow
+
+        Up ->
+            Grid.mapColumnsAsLists slideLeftAndMergeRow
+
+        Down ->
+            Grid.mapColumnsAsReversedLists slideLeftAndMergeRow
 
 
 eqByVal : Tile -> Tile -> Bool
