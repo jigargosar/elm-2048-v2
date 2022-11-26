@@ -618,18 +618,6 @@ tileAnimation anim =
             batch []
 
 
-colorDark1 =
-    hsl 0 0 0.15
-
-
-colorDark2 =
-    hsl 0 0 0.4
-
-
-colorDark3 =
-    hsl 0 0 0.5
-
-
 roundedBorder =
     Css.borderRadius <| px 8
 
@@ -737,13 +725,25 @@ delayedDisappearAnim =
         ]
 
 
+colorDark1 =
+    hsl 0 0 0.15
+
+
+colorDark2 =
+    hsl 0 0 0.25
+
+
+colorDark3 =
+    hsl 0 0 0.3
+
+
 valBackgroundColor val =
     case Val.toIndex val of
         1 ->
-            hsl 0 0 0.2
+            hsl 0 0 0.4
 
         2 ->
-            hsl 0 0 0.3
+            hsl 0 0 0.55
 
         3 ->
             hsl 36 0.88 0.4
