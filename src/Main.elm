@@ -180,19 +180,19 @@ move dir game =
 
 attemptMove : Dir -> Game -> Maybe (Generator Game)
 attemptMove dir (Game s ts) =
-    entriesForSlideAndMerge ts
+    tileEntriesInPlay ts
         |> slideAndMerge dir
-        |> Maybe.map (gameFromMergeResult s)
+        |> Maybe.map (gameFromResult s)
 
 
-gameFromMergeResult : Score -> Grid.Result Tile -> Generator Game
-gameFromMergeResult score result =
+gameFromResult : Score -> Grid.Result Tile -> Generator Game
+gameFromResult score result =
     let
         ( scoreDelta, mergedTiles ) =
-            scoreDeltaAndTilesFromMerged result.merged
+            toMergedTiles result.merged
 
         stayedTiles =
-            tilesFromStayed result.stayed
+            toStayedTiles result.stayed
 
         updatedScore =
             scoreAddDelta scoreDelta score
@@ -217,7 +217,7 @@ isGameOver : Game -> Bool
 isGameOver game =
     let
         entries =
-            entriesForSlideAndMerge (tileList game)
+            tileEntriesInPlay (tileList game)
 
         isInvalidMove dir =
             slideAndMerge dir entries == Nothing
@@ -241,26 +241,27 @@ tileNextVal (Tile _ _ val) =
     Val.next val
 
 
-scoreDeltaAndTilesFromMerged : List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
-scoreDeltaAndTilesFromMerged =
+toMergedTiles : List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
+toMergedTiles =
+    List.foldl mergeTilesHelp ( 0, [] )
+
+
+mergeTilesHelp : ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile ) -> ( Int, List Tile )
+mergeTilesHelp ( pos, ( tile1, tile2 ) ) ( scoreDeltaAcc, tilesAcc ) =
     let
-        fn ( pos, ( tile1, tile2 ) ) ( scoreDelta, tiles ) =
-            let
-                mergedVal =
-                    tileNextVal tile1
-            in
-            ( Val.toScore mergedVal + scoreDelta
-            , tileUpdate pos MergedExit tile1
-                :: tileUpdate pos MergedExit tile2
-                :: initTile MergedEnter pos mergedVal
-                :: tiles
-            )
+        mergedVal =
+            tileNextVal tile1
     in
-    List.foldl fn ( 0, [] )
+    ( Val.toScore mergedVal + scoreDeltaAcc
+    , tileUpdate pos MergedExit tile1
+        :: tileUpdate pos MergedExit tile2
+        :: initTile MergedEnter pos mergedVal
+        :: tilesAcc
+    )
 
 
-tilesFromStayed : List ( Pos, Tile ) -> List Tile
-tilesFromStayed list =
+toStayedTiles : List ( Pos, Tile ) -> List Tile
+toStayedTiles list =
     let
         fn ( pos, tile ) =
             tileUpdate pos Stayed tile
@@ -268,8 +269,8 @@ tilesFromStayed list =
     List.map fn list
 
 
-entriesForSlideAndMerge : List Tile -> List ( Pos, Tile )
-entriesForSlideAndMerge =
+tileEntriesInPlay : List Tile -> List ( Pos, Tile )
+tileEntriesInPlay =
     let
         toEntry ((Tile anim pos _) as tile) =
             case anim of
