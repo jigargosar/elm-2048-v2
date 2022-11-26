@@ -126,9 +126,9 @@ type Anim
     | Moved Pos
 
 
-randomTilesAfterMove : List Pos -> Generator (List Tile)
-randomTilesAfterMove emptyPositions =
-    randomTiles 1 NewDelayedEnter emptyPositions
+randomTilesAfterMove : Grid a -> Generator (List Tile)
+randomTilesAfterMove grid =
+    randomTiles 1 NewDelayedEnter (Grid.emptyPositions grid)
 
 
 randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
@@ -243,7 +243,7 @@ move dir game =
 
 attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
-    tileEntriesInPlay game.tiles
+    tilesGrid game.tiles
         |> slideAndMerge dir
         |> Maybe.map (updateGame game)
 
@@ -255,7 +255,7 @@ updateGame game grid =
             updateTiles grid
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove (Grid.emptyPositions grid)) game.seed
+            Random.step (randomTilesAfterMove grid) game.seed
     in
     { ct = counterIncrement game.ct
     , score = scoreAddDelta scoreDelta game.score
@@ -276,22 +276,19 @@ scoreAddDelta scoreDelta ((Score total _) as score) =
 isGameOver : Game -> Bool
 isGameOver game =
     let
-        entries =
-            tileEntriesInPlay game.tiles
+        grid =
+            tilesGrid game.tiles
 
         isInvalidMove dir =
-            slideAndMerge dir entries == Nothing
+            slideAndMerge dir grid == Nothing
     in
     [ Up, Down, Left, Right ]
         |> List.all isInvalidMove
 
 
-slideAndMerge : Dir -> List (Grid.Entry Tile) -> Maybe (Grid (Merged Tile))
-slideAndMerge dir list =
+slideAndMerge : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
+slideAndMerge dir grid =
     let
-        grid =
-            Grid.fromEntries list
-
         unmergedGrid =
             Grid.map Stayed grid
 
@@ -339,8 +336,8 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
 
 
-tileEntriesInPlay : List Tile -> List ( Pos, Tile )
-tileEntriesInPlay =
+tilesGrid : List Tile -> Grid Tile
+tilesGrid =
     let
         toEntry ((Tile anim pos _) as tile) =
             case anim of
@@ -359,7 +356,7 @@ tileEntriesInPlay =
                 Moved _ ->
                     Just ( pos, tile )
     in
-    List.filterMap toEntry
+    List.filterMap toEntry >> Grid.fromEntries
 
 
 view : Game -> Html.Html Msg
