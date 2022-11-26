@@ -39,8 +39,9 @@ main =
 
 type alias Game =
     { score : Score
-    , ct : Counter
     , tiles : List Tile
+    , ct : Counter
+    , seed : Seed
     }
 
 
@@ -97,6 +98,7 @@ type Msg
     = OnKeyDown String
     | NewGameClicked
     | GotGame Game
+    | GotInitialSeed Seed
 
 
 type alias Flags =
@@ -105,14 +107,15 @@ type alias Flags =
 
 init : Flags -> ( Game, Cmd Msg )
 init _ =
-    ( initialGame
-    , generateNewGame
+    ( initGame <| Random.initialSeed 0
+    , Random.generate GotInitialSeed Random.independentSeed
     )
 
 
-initialGame : Game
-initialGame =
-    { ct = initialCounter, score = initialScore, tiles = [] }
+initGame : Seed -> Game
+initGame seed =
+    { ct = initialCounter, score = initialScore, tiles = [], seed = seed }
+        |> newGame
 
 
 initialScore : Score
@@ -120,26 +123,17 @@ initialScore =
     Score 0 Nothing
 
 
-generateNewGame : Cmd Msg
-generateNewGame =
-    generateGame newGame
-
-
-generateGame : Generator Game -> Cmd Msg
-generateGame =
-    Random.generate GotGame
-
-
-newGame : Generator Game
-newGame =
-    randomInitialTiles
-        |> Random.map
-            (\ts ->
-                { ct = initialCounter
-                , score = initialScore
-                , tiles = ts
-                }
-            )
+newGame : Game -> Game
+newGame game =
+    let
+        ( newTiles, seed ) =
+            Random.step randomInitialTiles game.seed
+    in
+    { ct = initialCounter
+    , score = initialScore
+    , tiles = newTiles
+    , seed = seed
+    }
 
 
 randomInitialTiles : Generator (List Tile)
@@ -163,10 +157,20 @@ update : Msg -> Game -> ( Game, Cmd Msg )
 update msg model =
     case msg of
         NewGameClicked ->
-            ( model, generateNewGame )
+            ( newGame model, Cmd.none )
 
         GotGame game ->
             ( game, Cmd.none )
+
+        GotInitialSeed seed ->
+            ( { score = initialScore
+              , ct = initialCounter
+              , tiles = []
+              , seed = seed
+              }
+                |> newGame
+            , Cmd.none
+            )
 
         OnKeyDown "ArrowRight" ->
             move Right model
@@ -186,22 +190,21 @@ update msg model =
 
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
-    ( game
-    , attemptMove dir game
-        |> Maybe.map generateGame
-        |> Maybe.withDefault Cmd.none
+    ( attemptMove dir game
+        |> Maybe.withDefault game
+    , Cmd.none
     )
 
 
-attemptMove : Dir -> Game -> Maybe (Generator Game)
+attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
     tileEntriesInPlay game.tiles
         |> slideAndMerge dir
-        |> Maybe.map (gameFromResult game.ct game.score)
+        |> Maybe.map (gameFromResult game)
 
 
-gameFromResult : Counter -> Score -> Grid.Result Tile -> Generator Game
-gameFromResult c score result =
+gameFromResult : Game -> Grid.Result Tile -> Game
+gameFromResult game result =
     let
         ( scoreDelta, mergedTiles ) =
             toMergedTiles result.merged
@@ -210,23 +213,19 @@ gameFromResult c score result =
             toStayedTiles result.stayed
 
         updatedCounter =
-            counterIncrement c
+            counterIncrement game.ct
 
         updatedScore =
-            scoreAddDelta scoreDelta score
+            scoreAddDelta scoreDelta game.score
 
-        updatedTiles =
-            randomTilesAfterMove result.empty
-                |> Random.map (List.append (mergedTiles ++ stayedTiles))
+        ( newTiles, seed ) =
+            Random.step (randomTilesAfterMove result.empty) game.seed
     in
-    Random.map
-        (\ts ->
-            { score = updatedScore
-            , ct = updatedCounter
-            , tiles = ts
-            }
-        )
-        updatedTiles
+    { ct = updatedCounter
+    , score = updatedScore
+    , tiles = mergedTiles ++ stayedTiles ++ newTiles
+    , seed = seed
+    }
 
 
 scoreAddDelta : Int -> Score -> Score
