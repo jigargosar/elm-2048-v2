@@ -38,7 +38,23 @@ main =
 
 
 type Game
-    = Game Score (List Tile)
+    = Game Counter Score (List Tile)
+
+
+type Counter
+    = Counter Int
+
+
+initialCounter =
+    Counter 0
+
+
+counterIncrement (Counter i) =
+    Counter <| i + 1
+
+
+counterToString (Counter i) =
+    String.fromInt i
 
 
 type Score
@@ -58,13 +74,18 @@ type Anim
 
 
 tileList : Game -> List Tile
-tileList (Game _ ts) =
+tileList (Game _ _ ts) =
     ts
 
 
 toScore : Game -> Score
-toScore (Game s _) =
+toScore (Game _ s _) =
     s
+
+
+tilesKey : Game -> String
+tilesKey (Game c _ _) =
+    counterToString c
 
 
 randomTilesAfterMove : List Pos -> Generator (List Tile)
@@ -103,7 +124,7 @@ init _ =
 
 initialGame : Game
 initialGame =
-    Game initialScore []
+    Game initialCounter initialScore []
 
 
 initialScore : Score
@@ -124,7 +145,7 @@ generateGame =
 newGame : Generator Game
 newGame =
     randomInitialTiles
-        |> Random.map (Game initialScore)
+        |> Random.map (Game initialCounter initialScore)
 
 
 randomInitialTiles : Generator (List Tile)
@@ -179,20 +200,23 @@ move dir game =
 
 
 attemptMove : Dir -> Game -> Maybe (Generator Game)
-attemptMove dir (Game s ts) =
+attemptMove dir (Game c s ts) =
     tileEntriesInPlay ts
         |> slideAndMerge dir
-        |> Maybe.map (gameFromResult s)
+        |> Maybe.map (gameFromResult c s)
 
 
-gameFromResult : Score -> Grid.Result Tile -> Generator Game
-gameFromResult score result =
+gameFromResult : Counter -> Score -> Grid.Result Tile -> Generator Game
+gameFromResult c score result =
     let
         ( scoreDelta, mergedTiles ) =
             toMergedTiles result.merged
 
         stayedTiles =
             toStayedTiles result.stayed
+
+        updatedCounter =
+            counterIncrement c
 
         updatedScore =
             scoreAddDelta scoreDelta score
@@ -201,7 +225,7 @@ gameFromResult score result =
             randomTilesAfterMove result.empty
                 |> Random.map (List.append (mergedTiles ++ stayedTiles))
     in
-    Random.map (Game updatedScore) updatedTiles
+    Random.map (Game updatedCounter updatedScore) updatedTiles
 
 
 scoreAddDelta : Int -> Score -> Score
@@ -309,7 +333,7 @@ viewGame game =
             [ ( "", viewNewGameButton )
             , viewScore (toScore game)
             ]
-        , wrapInKeyed game <| viewBoard game
+        , viewBoard game
         ]
 
 
@@ -386,20 +410,22 @@ fadeUpAnim =
 
 viewBoard : Game -> Html Msg
 viewBoard game =
-    div
+    Keyed.node "div"
         [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
         ]
-        [ viewBackgroundTiles
+        [ ( "", viewBackgroundTiles )
         , viewTiles game
-        , viewGameOver game
+        , ( "", viewGameOver game )
         ]
 
 
-viewTiles : Game -> Html Msg
-viewTiles ts =
-    div
+viewTiles : Game -> ( String, Html Msg )
+viewTiles game =
+    ( tilesKey game
+    , div
         [ css [ boardStyle ] ]
-        (List.map viewTile (tileList ts))
+        (List.map viewTile (tileList game))
+    )
 
 
 viewGameOver : Game -> Html msg
