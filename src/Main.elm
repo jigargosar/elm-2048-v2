@@ -17,13 +17,6 @@ import Random.List
 import Val exposing (Val)
 
 
-type alias Result a =
-    { merged : List ( Pos, ( a, a ) )
-    , stayed : List ( Pos, a )
-    , empty : List Pos
-    }
-
-
 type Merged a
     = Merged a a
     | Stayed a
@@ -36,40 +29,8 @@ type Dir
     | Down
 
 
-slideAndMergeHelp : (a -> a -> Bool) -> Dir -> List ( Pos, a ) -> Maybe (Result a)
-slideAndMergeHelp eq dir list =
-    let
-        grid =
-            Grid.fromEntries list
-
-        unmergedGrid =
-            Grid.map Stayed grid
-
-        mergedGrid =
-            slideAndMergeHelpHelp eq dir grid
-    in
-    if mergedGrid == unmergedGrid then
-        Nothing
-
-    else
-        Grid.toEntries mergedGrid
-            |> List.foldl accumulateResult
-                { merged = [], stayed = [], empty = Grid.emptyPositions mergedGrid }
-            |> Just
-
-
-accumulateResult : ( Pos, Merged a ) -> Result a -> Result a
-accumulateResult ( to, merged ) acc =
-    case merged of
-        Merged a b ->
-            { acc | merged = ( to, ( a, b ) ) :: acc.merged }
-
-        Stayed a ->
-            { acc | stayed = ( to, a ) :: acc.stayed }
-
-
-slideAndMergeHelpHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
-slideAndMergeHelpHelp eq dir grid =
+slideAndMergeHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
+slideAndMergeHelp eq dir grid =
     let
         fn =
             slideLeftAndMerge eq
@@ -287,21 +248,18 @@ attemptMove dir game =
         |> Maybe.map (updateGame game)
 
 
-updateGame : Game -> Result Tile -> Game
-updateGame game result =
+updateGame : Game -> Grid (Merged Tile) -> Game
+updateGame game grid =
     let
         ( scoreDelta, mergedTiles ) =
-            toMergedTiles result.merged
-
-        stayedTiles =
-            toStayedTiles result.stayed
+            updateTiles grid
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove result.empty) game.seed
+            Random.step (randomTilesAfterMove (Grid.emptyPositions grid)) game.seed
     in
     { ct = counterIncrement game.ct
     , score = scoreAddDelta scoreDelta game.score
-    , tiles = mergedTiles ++ stayedTiles ++ newTiles
+    , tiles = mergedTiles ++ newTiles
     , seed = seed
     }
 
@@ -328,9 +286,23 @@ isGameOver game =
         |> List.all isInvalidMove
 
 
-slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (Result Tile)
-slideAndMerge =
-    slideAndMergeHelp eqByVal
+slideAndMerge : Dir -> List (Grid.Entry Tile) -> Maybe (Grid (Merged Tile))
+slideAndMerge dir list =
+    let
+        grid =
+            Grid.fromEntries list
+
+        unmergedGrid =
+            Grid.map Stayed grid
+
+        mergedGrid =
+            slideAndMergeHelp eqByVal dir grid
+    in
+    if mergedGrid == unmergedGrid then
+        Nothing
+
+    else
+        Just mergedGrid
 
 
 eqByVal : Tile -> Tile -> Bool
@@ -343,32 +315,30 @@ tileNextVal (Tile _ _ val) =
     Val.next val
 
 
-toMergedTiles : List ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile )
-toMergedTiles =
-    List.foldl mergeTilesHelp ( 0, [] )
+updateTiles : Grid (Merged Tile) -> ( Int, List Tile )
+updateTiles grid =
+    grid
+        |> Grid.toEntries
+        |> List.foldl mergeTilesHelp ( 0, [] )
 
 
-mergeTilesHelp : ( Pos, ( Tile, Tile ) ) -> ( Int, List Tile ) -> ( Int, List Tile )
-mergeTilesHelp ( pos, ( tile1, tile2 ) ) ( scoreDeltaAcc, tilesAcc ) =
-    let
-        mergedVal =
-            tileNextVal tile1
-    in
-    ( Val.toScore mergedVal + scoreDeltaAcc
-    , tileUpdate pos MergedExit tile1
-        :: tileUpdate pos MergedExit tile2
-        :: initTile MergedEnter pos mergedVal
-        :: tilesAcc
-    )
+mergeTilesHelp : ( Pos, Merged Tile ) -> ( Int, List Tile ) -> ( Int, List Tile )
+mergeTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
+    case merged of
+        Merged tile1 tile2 ->
+            let
+                mergedVal =
+                    tileNextVal tile1
+            in
+            ( Val.toScore mergedVal + scoreDeltaAcc
+            , tileUpdate pos MergedExit tile1
+                :: tileUpdate pos MergedExit tile2
+                :: initTile MergedEnter pos mergedVal
+                :: tilesAcc
+            )
 
-
-toStayedTiles : List ( Pos, Tile ) -> List Tile
-toStayedTiles list =
-    let
-        fn ( pos, tile ) =
-            tileUpdate pos Moved tile
-    in
-    List.map fn list
+        Stayed tile ->
+            ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
 
 
 tileEntriesInPlay : List Tile -> List ( Pos, Tile )

@@ -4,6 +4,7 @@ module FourByFourGrid exposing
     , Pos
     , allPositions
     , emptyPositions
+    , foldl
     , fromEntries
     , map
     , mapColumnsAsLists
@@ -172,3 +173,8 @@ toEntries (Grid rows) =
                             mba |> Maybe.map (\a -> ( ( x, y ), a ))
                         )
             )
+
+
+foldl : (Entry a -> b -> b) -> b -> Grid a -> b
+foldl fn acc =
+    toEntries >> List.foldl fn acc
