@@ -487,9 +487,11 @@ viewTile : Tile -> Html Msg
 viewTile ((Tile anim pos val) as tile) =
     div
         [ css
-            [ tileTransform pos
-            , transition [ T.transform3 durationShort 0 T.easeInOut ]
-            , gridArea11
+            [ gridArea11
+
+            --, tileTransform pos
+            --, transition [ T.transform3 durationShort 0 T.easeInOut ]
+            , tileMovedToAnim pos anim
             , displayGrid
             , paddingForTileAndBoard
             ]
@@ -515,17 +517,49 @@ tileTransform pos =
         ( dx, dy ) =
             pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
     in
+    transforms [ translate2 dx dy ]
+
+
+tileMovedToAnim : Pos -> Anim -> Style
+tileMovedToAnim to anim =
+    case anim of
+        InitialEnter ->
+            moveFromToAnim to to
+
+        MergedExit from ->
+            moveFromToAnim from to
+
+        MergedEnter ->
+            moveFromToAnim to to
+
+        NewDelayedEnter ->
+            moveFromToAnim to to
+
+        Stayed from ->
+            moveFromToAnim from to
+
+
+moveFromToAnim : Pos -> Pos -> Style
+moveFromToAnim from to =
     batch
-        [ transforms [ translate2 dx dy ]
-        , animationName <|
+        [ animationName <|
             keyframes
-                [ ( 0, [ A.transform [ translate2 dx dy ] ] )
-                , ( 100, [ A.transform [ translate2 dx dy ] ] )
+                [ ( 0, [ A.transform [ posTranslate from ] ] )
+                , ( 100, [ A.transform [ posTranslate to ] ] )
                 ]
-        , animDurationShort
         , animFillBoth
+        , animDurationShort
         , property "animation-timing-function" "ease-in-out"
         ]
+
+
+posTranslate : Pos -> Transform {}
+posTranslate pos =
+    let
+        ( dx, dy ) =
+            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+    in
+    translate2 dx dy
 
 
 tileAnimation : Anim -> Style
