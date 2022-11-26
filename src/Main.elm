@@ -5,7 +5,6 @@ import Browser.Events
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
-import Css.Transitions as T exposing (transition)
 import Html
 import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
@@ -488,9 +487,6 @@ viewTile ((Tile anim pos val) as tile) =
     div
         [ css
             [ gridArea11
-
-            --, tileTransform pos
-            --, transition [ T.transform3 durationShort 0 T.easeInOut ]
             , tileMovedToAnim pos anim
             , displayGrid
             , paddingForTileAndBoard
@@ -509,15 +505,6 @@ viewTile ((Tile anim pos val) as tile) =
             [ text <| Val.toDisplayString val
             ]
         ]
-
-
-tileTransform : Pos -> Style
-tileTransform pos =
-    let
-        ( dx, dy ) =
-            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-    in
-    transforms [ translate2 dx dy ]
 
 
 tileMovedToAnim : Pos -> Anim -> Style
