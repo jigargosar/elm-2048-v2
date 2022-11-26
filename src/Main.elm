@@ -29,8 +29,8 @@ type Dir
     | Down
 
 
-slideAndMergeHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
-slideAndMergeHelp eq dir grid =
+slideAndMergeGrid : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
+slideAndMergeGrid eq dir grid =
     let
         fn =
             slideLeftAndMerge eq
@@ -244,7 +244,7 @@ move dir game =
 attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
     tilesGrid game.tiles
-        |> gridAttemptMove dir
+        |> attemptMoveGrid dir
         |> Maybe.map (updateGame game)
 
 
@@ -280,20 +280,20 @@ isGameOver game =
             tilesGrid game.tiles
 
         isInvalidMove dir =
-            gridAttemptMove dir grid == Nothing
+            attemptMoveGrid dir grid == Nothing
     in
     [ Up, Down, Left, Right ]
         |> List.all isInvalidMove
 
 
-gridAttemptMove : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
-gridAttemptMove dir grid =
+attemptMoveGrid : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
+attemptMoveGrid dir grid =
     let
         unmergedGrid =
             Grid.map Stayed grid
 
         mergedGrid =
-            slideAndMergeHelp eqByVal dir grid
+            slideAndMergeGrid eqByVal dir grid
     in
     if mergedGrid == unmergedGrid then
         Nothing
