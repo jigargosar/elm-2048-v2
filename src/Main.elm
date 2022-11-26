@@ -38,22 +38,22 @@ main =
 
 
 type Game
-    = Game Counter Score (List Tile)
+    = Game MovesCounter Score (List Tile)
 
 
-type Counter
-    = Counter Int
+type MovesCounter
+    = MovesCounter Int
 
 
 initialCounter =
-    Counter 0
+    MovesCounter 0
 
 
-counterIncrement (Counter i) =
-    Counter <| i + 1
+counterIncrement (MovesCounter i) =
+    MovesCounter <| i + 1
 
 
-counterToString (Counter i) =
+counterToString (MovesCounter i) =
     String.fromInt i
 
 
@@ -206,7 +206,7 @@ attemptMove dir (Game c s ts) =
         |> Maybe.map (gameFromResult c s)
 
 
-gameFromResult : Counter -> Score -> Grid.Result Tile -> Generator Game
+gameFromResult : MovesCounter -> Score -> Grid.Result Tile -> Generator Game
 gameFromResult c score result =
     let
         ( scoreDelta, mergedTiles ) =
