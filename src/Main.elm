@@ -5,6 +5,7 @@ import Browser.Events
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
+import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
 import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
@@ -13,8 +14,96 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
 import Random.List
-import SlideAndMergeGrid as Grid exposing (Dir(..), Pos)
 import Val exposing (Val)
+
+
+type alias Result a =
+    { merged : List ( Pos, ( a, a ) )
+    , stayed : List ( Pos, a )
+    , empty : List Pos
+    }
+
+
+type Merged a
+    = Merged a a
+    | Stayed a
+
+
+type Dir
+    = Left
+    | Right
+    | Up
+    | Down
+
+
+slideAndMerge_ : (a -> a -> Bool) -> Dir -> List ( Pos, a ) -> Maybe (Result a)
+slideAndMerge_ eq dir list =
+    let
+        grid =
+            Grid.fromEntries list
+
+        unmergedGrid =
+            Grid.map Stayed grid
+
+        mergedGrid =
+            slideAndMergeHelp eq dir grid
+    in
+    if mergedGrid == unmergedGrid then
+        Nothing
+
+    else
+        Grid.toEntries mergedGrid
+            |> List.foldl accumulateResult
+                { merged = [], stayed = [], empty = Grid.emptyPositions mergedGrid }
+            |> Just
+
+
+accumulateResult : ( Pos, Merged a ) -> Result a -> Result a
+accumulateResult ( to, merged ) acc =
+    case merged of
+        Merged a b ->
+            { acc | merged = ( to, ( a, b ) ) :: acc.merged }
+
+        Stayed a ->
+            { acc | stayed = ( to, a ) :: acc.stayed }
+
+
+slideAndMergeHelp : (a -> a -> Bool) -> Dir -> Grid a -> Grid (Merged a)
+slideAndMergeHelp eq dir grid =
+    let
+        fn =
+            slideLeftAndMerge eq
+    in
+    case dir of
+        Left ->
+            Grid.mapRowsAsLists fn grid
+
+        Right ->
+            Grid.mapRowsAsReversedLists fn grid
+
+        Up ->
+            Grid.mapColumnsAsLists fn grid
+
+        Down ->
+            Grid.mapColumnsAsReversedLists fn grid
+
+
+slideLeftAndMerge : (a -> a -> Bool) -> List a -> List (Merged a)
+slideLeftAndMerge eq =
+    let
+        step a acc =
+            case acc of
+                (Stayed b) :: rest ->
+                    if eq a b then
+                        Merged a b :: rest
+
+                    else
+                        Stayed a :: acc
+
+                _ ->
+                    Stayed a :: acc
+    in
+    List.foldl step [] >> List.reverse
 
 
 type Tile
@@ -198,7 +287,7 @@ attemptMove dir game =
         |> Maybe.map (updateGame game)
 
 
-updateGame : Game -> Grid.Result Tile -> Game
+updateGame : Game -> Result Tile -> Game
 updateGame game result =
     let
         ( scoreDelta, mergedTiles ) =
@@ -239,9 +328,9 @@ isGameOver game =
         |> List.all isInvalidMove
 
 
-slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (Grid.Result Tile)
+slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (Result Tile)
 slideAndMerge =
-    Grid.slideAndMerge eqByVal
+    slideAndMerge_ eqByVal
 
 
 eqByVal : Tile -> Tile -> Bool

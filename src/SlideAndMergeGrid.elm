@@ -21,7 +21,7 @@ allPositions =
 
 posToInt : Pos -> ( Int, Int )
 posToInt =
-    Grid.posToInt2
+    Grid.posToInt
 
 
 type alias Result a =

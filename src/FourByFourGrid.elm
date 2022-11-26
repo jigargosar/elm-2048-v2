@@ -11,7 +11,7 @@ module FourByFourGrid exposing
     , mapRows
     , mapRowsAsLists
     , mapRowsAsReversedLists
-    , posToInt2
+    , posToInt
     , toEntries
     )
 
@@ -93,8 +93,8 @@ emptyPositions (Grid rows) =
             )
 
 
-posToInt2 : Pos -> ( Int, Int )
-posToInt2 =
+posToInt : Pos -> ( Int, Int )
+posToInt =
     Tuple.mapBoth Vector4.indexToInt Vector4.indexToInt
 
 
