@@ -196,11 +196,11 @@ attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
     tileEntriesInPlay game.tiles
         |> slideAndMerge dir
-        |> Maybe.map (gameFromResult game)
+        |> Maybe.map (updateGame game)
 
 
-gameFromResult : Game -> Grid.Result Tile -> Game
-gameFromResult game result =
+updateGame : Game -> Grid.Result Tile -> Game
+updateGame game result =
     let
         ( scoreDelta, mergedTiles ) =
             toMergedTiles result.merged
