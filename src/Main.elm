@@ -251,7 +251,7 @@ attemptMove dir game =
 updateGame : Game -> Grid (Merged Tile) -> Game
 updateGame game grid =
     let
-        ( scoreDelta, mergedTiles ) =
+        ( scoreDelta, updatedTiles ) =
             updateTiles grid
 
         ( newTiles, seed ) =
@@ -259,7 +259,7 @@ updateGame game grid =
     in
     { ct = counterIncrement game.ct
     , score = scoreAddDelta scoreDelta game.score
-    , tiles = mergedTiles ++ newTiles
+    , tiles = updatedTiles ++ newTiles
     , seed = seed
     }
 
