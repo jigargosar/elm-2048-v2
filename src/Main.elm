@@ -337,10 +337,6 @@ viewGame game =
         ]
 
 
-wrapInKeyed x el =
-    Keyed.node "div" [ css [ gridArea11, displayGrid ] ] [ ( Debug.toString x, el ) ]
-
-
 viewNewGameButton : Html Msg
 viewNewGameButton =
     button [ autofocus True, onClick NewGameClicked ] [ text "New Game" ]
