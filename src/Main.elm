@@ -389,7 +389,7 @@ fadeUpAnim =
                     ]
                   )
                 ]
-        , animationDuration <| ms verLongDurationMillis
+        , animationDuration <| ms durationVeryLong
         , animFillBoth
         ]
 
@@ -483,6 +483,60 @@ boardStyle =
         ]
 
 
+viewTile : Tile -> Html Msg
+viewTile ((Tile anim pos val) as tile) =
+    div
+        [ css
+            [ tileTransform pos
+            , transition [ T.transform3 durationShort 0 T.easeInOut ]
+            , gridArea11
+            , displayGrid
+            , paddingForTileAndBoard
+            ]
+        ]
+        [ div
+            [ css
+                [ backgroundColor <| valBackgroundColor val
+                , roundedBorder
+                , displayGrid
+                , placeContentCenter
+                , tileAnimation anim
+                ]
+            , HA.title <| Debug.toString tile
+            ]
+            [ text <| Val.toDisplayString val
+            ]
+        ]
+
+
+tileTransform : Pos -> Style
+tileTransform pos =
+    let
+        ( dx, dy ) =
+            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
+    in
+    transforms [ translate2 dx dy ]
+
+
+tileAnimation : Anim -> Style
+tileAnimation anim =
+    case anim of
+        InitialEnter ->
+            appearAnim
+
+        MergedEnter ->
+            delayedPopInAnim
+
+        MergedExit _ ->
+            delayedDisappearAnim
+
+        NewDelayedEnter ->
+            delayedAppearAnim
+
+        Stayed _ ->
+            batch []
+
+
 colorDark1 =
     hsl 0 0 0.15
 
@@ -503,34 +557,31 @@ paddingForTileAndBoard =
     padding <| px 8
 
 
-shortDurationMillis : number
-shortDurationMillis =
+durationShort =
     100
 
 
-mediumDurationMillis : number
-mediumDurationMillis =
-    shortDurationMillis * 2
+durationMedium =
+    durationShort * 2
 
 
-verLongDurationMillis : number
-verLongDurationMillis =
+durationVeryLong =
     1000
 
 
 animDurationMedium : Style
 animDurationMedium =
-    animationDuration <| ms mediumDurationMillis
+    animationDuration <| ms durationMedium
 
 
 animDurationShort : Style
 animDurationShort =
-    animationDuration <| ms shortDurationMillis
+    animationDuration <| ms durationShort
 
 
 animDelayShort : Style
 animDelayShort =
-    animationDelay <| ms shortDurationMillis
+    animationDelay <| ms durationShort
 
 
 animFillBoth : Style
@@ -603,63 +654,6 @@ delayedDisappearAnim =
         , animDelayShort
         , animFillBoth
         ]
-
-
-
---noinspection ElmUnusedSymbol
-
-
-animToStyle : Anim -> Style
-animToStyle anim =
-    case anim of
-        InitialEnter ->
-            appearAnim
-
-        MergedEnter ->
-            delayedPopInAnim
-
-        MergedExit _ ->
-            delayedDisappearAnim
-
-        NewDelayedEnter ->
-            delayedAppearAnim
-
-        Stayed _ ->
-            batch []
-
-
-viewTile : Tile -> Html Msg
-viewTile ((Tile anim pos val) as tile) =
-    div
-        [ css
-            [ tileTransform pos
-            , transition [ T.transform3 shortDurationMillis 0 T.easeInOut ]
-            , gridArea11
-            , displayGrid
-            , paddingForTileAndBoard
-            ]
-        ]
-        [ div
-            [ css
-                [ backgroundColor <| valBackgroundColor val
-                , roundedBorder
-                , displayGrid
-                , placeContentCenter
-                , animToStyle anim
-                ]
-            , HA.title <| Debug.toString tile
-            ]
-            [ text <| Val.toDisplayString val
-            ]
-        ]
-
-
-tileTransform pos =
-    let
-        ( dx, dy ) =
-            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-    in
-    transforms [ translate2 dx dy ]
 
 
 valBackgroundColor val =
