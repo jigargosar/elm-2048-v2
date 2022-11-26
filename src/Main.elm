@@ -304,8 +304,9 @@ view game =
 viewGame : Game -> Html Msg
 viewGame game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
-        [ div [ css [ displayFlex, gap "20px" ] ]
-            [ viewNewGameButton
+        [ Keyed.node "div"
+            [ css [ displayFlex, gap "20px" ] ]
+            [ ( "", viewNewGameButton )
             , viewScore (toScore game)
             ]
         , wrapInKeyed game <| viewBoard game
@@ -333,12 +334,24 @@ globalStyleNode =
         ]
 
 
-viewScore : Score -> Html msg
+viewScore : Score -> ( String, Html msg )
 viewScore (Score total deltas) =
-    div [ css [ displayGrid ] ]
-        (div [ css [ gridArea11 ] ] [ text <| String.fromInt total ]
-            :: List.foldl (\d -> (::) (viewScoreDelta d)) [] deltas
-        )
+    let
+        totalString =
+            String.fromInt total
+    in
+    ( totalString
+    , div
+        [ css [ displayGrid ] ]
+        [ div [ css [ gridArea11 ] ] [ text totalString ]
+        , case deltas |> List.head of
+            Just d ->
+                viewScoreDelta d
+
+            Nothing ->
+                text ""
+        ]
+    )
 
 
 viewScoreDelta : Int -> Html msg
