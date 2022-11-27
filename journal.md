@@ -11,6 +11,7 @@ NEXT STEPS:
 * [x] grid refactoring
 * [x] grouping functions
 * [x] game over colors
+* [ ] tile size
 * [ ] game over ui
 * [ ] tile colors
 * [ ] score and new game UI
