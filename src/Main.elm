@@ -286,16 +286,16 @@ attemptMoveGridHelp : Dir -> Grid Tile -> Grid (Merged Tile)
 attemptMoveGridHelp dir =
     case dir of
         Left ->
-            Grid.mapRowsAsLists slideLeftAndMergeRow
+            Grid.mapEachRowAsList slideLeftAndMergeRow
 
         Right ->
-            Grid.mapRowsAsReversedLists slideLeftAndMergeRow
+            Grid.mapEachRowAsReversedList slideLeftAndMergeRow
 
         Up ->
-            Grid.mapColumnsAsLists slideLeftAndMergeRow
+            Grid.mapEachColumnAsList slideLeftAndMergeRow
 
         Down ->
-            Grid.mapColumnsAsReversedLists slideLeftAndMergeRow
+            Grid.mapEachColumnAsReversedList slideLeftAndMergeRow
 
 
 eqByVal : Tile -> Tile -> Bool

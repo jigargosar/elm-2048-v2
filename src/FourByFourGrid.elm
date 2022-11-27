@@ -7,11 +7,10 @@ module FourByFourGrid exposing
     , foldl
     , fromEntries
     , map
-    , mapColumnsAsLists
-    , mapColumnsAsReversedLists
-    , mapRows
-    , mapRowsAsLists
-    , mapRowsAsReversedLists
+    , mapEachColumnAsList
+    , mapEachColumnAsReversedList
+    , mapEachRowAsList
+    , mapEachRowAsReversedList
     , posToInt
     )
 
@@ -103,46 +102,65 @@ map fn =
     mapRows (Vector4.map (Maybe.map fn))
 
 
+mapEachRowAsList : (List a -> List b) -> Grid a -> Grid b
+mapEachRowAsList fn =
+    mapRows (updateRowAsList fn)
+
+
+mapEachColumnAsList : (List a -> List b) -> Grid a -> Grid b
+mapEachColumnAsList fn =
+    mapTransposedRows (updateRowAsList fn)
+
+
+mapEachRowAsReversedList : (List a -> List b) -> Grid a -> Grid b
+mapEachRowAsReversedList fn =
+    mapRows (updateRowAsReversedList fn)
+
+
+mapEachColumnAsReversedList : (List a -> List b) -> Grid a -> Grid b
+mapEachColumnAsReversedList fn =
+    mapTransposedRows (updateRowAsReversedList fn)
+
+
+updateRowAsList fn =
+    rowToList >> fn >> rowFromList
+
+
+updateRowAsReversedList fn =
+    rowToReversedList >> fn >> rowFromReversedList
+
+
 mapRows : (Row a -> Row b) -> Grid a -> Grid b
 mapRows fn (Grid rows) =
     Vector4.map fn rows |> Grid
 
 
-mapRowsAsReversedLists : (List a -> List b) -> Grid a -> Grid b
-mapRowsAsReversedLists fn =
-    mapRows (rowReverse >> rowToList >> fn >> rowFromList >> rowReverse)
+rowToReversedList : Row a -> List a
+rowToReversedList =
+    Vector4.reverse >> rowToList
 
 
-mapColumnsAsReversedLists : (List a -> List b) -> Grid a -> Grid b
-mapColumnsAsReversedLists fn =
-    mapColumns (rowReverse >> rowToList >> fn >> rowFromList >> rowReverse)
+rowFromReversedList : List a -> Row a
+rowFromReversedList =
+    rowFromList >> Vector4.reverse
 
 
-mapRowsAsLists : (List a -> List b) -> Grid a -> Grid b
-mapRowsAsLists fn =
-    mapRows (rowToList >> fn >> rowFromList)
+mapTransposedRows : (Row a -> Row b) -> Grid a -> Grid b
+mapTransposedRows fn (Grid rows) =
+    rows
+        |> transpose
+        |> Vector4.map fn
+        |> transpose
+        |> Grid
 
 
-mapColumnsAsLists : (List a -> List b) -> Grid a -> Grid b
-mapColumnsAsLists fn =
-    mapColumns (rowToList >> fn >> rowFromList)
-
-
-mapColumns : (Row a -> Row b) -> Grid a -> Grid b
-mapColumns fn (Grid rows) =
-    mapTransposed (Vector4.map fn) rows |> Grid
-
-
-mapTransposed fn =
-    let
-        transpose rows =
-            Vector4.map4 Vector4.from4
-                (Vector4.get Vector4.Index0 rows)
-                (Vector4.get Vector4.Index1 rows)
-                (Vector4.get Vector4.Index2 rows)
-                (Vector4.get Vector4.Index3 rows)
-    in
-    transpose >> fn >> transpose
+transpose : Rows a -> Rows a
+transpose rows =
+    Vector4.map4 Vector4.from4
+        (Vector4.get Vector4.Index0 rows)
+        (Vector4.get Vector4.Index1 rows)
+        (Vector4.get Vector4.Index2 rows)
+        (Vector4.get Vector4.Index3 rows)
 
 
 rowToList : Row a -> List a
@@ -153,11 +171,6 @@ rowToList =
 rowFromList : List a -> Row a
 rowFromList =
     List.map Just >> Vector4.fromListWithDefault Nothing >> Tuple.second
-
-
-rowReverse : Row a -> Row a
-rowReverse =
-    Vector4.reverse
 
 
 toEntries : Grid a -> List (Entry a)
