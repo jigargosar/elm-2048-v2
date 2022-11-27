@@ -25,6 +25,12 @@ THINKING
 
 Should we refactor grid?
 To what end?
+Clarify following code:
+
+Grid.mapRowsAsLists slideLeftAndMergeRow
+Grid.mapRowsAsReversedLists slideLeftAndMergeRow
+Grid.mapColumnsAsLists slideLeftAndMergeRow
+Grid.mapColumnsAsReversedLists slideLeftAndMergeRow
 
 
 27-11-22: Should we use tile id?
