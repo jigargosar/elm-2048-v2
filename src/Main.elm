@@ -545,7 +545,7 @@ viewTile ((Tile anim pos val) as tile) =
         ]
         [ div
             [ css
-                [ backgroundColor <| valBackgroundColor val
+                [ backgroundColor <| valColor val
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
@@ -750,7 +750,7 @@ colorMaxVal =
     hsl 0 0 0.1
 
 
-valBackgroundColor val =
+valColor val =
     case Val.toIndex val of
         1 ->
             colorVal2
