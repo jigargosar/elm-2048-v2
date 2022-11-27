@@ -17,6 +17,56 @@ import Random.List
 import Val exposing (Val)
 
 
+
+-- COUNTER
+
+
+type Counter
+    = Counter Int
+
+
+initialCounter =
+    Counter 0
+
+
+counterIncrement (Counter i) =
+    Counter <| i + 1
+
+
+toKey (Counter i) =
+    String.fromInt i
+
+
+
+-- SCORE
+
+
+type Score
+    = Score
+        -- total
+        Int
+        -- deltas for animation
+        (Maybe Int)
+
+
+scoreInitial : Score
+scoreInitial =
+    Score 0 Nothing
+
+
+scoreAddDelta : Int -> Score -> Score
+scoreAddDelta scoreDelta ((Score total _) as score) =
+    if scoreDelta > 0 then
+        Score (total + scoreDelta) (Just scoreDelta)
+
+    else
+        score
+
+
+
+-- TILE
+
+
 type Tile
     = Tile Anim Pos Val
 
@@ -108,30 +158,6 @@ type alias Game =
     }
 
 
-type Counter
-    = Counter Int
-
-
-initialCounter =
-    Counter 0
-
-
-counterIncrement (Counter i) =
-    Counter <| i + 1
-
-
-toKey (Counter i) =
-    String.fromInt i
-
-
-type Score
-    = Score
-        -- total
-        Int
-        -- deltas for animation
-        (Maybe Int)
-
-
 type Anim
     = InitialEnter
     | MergedExit Pos
@@ -171,13 +197,8 @@ init _ =
 
 initGame : Seed -> Game
 initGame seed =
-    { ct = initialCounter, score = initialScore, tiles = [], seed = seed }
+    { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
         |> newGame
-
-
-initialScore : Score
-initialScore =
-    Score 0 Nothing
 
 
 newGame : Game -> Game
@@ -187,7 +208,7 @@ newGame game =
             Random.step randomInitialTiles game.seed
     in
     { ct = game.ct
-    , score = initialScore
+    , score = scoreInitial
     , tiles = newTiles
     , seed = seed
     }
@@ -217,7 +238,7 @@ update msg model =
             ( newGame model, Cmd.none )
 
         GotInitialSeed seed ->
-            ( { score = initialScore
+            ( { score = scoreInitial
               , ct = initialCounter
               , tiles = []
               , seed = seed
@@ -271,15 +292,6 @@ updateGameFromMergedGrid game grid =
     , tiles = updatedTiles ++ newTiles
     , seed = seed
     }
-
-
-scoreAddDelta : Int -> Score -> Score
-scoreAddDelta scoreDelta ((Score total _) as score) =
-    if scoreDelta > 0 then
-        Score (total + scoreDelta) (Just scoreDelta)
-
-    else
-        score
 
 
 isGameOver : Game -> Bool
