@@ -385,7 +385,7 @@ globalStyleNode : Html msg
 globalStyleNode =
     Global.global
         [ Global.body
-            [ backgroundColor <| colorDark1
+            [ backgroundColor <| colorGlobal
             , color <| hsl 1 1 1
             , fontSize <| px 30
             , fontFamily monospace
@@ -487,7 +487,7 @@ viewBackgroundTiles =
     div
         [ css
             [ boardStyle
-            , backgroundColor <| colorDark3
+            , backgroundColor <| colorBoardGap
             ]
         ]
         (Grid.allPositions |> List.map viewBackgroundTile)
@@ -505,7 +505,7 @@ viewBackgroundTile pos =
         [ div
             [ css
                 [ roundedBorder
-                , backgroundColor <| colorDark2
+                , backgroundColor <| colorBoard
                 ]
             ]
             []
@@ -725,25 +725,37 @@ delayedDisappearAnim =
         ]
 
 
-colorDark1 =
-    hsl 0 0 0.15
+colorGlobal =
+    hsl 0 0 0.1
 
 
-colorDark2 =
-    hsl 0 0 0.25
+colorBoard =
+    hsl 0 0 0.2
 
 
-colorDark3 =
+colorBoardGap =
     hsl 0 0 0.3
+
+
+colorVal2 =
+    hsl 0 0 0.4
+
+
+colorVal4 =
+    hsl 0 0 0.55
+
+
+colorMaxVal =
+    hsl 0 0 0.1
 
 
 valBackgroundColor val =
     case Val.toIndex val of
         1 ->
-            hsl 0 0 0.4
+            colorVal2
 
         2 ->
-            hsl 0 0 0.55
+            colorVal4
 
         3 ->
             hsl 36 0.88 0.4
@@ -770,7 +782,7 @@ valBackgroundColor val =
             hsl (360 - 36) 0.88 0.4
 
         _ ->
-            colorDark1
+            colorMaxVal
 
 
 gap =
