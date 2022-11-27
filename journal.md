@@ -8,8 +8,8 @@ CURRENT STATE:
 * Using elm-css for animation, no manual animation frame.
 
 NEXT STEPS:
-* [ ] grid refactoring?
-* [ ] grouping functions
+* [x] grid refactoring
+* [x] grouping functions
 * [ ] game over colors
 * [ ] game over ui
 * [ ] tile colors
