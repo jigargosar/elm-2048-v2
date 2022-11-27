@@ -17,6 +17,49 @@ import Random.List
 import Val exposing (Val)
 
 
+type Tile
+    = Tile Anim Pos Val
+
+
+tileInit : Anim -> Pos -> Val -> Tile
+tileInit anim pos val =
+    Tile anim pos val
+
+
+tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
+tileUpdate pos animFn (Tile _ oldPos val) =
+    Tile (animFn oldPos) pos val
+
+
+tileEqByVal : Tile -> Tile -> Bool
+tileEqByVal (Tile _ _ v1) (Tile _ _ v2) =
+    v1 == v2
+
+
+tileNextVal : Tile -> Val
+tileNextVal (Tile _ _ val) =
+    Val.next val
+
+
+tileEntryInPlay : Tile -> Maybe ( Pos, Tile )
+tileEntryInPlay ((Tile anim pos _) as tile) =
+    case anim of
+        InitialEnter ->
+            Just ( pos, tile )
+
+        MergedExit _ ->
+            Nothing
+
+        MergedEnter ->
+            Just ( pos, tile )
+
+        NewDelayedEnter ->
+            Just ( pos, tile )
+
+        Moved _ ->
+            Just ( pos, tile )
+
+
 type Merged a
     = Merged a a
     | Stayed a
@@ -35,7 +78,7 @@ slideLeftAndMergeRow =
         step a acc =
             case acc of
                 (Stayed b) :: rest ->
-                    if eqByVal a b then
+                    if tileEqByVal a b then
                         Merged a b :: rest
 
                     else
@@ -45,15 +88,6 @@ slideLeftAndMergeRow =
                     Stayed a :: acc
     in
     List.foldl step [] >> List.reverse
-
-
-type Tile
-    = Tile Anim Pos Val
-
-
-initTile : Anim -> Pos -> Val -> Tile
-initTile anim pos val =
-    Tile anim pos val
 
 
 main : Program Flags Game Msg
@@ -113,14 +147,9 @@ randomTilesAfterMove grid =
 
 randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
 randomTiles n anim emptyPositions =
-    Random.map2 (List.map2 (initTile anim))
+    Random.map2 (List.map2 (tileInit anim))
         (randomTake n emptyPositions)
         (Random.list n Val.random)
-
-
-tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
-tileUpdate pos animFn (Tile _ oldPos val) =
-    Tile (animFn oldPos) pos val
 
 
 type Msg
@@ -298,16 +327,6 @@ gridMakeMoveHelp dir =
             Grid.mapEachColumnAsReversedList slideLeftAndMergeRow
 
 
-eqByVal : Tile -> Tile -> Bool
-eqByVal (Tile _ _ v1) (Tile _ _ v2) =
-    v1 == v2
-
-
-tileNextVal : Tile -> Val
-tileNextVal (Tile _ _ val) =
-    Val.next val
-
-
 updateTiles : Grid (Merged Tile) -> ( Int, List Tile )
 updateTiles =
     Grid.foldl updateTilesHelp ( 0, [] )
@@ -324,7 +343,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             ( Val.toScore mergedVal + scoreDeltaAcc
             , tileUpdate pos MergedExit tile1
                 :: tileUpdate pos MergedExit tile2
-                :: initTile MergedEnter pos mergedVal
+                :: tileInit MergedEnter pos mergedVal
                 :: tilesAcc
             )
 
@@ -334,25 +353,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
 
 tilesGrid : List Tile -> Grid Tile
 tilesGrid =
-    let
-        toEntry ((Tile anim pos _) as tile) =
-            case anim of
-                InitialEnter ->
-                    Just ( pos, tile )
-
-                MergedExit _ ->
-                    Nothing
-
-                MergedEnter ->
-                    Just ( pos, tile )
-
-                NewDelayedEnter ->
-                    Just ( pos, tile )
-
-                Moved _ ->
-                    Just ( pos, tile )
-    in
-    List.filterMap toEntry >> Grid.fromEntries
+    List.filterMap tileEntryInPlay >> Grid.fromEntries
 
 
 view : Game -> Html.Html Msg
