@@ -734,15 +734,15 @@ colorBoard =
 
 
 colorBoardGap =
-    hsl 0 0 0.23
+    hsl 0 0 0.22
 
 
 colorVal2 =
-    hsl 0 0 0.4
+    hsl 0 0 0.32
 
 
 colorVal4 =
-    hsl 0 0 0.55
+    hsl 0 0 0.47
 
 
 colorMaxVal =
