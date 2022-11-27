@@ -77,6 +77,14 @@ scoreAddDelta scoreDelta ((Score total _) as score) =
 -- TILE
 
 
+type Anim
+    = InitialEnter
+    | MergedExit Pos
+    | MergedEnter
+    | NewDelayedEnter
+    | Moved Pos
+
+
 type Tile
     = Tile Anim Pos Val
 
@@ -198,26 +206,6 @@ type alias Game =
     }
 
 
-type Anim
-    = InitialEnter
-    | MergedExit Pos
-    | MergedEnter
-    | NewDelayedEnter
-    | Moved Pos
-
-
-randomTilesAfterMove : Grid a -> Generator (List Tile)
-randomTilesAfterMove grid =
-    randomTiles 1 NewDelayedEnter (Grid.emptyPositions grid)
-
-
-randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
-randomTiles n anim emptyPositions =
-    Random.map2 (List.map2 (tileInit anim))
-        (randomTake n emptyPositions)
-        (Random.list n Val.random)
-
-
 init : () -> ( Game, Cmd Msg )
 init _ =
     ( initGame <| Random.initialSeed 0
@@ -247,6 +235,23 @@ newGame game =
 randomInitialTiles : Generator (List Tile)
 randomInitialTiles =
     randomTiles 2 InitialEnter Grid.allPositions
+
+
+randomTilesAfterMove : Grid a -> Generator (List Tile)
+randomTilesAfterMove grid =
+    randomTiles 1 NewDelayedEnter (Grid.emptyPositions grid)
+
+
+randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
+randomTiles n anim emptyPositions =
+    Random.map2 (List.map2 (tileInit anim))
+        (randomTake n emptyPositions)
+        (Random.list n Val.random)
+
+
+tilesGrid : List Tile -> Grid Tile
+tilesGrid =
+    List.filterMap tileEntryInPlay >> Grid.fromEntries
 
 
 
@@ -334,19 +339,6 @@ updateGameFromMergedGrid game grid =
     }
 
 
-isGameOver : Game -> Bool
-isGameOver game =
-    let
-        grid =
-            tilesGrid game.tiles
-
-        isInvalidMove dir =
-            gridAttemptMove dir grid == Nothing
-    in
-    [ Up, Down, Left, Right ]
-        |> List.all isInvalidMove
-
-
 updateTiles : Grid Merged -> ( Int, List Tile )
 updateTiles =
     Grid.foldl updateTilesHelp ( 0, [] )
@@ -371,9 +363,21 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
 
 
-tilesGrid : List Tile -> Grid Tile
-tilesGrid =
-    List.filterMap tileEntryInPlay >> Grid.fromEntries
+isGameOver : Game -> Bool
+isGameOver game =
+    let
+        grid =
+            tilesGrid game.tiles
+
+        isInvalidMove dir =
+            gridAttemptMove dir grid == Nothing
+    in
+    [ Up, Down, Left, Right ]
+        |> List.all isInvalidMove
+
+
+
+-- VIEW
 
 
 view : Game -> Html.Html Msg
