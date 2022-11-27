@@ -49,6 +49,10 @@ and get new position and update tiles.
 
 Do we have simpler algorithm?
 
+map list of lists left.
+
+can we fold over lists of lists left?
+
 
 
 27-11-22: Should we use tile id?
