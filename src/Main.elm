@@ -726,15 +726,15 @@ delayedDisappearAnim =
 
 
 colorGlobal =
-    hsl 0 0 0.1
+    hsl 0 0 0.13
 
 
 colorBoard =
-    hsl 0 0 0.2
+    hsl 0 0 0.17
 
 
 colorBoardGap =
-    hsl 0 0 0.3
+    hsl 0 0 0.23
 
 
 colorVal2 =
