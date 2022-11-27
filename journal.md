@@ -8,6 +8,7 @@ CURRENT STATE:
 * Using elm-css for animation, no manual animation frame.
 
 NEXT STEPS:
+* [ ] grid refactoring?
 * [ ] grouping functions
 * [ ] game over colors
 * [ ] game over ui
@@ -22,9 +23,13 @@ NEXT STEPS:
 
 THINKING
 
-Should we use tile id?
+Should we refactor grid?
+To what end?
+
+
+27-11-22: Should we use tile id?
 PROS: 
-* all dom nodes need not be recreated from scratch, perhaps it will help in future.
+* all dom nodes need not be recreated from scratch, it may help in the future.
 * so that we can get rid of global update counter.
 * can switch to move transition instead of animation.
 
