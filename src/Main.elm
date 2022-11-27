@@ -575,12 +575,27 @@ viewTile ((Tile anim pos val) as tile) =
                 , displayGrid
                 , placeContentCenter
                 , tileAnimation anim
+                , valFontSize val
                 ]
             , HA.title <| Debug.toString tile
             ]
             [ text <| Val.toDisplayString val
             ]
         ]
+
+
+valFontSize : Val -> Style
+valFontSize val =
+    let
+        len =
+            String.length <| Val.toDisplayString <| val
+    in
+    fontSize <|
+        if len > 3 then
+            em 0.7
+
+        else
+            em 1
 
 
 tileMovedToAnimation : Pos -> Anim -> Style

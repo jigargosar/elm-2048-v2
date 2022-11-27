@@ -24,8 +24,13 @@ toScore (Val i) =
 
 random : Generator Val
 random =
-    Random.weighted ( 80, 1 ) [ ( 20, 2 ) ]
+    pareto 1 2
+        --pareto 10 13
         |> Random.map Val
+
+
+pareto a b =
+    Random.weighted ( 80, a ) [ ( 20, b ) ]
 
 
 toIndex : Val -> Int
