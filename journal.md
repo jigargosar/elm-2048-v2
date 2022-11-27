@@ -47,6 +47,9 @@ the approach we have is to move/merge them in one direction
 apply rotation
 and get new position and update tiles.
 
+Do we have simpler algorithm?
+
+
 
 27-11-22: Should we use tile id?
 PROS: 
