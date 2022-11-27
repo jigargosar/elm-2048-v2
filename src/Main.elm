@@ -17,6 +17,16 @@ import Random.List
 import Val exposing (Val)
 
 
+main : Program () Game Msg
+main =
+    Browser.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
+
+
 
 -- COUNTER
 
@@ -110,44 +120,11 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
             Just ( pos, tile )
 
 
-type Merged a
-    = Merged a a
-    | Stayed a
-
-
 type Dir
     = Left
     | Right
     | Up
     | Down
-
-
-slideLeftAndMergeRow : List Tile -> List (Merged Tile)
-slideLeftAndMergeRow =
-    let
-        step a acc =
-            case acc of
-                (Stayed b) :: rest ->
-                    if tileEqByVal a b then
-                        Merged a b :: rest
-
-                    else
-                        Stayed a :: acc
-
-                _ ->
-                    Stayed a :: acc
-    in
-    List.foldl step [] >> List.reverse
-
-
-main : Program Flags Game Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
 
 
 type alias Game =
@@ -178,17 +155,7 @@ randomTiles n anim emptyPositions =
         (Random.list n Val.random)
 
 
-type Msg
-    = OnKeyDown String
-    | NewGameClicked
-    | GotInitialSeed Seed
-
-
-type alias Flags =
-    ()
-
-
-init : Flags -> ( Game, Cmd Msg )
+init : () -> ( Game, Cmd Msg )
 init _ =
     ( initGame <| Random.initialSeed 0
     , Random.generate GotInitialSeed Random.independentSeed
@@ -217,6 +184,16 @@ newGame game =
 randomInitialTiles : Generator (List Tile)
 randomInitialTiles =
     randomTiles 2 InitialEnter Grid.allPositions
+
+
+
+-- UPDATE
+
+
+type Msg
+    = OnKeyDown String
+    | NewGameClicked
+    | GotInitialSeed Seed
 
 
 subscriptions : Game -> Sub Msg
@@ -337,6 +314,29 @@ gridMakeMoveHelp dir =
 
         Down ->
             Grid.mapEachColumnAsReversedList slideLeftAndMergeRow
+
+
+type Merged a
+    = Merged a a
+    | Stayed a
+
+
+slideLeftAndMergeRow : List Tile -> List (Merged Tile)
+slideLeftAndMergeRow =
+    let
+        step a acc =
+            case acc of
+                (Stayed b) :: rest ->
+                    if tileEqByVal a b then
+                        Merged a b :: rest
+
+                    else
+                        Stayed a :: acc
+
+                _ ->
+                    Stayed a :: acc
+    in
+    List.foldl step [] >> List.reverse
 
 
 updateTiles : Grid (Merged Tile) -> ( Int, List Tile )
