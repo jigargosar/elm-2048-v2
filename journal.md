@@ -8,6 +8,7 @@ CURRENT STATE:
 * Using elm-css for animation, no manual animation frame.
 
 NEXT STEPS:
+* [ ] grouping functions
 * [ ] game over colors
 * [ ] game over ui
 * [ ] tile colors
