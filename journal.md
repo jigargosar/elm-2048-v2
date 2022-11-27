@@ -33,7 +33,7 @@ Grid.mapColumnsAsLists slideLeftAndMergeRow
 Grid.mapColumnsAsReversedLists slideLeftAndMergeRow
 
 What api are we looking for?
-Just better names
+Just better names?
 
 mapRowsL
 mapColumnsL
