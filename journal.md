@@ -39,7 +39,13 @@ slideUp = Some Code
 slideLeft = Some Code
 slideRight = Some Code
 
+we need to achieve 2 things figure out what got merged
+and get new positions of all tiles
 
+apply rotation
+the approach we have is to move/merge them in one direction
+apply rotation
+and get new position and update tiles.
 
 
 27-11-22: Should we use tile id?
