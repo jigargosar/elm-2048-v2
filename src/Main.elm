@@ -120,11 +120,74 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
             Just ( pos, tile )
 
 
+
+-- GRID
+
+
 type Dir
     = Left
     | Right
     | Up
     | Down
+
+
+type Merged
+    = Merged Tile Tile
+    | Stayed Tile
+
+
+gridAttemptMove : Dir -> Grid Tile -> Maybe (Grid Merged)
+gridAttemptMove dir grid =
+    let
+        mergedGrid =
+            gridAttemptMoveHelp dir grid
+
+        unmergedGrid =
+            Grid.map Stayed grid
+    in
+    if mergedGrid == unmergedGrid then
+        Nothing
+
+    else
+        Just mergedGrid
+
+
+gridAttemptMoveHelp : Dir -> Grid Tile -> Grid Merged
+gridAttemptMoveHelp dir =
+    case dir of
+        Left ->
+            Grid.mapEachRowAsList mergeLeft
+
+        Right ->
+            Grid.mapEachRowAsReversedList mergeLeft
+
+        Up ->
+            Grid.mapEachColumnAsList mergeLeft
+
+        Down ->
+            Grid.mapEachColumnAsReversedList mergeLeft
+
+
+mergeLeft : List Tile -> List Merged
+mergeLeft =
+    let
+        step a acc =
+            case acc of
+                (Stayed b) :: rest ->
+                    if tileEqByVal a b then
+                        Merged a b :: rest
+
+                    else
+                        Stayed a :: acc
+
+                _ ->
+                    Stayed a :: acc
+    in
+    List.foldl step [] >> List.reverse
+
+
+
+-- GAME
 
 
 type alias Game =
@@ -255,7 +318,7 @@ attemptMove dir game =
         |> Maybe.map (updateGameFromMergedGrid game)
 
 
-updateGameFromMergedGrid : Game -> Grid (Merged Tile) -> Game
+updateGameFromMergedGrid : Game -> Grid Merged -> Game
 updateGameFromMergedGrid game grid =
     let
         ( scoreDelta, updatedTiles ) =
@@ -284,67 +347,12 @@ isGameOver game =
         |> List.all isInvalidMove
 
 
-gridAttemptMove : Dir -> Grid Tile -> Maybe (Grid (Merged Tile))
-gridAttemptMove dir grid =
-    let
-        mergedGrid =
-            gridMakeMoveHelp dir grid
-
-        unmergedGrid =
-            Grid.map Stayed grid
-    in
-    if mergedGrid == unmergedGrid then
-        Nothing
-
-    else
-        Just mergedGrid
-
-
-gridMakeMoveHelp : Dir -> Grid Tile -> Grid (Merged Tile)
-gridMakeMoveHelp dir =
-    case dir of
-        Left ->
-            Grid.mapEachRowAsList slideLeftAndMergeRow
-
-        Right ->
-            Grid.mapEachRowAsReversedList slideLeftAndMergeRow
-
-        Up ->
-            Grid.mapEachColumnAsList slideLeftAndMergeRow
-
-        Down ->
-            Grid.mapEachColumnAsReversedList slideLeftAndMergeRow
-
-
-type Merged a
-    = Merged a a
-    | Stayed a
-
-
-slideLeftAndMergeRow : List Tile -> List (Merged Tile)
-slideLeftAndMergeRow =
-    let
-        step a acc =
-            case acc of
-                (Stayed b) :: rest ->
-                    if tileEqByVal a b then
-                        Merged a b :: rest
-
-                    else
-                        Stayed a :: acc
-
-                _ ->
-                    Stayed a :: acc
-    in
-    List.foldl step [] >> List.reverse
-
-
-updateTiles : Grid (Merged Tile) -> ( Int, List Tile )
+updateTiles : Grid Merged -> ( Int, List Tile )
 updateTiles =
     Grid.foldl updateTilesHelp ( 0, [] )
 
 
-updateTilesHelp : ( Pos, Merged Tile ) -> ( Int, List Tile ) -> ( Int, List Tile )
+updateTilesHelp : ( Pos, Merged ) -> ( Int, List Tile ) -> ( Int, List Tile )
 updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
     case merged of
         Merged tile1 tile2 ->
