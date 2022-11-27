@@ -33,25 +33,12 @@ Grid.mapColumnsAsLists slideLeftAndMergeRow
 Grid.mapColumnsAsReversedLists slideLeftAndMergeRow
 
 What api are we looking for?
+Just better names
 
-slideLeft = Some Code
-slideUp = Some Code
-slideLeft = Some Code
-slideRight = Some Code
-
-we need to achieve 2 things figure out what got merged
-and get new positions of all tiles
-
-apply rotation
-the approach we have is to move/merge them in one direction
-apply rotation
-and get new position and update tiles.
-
-Do we have simpler algorithm?
-
-map list of lists left.
-
-can we fold over lists of lists left?
+mapRowsL
+mapColumnsL
+mapRowsR
+mapColumnsR
 
 
 
