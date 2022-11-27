@@ -32,6 +32,8 @@ Grid.mapRowsAsReversedLists slideLeftAndMergeRow
 Grid.mapColumnsAsLists slideLeftAndMergeRow
 Grid.mapColumnsAsReversedLists slideLeftAndMergeRow
 
+What api are we looking for?
+
 
 27-11-22: Should we use tile id?
 PROS: 
