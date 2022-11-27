@@ -496,9 +496,10 @@ viewGameOver game =
                 [ css
                     [ gridArea11
                     , position relative
+                    , backgroundColor <| hsla 0 0 0 0.8
+                    , roundedBorder
                     , displayGrid
                     , placeContentCenter
-                    , backgroundColor <| hsla 0 0 1 0.8
                     ]
                 ]
                 [ text "game over" ]
