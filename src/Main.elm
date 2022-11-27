@@ -225,11 +225,11 @@ attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
     tilesGrid game.tiles
         |> gridAttemptMove dir
-        |> Maybe.map (updateGame game)
+        |> Maybe.map (updateGameFromMergedGrid game)
 
 
-updateGame : Game -> Grid (Merged Tile) -> Game
-updateGame game grid =
+updateGameFromMergedGrid : Game -> Grid (Merged Tile) -> Game
+updateGameFromMergedGrid game grid =
     let
         ( scoreDelta, updatedTiles ) =
             updateTiles grid
