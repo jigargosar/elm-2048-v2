@@ -1,4 +1,66 @@
-## RECORDING ON 15-11-22
+## RECORDING ON 27-11-22
+
+CURRENT STATE:
+* UI work pending
+* Using list of tiles without id, and resetting animation on update.
+    * keyed node with update counter for tiles animation
+    * keyed node with score total for score delta animation
+* Using elm-css for animation, no manual animation frame.
+
+NEXT STEPS:
+* [ ] game over colors
+* [ ] game over ui
+* [ ] tile colors
+* [ ] score and new game UI
+* [ ] header
+* [ ] footer
+
+
+
+
+
+THINKING
+
+Should we use tile id?
+PROS: 
+* all dom nodes need not be recreated from scratch, perhaps it will help in future.
+* so that we can get rid of global update counter.
+* can switch to move transition instead of animation.
+
+CONS:
+* Complexity.
+* Will have to pass id creation code around.
+* Will have to use a timer for removing exit nodes (score delta and tiles).
+* Switching to transitions, will cause unnecessary artifacts when rapidly making moves.
+
+CONCLUSION: NO UPSIDE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## RECORDING ON 15-11-22, ARCHIVED ON 27-11-22
 
 CURRENT STATE:
 * We have 2 implementations with and without animations.
@@ -8,7 +70,7 @@ NEXT STEPS:
 * [x] bug: new tiles are generated without move/merge
 * [x] game over
 * [x] generate 2 new tiles at start and one afterwards.
-* [ ] experiment to find when can we remove exit node without messing up dom animations.
+* [x] experiment to find when can we remove exit node without messing up dom animations.
 * [ ] ui styles
 
 
