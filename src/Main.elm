@@ -781,7 +781,11 @@ delayedDisappearAnim =
 
 
 colorGlobal =
-    hsl 0 0 0.13
+    colorGlobalA 1
+
+
+colorGlobalA a =
+    hsla 0 0 0.13 a
 
 
 colorBoard =
