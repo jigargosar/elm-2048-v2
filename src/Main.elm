@@ -194,6 +194,20 @@ mergeLeft =
     List.foldl step [] >> List.reverse
 
 
+gridIsAnyMovePossible : Grid Tile -> Bool
+gridIsAnyMovePossible grid =
+    if Grid.isFull grid then
+        let
+            isMovePossible dir =
+                gridAttemptMove dir grid /= Nothing
+        in
+        [ Up, Down, Left, Right ]
+            |> List.any isMovePossible
+
+    else
+        True
+
+
 
 -- GAME
 
@@ -365,15 +379,9 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
 
 isGameOver : Game -> Bool
 isGameOver game =
-    let
-        grid =
-            tilesGrid game.tiles
-
-        isInvalidMove dir =
-            gridAttemptMove dir grid == Nothing
-    in
-    [ Up, Down, Left, Right ]
-        |> List.all isInvalidMove
+    tilesGrid game.tiles
+        |> gridIsAnyMovePossible
+        |> not
 
 
 

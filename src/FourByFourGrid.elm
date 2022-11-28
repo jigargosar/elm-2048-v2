@@ -6,6 +6,7 @@ module FourByFourGrid exposing
     , emptyPositions
     , foldl
     , fromEntries
+    , isFull
     , map
     , mapEachColumnAsList
     , mapEachColumnAsReversedList
@@ -71,6 +72,11 @@ allPositions =
 
 indices =
     Vector4.indices |> Vector4.toList
+
+
+isFull : Grid a -> Bool
+isFull =
+    emptyPositions >> List.isEmpty
 
 
 emptyPositions : Grid a -> List Pos
