@@ -504,19 +504,39 @@ viewTiles game =
 
 viewGameOver : Game -> Html msg
 viewGameOver game =
-    case isGameOver game of
+    case isGameOver game |> always True of
         True ->
             div
                 [ css
                     [ gridArea11
                     , position relative
-                    , backgroundColor <| hsla 0 0 0 0.8
+                    , backgroundColor <| colorGlobalA 0.7
+                    , textShadow4 (px 0) (px 0) (px 3) colorGlobal
                     , roundedBorder
                     , displayGrid
+
+                    --, displayFlex
+                    --, flexDirection column
                     , placeContentCenter
+                    , placeItemsCenter
+                    , gap "20px"
                     ]
                 ]
-                [ text "game over" ]
+                [ div [] [ text "Game Over!" ]
+                , button
+                    [ css
+                        [ fontSize <| rem 1.2
+                        , fontFamily monospace
+                        , padding2 (rem 0.8) (rem 1)
+                        , fontWeight normal
+                        , backgroundColor <| colorGlobal
+                        , color inherit
+                        , border3 (px 2) solid currentColor
+                        , roundedBorder
+                        ]
+                    ]
+                    [ text "Try Again" ]
+                ]
 
         False ->
             text ""
@@ -858,6 +878,10 @@ displayInlineGrid =
 
 placeContentCenter =
     property "place-content" "center"
+
+
+placeItemsCenter =
+    property "place-items" "center"
 
 
 gridArea11 =
