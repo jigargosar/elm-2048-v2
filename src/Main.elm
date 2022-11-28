@@ -263,6 +263,12 @@ randomTiles n anim emptyPositions =
         (Random.list n Val.random)
 
 
+randomTake : Int -> List a -> Generator (List a)
+randomTake n list =
+    Random.List.choices n list
+        |> Random.map Tuple.first
+
+
 tilesGrid : List Tile -> Grid Tile
 tilesGrid =
     List.filterMap tileEntryInPlay >> Grid.fromEntries
@@ -346,8 +352,8 @@ updateGameFromMergedGrid game grid =
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove grid) game.seed
     in
-    { ct = counterIncrement game.ct
-    , score = scoreAddDelta scoreDelta game.score
+    { score = scoreAddDelta scoreDelta game.score
+    , ct = counterIncrement game.ct
     , tiles = updatedTiles ++ newTiles
     , seed = seed
     }
@@ -871,13 +877,3 @@ mapBothWith fn =
 mul : number -> number -> number
 mul =
     (*)
-
-
-
--- RANDOM EXTRA
-
-
-randomTake : Int -> List a -> Generator (List a)
-randomTake n list =
-    Random.List.choices n list
-        |> Random.map Tuple.first
