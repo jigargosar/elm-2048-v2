@@ -417,16 +417,24 @@ viewGame game =
 
 viewNewGameButton : Html Msg
 viewNewGameButton =
-    button [ autofocus True, onClick NewGameClicked ] [ text "New Game" ]
+    button
+        [ css [ buttonStyle ]
+        , autofocus True
+        , onClick NewGameClicked
+        ]
+        [ text "New Game" ]
 
 
 globalStyleNode : Html msg
 globalStyleNode =
     Global.global
-        [ Global.body
-            [ backgroundColor <| colorGlobal
-            , color <| hsl 1 1 1
-            , fontSize <| px 30
+        [ Global.html
+            [ fontSize <| px 20
+            , backgroundColor <| colorGlobal
+            , color <| hsl 0 0 0.9
+            ]
+        , Global.body
+            [ fontSize <| px 30
             , fontFamily monospace
             ]
         ]
@@ -441,7 +449,7 @@ viewScore (Score total delta) =
     ( totalString
     , div
         [ css [ displayGrid ] ]
-        [ div [ css [ gridArea11 ] ] [ text totalString ]
+        [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
         , case delta of
             Just d ->
                 viewScoreDelta d
@@ -523,23 +531,34 @@ viewGameOver game =
                     ]
                 ]
                 [ div [] [ text "Game Over!" ]
-                , button
-                    [ css
-                        [ fontSize <| rem 1.2
-                        , fontFamily monospace
-                        , padding2 (rem 0.8) (rem 1)
-                        , fontWeight normal
-                        , backgroundColor <| colorGlobal
-                        , color inherit
-                        , border3 (px 2) solid currentColor
-                        , roundedBorder
-                        ]
-                    ]
+                , button [ css [ buttonStyle ] ]
                     [ text "Try Again" ]
                 ]
 
         False ->
             text ""
+
+
+buttonStyle =
+    batch
+        [ fontSize <| rem 1
+        , fontFamily monospace
+        , padding2 (rem 0.5) (rem 0.8)
+        , fontWeight normal
+        , backgroundColor <| colorGlobal
+        , color currentColor
+        , border3 (px 2) solid currentColor
+        , roundedBorder
+        , hoverAndFocus [ color colorWhite ]
+        ]
+
+
+colorWhite =
+    hsl 1 1 1
+
+
+hoverAndFocus list =
+    batch [ hover list, focus list ]
 
 
 viewBackgroundTiles : Html msg
