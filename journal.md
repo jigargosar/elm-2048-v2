@@ -12,7 +12,7 @@ NEXT STEPS:
 * [x] grouping functions
 * [x] game over colors
 * [x] tile font size
-* [ ] game over ui
+* [x] game over ui
 * [ ] tile colors
 * [ ] score and new game UI
 * [ ] header
