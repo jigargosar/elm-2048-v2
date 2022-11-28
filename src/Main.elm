@@ -547,9 +547,13 @@ buttonStyle =
         , fontWeight normal
         , backgroundColor <| colorGlobal
         , color currentColor
-        , border3 (px 1) solid currentColor
+        , border3 (px 1) solid colorButtonBorder
         , roundedBorder
-        , hoverAndFocus [ color colorWhite, backgroundColor colorButtonFocus ]
+        , focus
+            [ color colorWhite
+            , backgroundColor colorButtonFocus
+            , boxShadow5 (px 0) (px 0) (px 20) (px 4) (colorWhiteA 0.05)
+            ]
         ]
 
 
@@ -557,8 +561,8 @@ colorWhite =
     hsl 1 1 1
 
 
-hoverAndFocus list =
-    batch [ hover list, focus list ]
+colorWhiteA =
+    hsla 1 1 1
 
 
 viewBackgroundTiles : Html msg
@@ -823,8 +827,12 @@ colorGlobal =
     colorGlobalA 1
 
 
+colorButtonBorder =
+    hsl 0 0 0.5
+
+
 colorButtonFocus =
-    hsl 0 0 0.2
+    hsl 0 0 0.17
 
 
 colorGlobalA a =
