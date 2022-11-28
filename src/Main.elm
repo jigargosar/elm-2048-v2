@@ -5,15 +5,17 @@ import Browser.Events
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
+import CssExtra exposing (..)
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
 import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
-import Html.Styled.Attributes as HA exposing (autofocus, css)
+import Html.Styled.Attributes exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
-import Random.List
+import Tile exposing (Anim(..), Tile(..))
+import UI
 import Val exposing (Val)
 
 
@@ -74,61 +76,6 @@ scoreAddDelta scoreDelta ((Score total _) as score) =
 
 
 
--- TILE
-
-
-type Anim
-    = InitialEnter
-    | MergedExit Pos
-    | MergedEnter
-    | NewDelayedEnter
-    | Moved Pos
-
-
-type Tile
-    = Tile Anim Pos Val
-
-
-tileInit : Anim -> Pos -> Val -> Tile
-tileInit anim pos val =
-    Tile anim pos val
-
-
-tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
-tileUpdate pos animFn (Tile _ oldPos val) =
-    Tile (animFn oldPos) pos val
-
-
-tileEqByVal : Tile -> Tile -> Bool
-tileEqByVal (Tile _ _ v1) (Tile _ _ v2) =
-    v1 == v2
-
-
-tileNextVal : Tile -> Val
-tileNextVal (Tile _ _ val) =
-    Val.next val
-
-
-tileEntryInPlay : Tile -> Maybe ( Pos, Tile )
-tileEntryInPlay ((Tile anim pos _) as tile) =
-    case anim of
-        InitialEnter ->
-            Just ( pos, tile )
-
-        MergedExit _ ->
-            Nothing
-
-        MergedEnter ->
-            Just ( pos, tile )
-
-        NewDelayedEnter ->
-            Just ( pos, tile )
-
-        Moved _ ->
-            Just ( pos, tile )
-
-
-
 -- GRID
 
 
@@ -182,7 +129,7 @@ mergeLeft =
         step a acc =
             case acc of
                 (Stayed b) :: rest ->
-                    if tileEqByVal a b then
+                    if Tile.tileEqByVal a b then
                         Merged a b :: rest
 
                     else
@@ -223,35 +170,13 @@ newGame : Game -> Game
 newGame game =
     let
         ( newTiles, seed ) =
-            Random.step randomInitialTiles game.seed
+            Random.step Tile.randomInitialTiles game.seed
     in
     { ct = game.ct
     , score = scoreInitial
     , tiles = newTiles
     , seed = seed
     }
-
-
-randomInitialTiles : Generator (List Tile)
-randomInitialTiles =
-    randomTiles 2 InitialEnter Grid.allPositions
-
-
-randomTilesAfterMove : Grid a -> Generator (List Tile)
-randomTilesAfterMove grid =
-    randomTiles 1 NewDelayedEnter (Grid.emptyPositions grid)
-
-
-randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
-randomTiles n anim emptyPositions =
-    Random.map2 (List.map2 (tileInit anim))
-        (randomTake n emptyPositions)
-        (Random.list n Val.random)
-
-
-tilesGrid : List Tile -> Grid Tile
-tilesGrid =
-    List.filterMap tileEntryInPlay >> Grid.fromEntries
 
 
 
@@ -318,7 +243,7 @@ move dir game =
 
 attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
-    tilesGrid game.tiles
+    Tile.tilesGrid game.tiles
         |> gridAttemptMove dir
         |> Maybe.map (updateGameFromMergedGrid game)
 
@@ -330,7 +255,7 @@ updateGameFromMergedGrid game grid =
             updateTiles grid
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove grid) game.seed
+            Random.step (Tile.randomTilesAfterMove grid) game.seed
     in
     { ct = counterIncrement game.ct
     , score = scoreAddDelta scoreDelta game.score
@@ -350,24 +275,24 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
         Merged tile1 tile2 ->
             let
                 mergedVal =
-                    tileNextVal tile1
+                    Tile.tileNextVal tile1
             in
             ( Val.toScore mergedVal + scoreDeltaAcc
-            , tileUpdate pos MergedExit tile1
-                :: tileUpdate pos MergedExit tile2
-                :: tileInit MergedEnter pos mergedVal
+            , Tile.mergedExit pos tile1
+                :: Tile.mergedExit pos tile2
+                :: Tile.mergedEnter pos mergedVal
                 :: tilesAcc
             )
 
         Stayed tile ->
-            ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
+            ( scoreDeltaAcc, Tile.stayed pos tile :: tilesAcc )
 
 
 isGameOver : Game -> Bool
 isGameOver game =
     let
         grid =
-            tilesGrid game.tiles
+            Tile.tilesGrid game.tiles
 
         isInvalidMove dir =
             gridAttemptMove dir grid == Nothing
@@ -410,7 +335,7 @@ globalStyleNode : Html msg
 globalStyleNode =
     Global.global
         [ Global.body
-            [ backgroundColor <| colorGlobal
+            [ backgroundColor <| UI.colorGlobal
             , color <| hsl 1 1 1
             , fontSize <| px 30
             , fontFamily monospace
@@ -463,7 +388,7 @@ fadeUpAnim =
                     ]
                   )
                 ]
-        , animationDuration <| ms durationVeryLong
+        , animationDuration <| ms UI.durationVeryLong
         , animFillBoth
         ]
 
@@ -484,7 +409,7 @@ viewTiles game =
     ( toKey game.ct
     , div
         [ css [ boardStyle ] ]
-        (List.map viewTile game.tiles)
+        (List.map Tile.viewTile game.tiles)
     )
 
 
@@ -497,7 +422,7 @@ viewGameOver game =
                     [ gridArea11
                     , position relative
                     , backgroundColor <| hsla 0 0 0 0.8
-                    , roundedBorder
+                    , UI.roundedBorder
                     , displayGrid
                     , placeContentCenter
                     ]
@@ -513,7 +438,7 @@ viewBackgroundTiles =
     div
         [ css
             [ boardStyle
-            , backgroundColor <| colorBoardGap
+            , backgroundColor <| UI.colorBoardGap
             ]
         ]
         (Grid.allPositions |> List.map viewBackgroundTile)
@@ -525,13 +450,13 @@ viewBackgroundTile pos =
         [ css
             [ gridAreaFromPos pos
             , displayGrid
-            , paddingForTileAndBoard
+            , UI.paddingForTileAndBoard
             ]
         ]
         [ div
             [ css
-                [ roundedBorder
-                , backgroundColor <| colorBoard
+                [ UI.roundedBorder
+                , backgroundColor <| UI.colorBoard
                 ]
             ]
             []
@@ -553,297 +478,9 @@ boardStyle =
         [ displayGrid
         , gridArea11
         , property "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
-        , paddingForTileAndBoard
-        , roundedBorder
+        , UI.paddingForTileAndBoard
+        , UI.roundedBorder
         ]
-
-
-viewTile : Tile -> Html Msg
-viewTile ((Tile anim pos val) as tile) =
-    div
-        [ css
-            [ gridArea11
-            , tileMovedToAnimation pos anim
-            , displayGrid
-            , paddingForTileAndBoard
-            ]
-        ]
-        [ div
-            [ css
-                [ backgroundColor <| valColor val
-                , roundedBorder
-                , displayGrid
-                , placeContentCenter
-                , tileAnimation anim
-                , valFontSize val
-                ]
-            , HA.title <| Debug.toString tile
-            ]
-            [ text <| Val.toDisplayString val
-            ]
-        ]
-
-
-valFontSize : Val -> Style
-valFontSize val =
-    let
-        len =
-            String.length <| Val.toDisplayString <| val
-    in
-    fontSize <|
-        if len > 3 then
-            em 0.7
-
-        else
-            em 1
-
-
-tileMovedToAnimation : Pos -> Anim -> Style
-tileMovedToAnimation to anim =
-    case anim of
-        InitialEnter ->
-            moveFromToAnim to to
-
-        MergedExit from ->
-            moveFromToAnim from to
-
-        MergedEnter ->
-            moveFromToAnim to to
-
-        NewDelayedEnter ->
-            moveFromToAnim to to
-
-        Moved from ->
-            moveFromToAnim from to
-
-
-moveFromToAnim : Pos -> Pos -> Style
-moveFromToAnim from to =
-    batch
-        [ animationName <|
-            keyframes
-                [ ( 0, [ A.transform [ posTranslate from ] ] )
-                , ( 100, [ A.transform [ posTranslate to ] ] )
-                ]
-        , animFillBoth
-        , animDurationShort
-        , property "animation-timing-function" "ease-in-out"
-        ]
-
-
-posTranslate : Pos -> Transform {}
-posTranslate pos =
-    let
-        ( dx, dy ) =
-            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-    in
-    translate2 dx dy
-
-
-tileAnimation : Anim -> Style
-tileAnimation anim =
-    case anim of
-        InitialEnter ->
-            appearAnim
-
-        MergedEnter ->
-            delayedPopInAnim
-
-        MergedExit _ ->
-            delayedDisappearAnim
-
-        NewDelayedEnter ->
-            delayedAppearAnim
-
-        Moved _ ->
-            batch []
-
-
-roundedBorder =
-    Css.borderRadius <| px 8
-
-
-paddingForTileAndBoard =
-    padding <| px 8
-
-
-durationShort =
-    100
-
-
-durationMedium =
-    durationShort * 2
-
-
-durationVeryLong =
-    1000
-
-
-animDurationMedium : Style
-animDurationMedium =
-    animationDuration <| ms durationMedium
-
-
-animDurationShort : Style
-animDurationShort =
-    animationDuration <| ms durationShort
-
-
-animDelayShort : Style
-animDelayShort =
-    animationDelay <| ms durationShort
-
-
-animFillBoth : Style
-animFillBoth =
-    property "animation-fill-mode" "both"
-
-
-animNameAppear : Style
-animNameAppear =
-    animationName <|
-        keyframes
-            [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
-            , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-            ]
-
-
-animNameDisappear : Style
-animNameDisappear =
-    animationName <|
-        keyframes
-            [ ( 0, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-            , ( 100, [ A.opacity zero, A.transform [ scale 0 ] ] )
-            ]
-
-
-animNamePop : Style
-animNamePop =
-    animationName <|
-        keyframes
-            [ ( 0, [ A.transform [ scale 0 ] ] )
-            , ( 50, [ A.transform [ scale 1.2 ] ] )
-            , ( 100, [ A.transform [ scale 1 ] ] )
-            ]
-
-
-appearAnim : Style
-appearAnim =
-    batch
-        [ animNameAppear
-        , animDurationMedium
-        , animFillBoth
-        ]
-
-
-delayedAppearAnim : Style
-delayedAppearAnim =
-    batch
-        [ animNameAppear
-        , animDurationMedium
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-delayedPopInAnim : Style
-delayedPopInAnim =
-    batch
-        [ animNamePop
-        , animDurationMedium
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-delayedDisappearAnim : Style
-delayedDisappearAnim =
-    batch
-        [ animNameDisappear
-        , animDurationShort
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-colorGlobal =
-    hsl 0 0 0.13
-
-
-colorBoard =
-    hsl 0 0 0.17
-
-
-colorBoardGap =
-    hsl 0 0 0.22
-
-
-colorVal2 =
-    hsl 0 0 0.32
-
-
-colorVal4 =
-    hsl 0 0 0.47
-
-
-colorMaxVal =
-    hsl 0 0 0.1
-
-
-valColor val =
-    case Val.toIndex val of
-        1 ->
-            colorVal2
-
-        2 ->
-            colorVal4
-
-        3 ->
-            hsl 36 0.88 0.4
-
-        4 ->
-            hsl 26 0.88 0.4
-
-        5 ->
-            hsl 16 0.88 0.4
-
-        6 ->
-            hsl 6 0.88 0.4
-
-        7 ->
-            hsl (360 - 6) 0.88 0.4
-
-        8 ->
-            hsl (360 - 16) 0.88 0.4
-
-        9 ->
-            hsl (360 - 26) 0.88 0.4
-
-        10 ->
-            hsl (360 - 36) 0.88 0.4
-
-        _ ->
-            colorMaxVal
-
-
-gap =
-    property "gap"
-
-
-displayGrid =
-    property "display" "grid"
-
-
-displayInlineGrid =
-    property "display" "inline-grid"
-
-
-placeContentCenter =
-    property "place-content" "center"
-
-
-gridArea11 =
-    property "grid-area" "1/1"
 
 
 
@@ -858,18 +495,3 @@ add =
 mapBothWith : (a -> x) -> ( a, a ) -> ( x, x )
 mapBothWith fn =
     Tuple.mapBoth fn fn
-
-
-mul : number -> number -> number
-mul =
-    (*)
-
-
-
--- RANDOM EXTRA
-
-
-randomTake : Int -> List a -> Generator (List a)
-randomTake n list =
-    Random.List.choices n list
-        |> Random.map Tuple.first

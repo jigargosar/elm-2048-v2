@@ -1,6 +1,8 @@
-module Val exposing (Val, next, random, toDisplayString, toIndex, toScore)
+module Val exposing (Val, next, random, toDisplayString, toScore, valColor)
 
-import Random exposing (Generator)
+import Css exposing (..)
+import Random exposing (Generator, Seed)
+import UI
 
 
 type Val
@@ -36,3 +38,40 @@ pareto a b =
 toIndex : Val -> Int
 toIndex (Val i) =
     i
+
+
+valColor : Val -> Color
+valColor val =
+    case toIndex val of
+        1 ->
+            UI.colorVal2
+
+        2 ->
+            UI.colorVal4
+
+        3 ->
+            hsl 36 0.88 0.4
+
+        4 ->
+            hsl 26 0.88 0.4
+
+        5 ->
+            hsl 16 0.88 0.4
+
+        6 ->
+            hsl 6 0.88 0.4
+
+        7 ->
+            hsl (360 - 6) 0.88 0.4
+
+        8 ->
+            hsl (360 - 16) 0.88 0.4
+
+        9 ->
+            hsl (360 - 26) 0.88 0.4
+
+        10 ->
+            hsl (360 - 36) 0.88 0.4
+
+        _ ->
+            UI.colorMaxVal
