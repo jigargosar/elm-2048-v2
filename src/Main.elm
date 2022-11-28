@@ -547,7 +547,7 @@ buttonStyle =
         , fontWeight normal
         , backgroundColor <| colorGlobal
         , color currentColor
-        , border3 (px 2) solid currentColor
+        , border3 (px 1) solid currentColor
         , roundedBorder
         , hoverAndFocus [ color colorWhite ]
         ]
