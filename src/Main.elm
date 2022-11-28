@@ -549,7 +549,7 @@ buttonStyle =
         , color currentColor
         , border3 (px 1) solid currentColor
         , roundedBorder
-        , hoverAndFocus [ color colorWhite ]
+        , hoverAndFocus [ color colorWhite, backgroundColor colorButtonFocus ]
         ]
 
 
@@ -821,6 +821,10 @@ delayedDisappearAnim =
 
 colorGlobal =
     colorGlobalA 1
+
+
+colorButtonFocus =
+    hsl 0 0 0.2
 
 
 colorGlobalA a =
