@@ -3,3 +3,5 @@ Session.vim
 /node_modules/
 .idea/refactorings.xml
 .idea/workspace.xml
+/.parcel-cache/
+/dist/
