@@ -227,15 +227,20 @@ type alias Model =
 
 init : () -> Url -> Key -> ( Model, Cmd Msg )
 init _ url key =
-    ( initGame url key <| Random.initialSeed 0
+    let
+        initialModel : Model
+        initialModel =
+            { ct = initialCounter
+            , score = scoreInitial
+            , tiles = []
+            , seed = Random.initialSeed 0
+            , url = url
+            , key = key
+            }
+    in
+    ( initialModel
     , Random.generate GotInitialSeed Random.independentSeed
     )
-
-
-initGame : Url -> Key -> Seed -> Model
-initGame url key seed =
-    { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed, url = url, key = key }
-        |> newGame
 
 
 newGame : Model -> Model
