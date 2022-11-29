@@ -11,7 +11,8 @@ import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
-import Json.Decode as JD exposing (Decoder)
+import Json.Decode as D exposing (Decoder)
+import Json.Encode as E
 import Random exposing (Generator, Seed)
 import Random.List
 import Val exposing (Val)
@@ -95,6 +96,21 @@ type Tile
 tileInit : Anim -> Pos -> Val -> Tile
 tileInit anim pos val =
     Tile anim pos val
+
+
+tileEncoder : Tile -> Value
+tileEncoder (Tile _ p v) =
+    E.list identity
+        [ Grid.posEncoder p
+        , Val.encoder v
+        ]
+
+
+tileDecoder : Decoder Tile
+tileDecoder =
+    D.map2 (Tile InitialEnter)
+        (D.index 0 Grid.posDecoder)
+        (D.index 1 Val.decoder)
 
 
 tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
@@ -225,8 +241,12 @@ type alias Game =
 
 type alias Flags =
     { now : Int
-    , state : Maybe String
+    , state : Value
     }
+
+
+type alias Value =
+    E.Value
 
 
 init : Flags -> ( Game, Cmd Msg )
@@ -293,14 +313,14 @@ type Msg
 
 subscriptions : Game -> Sub Msg
 subscriptions _ =
-    [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
+    [ Browser.Events.onKeyDown (D.map OnKeyDown keyDecoder)
     ]
         |> Sub.batch
 
 
 keyDecoder : Decoder String
 keyDecoder =
-    JD.field "key" JD.string
+    D.field "key" D.string
 
 
 update : Msg -> Game -> ( Game, Cmd Msg )

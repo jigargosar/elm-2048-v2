@@ -1,10 +1,40 @@
-module Val exposing (Val, next, random, toDisplayString, toIndex, toScore)
+module Val exposing (Val, decoder, encoder, next, random, toDisplayString, toIndex, toScore)
 
+import Json.Decode as D exposing (Decoder)
+import Json.Encode as E exposing (Value)
 import Random exposing (Generator)
 
 
 type Val
     = Val Int
+
+
+fromInt : Int -> Maybe Val
+fromInt i =
+    if i > 0 then
+        Just <| Val i
+
+    else
+        Nothing
+
+
+encoder : Val -> Value
+encoder (Val int) =
+    E.int int
+
+
+decoder : Decoder Val
+decoder =
+    D.andThen
+        (\i ->
+            case fromInt i of
+                Nothing ->
+                    D.fail <| "Invalid Val" ++ String.fromInt i
+
+                Just v ->
+                    D.succeed v
+        )
+        D.int
 
 
 next : Val -> Val
