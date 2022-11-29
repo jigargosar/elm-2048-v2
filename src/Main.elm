@@ -530,9 +530,7 @@ viewGameOver game =
                 [ css
                     [ gridArea11
                     , position relative
-                    , backgroundColor <| colorGlobalA 0.65
-
-                    --, textShadow4 (px 0) (px 0) (px 3) colorGlobal
+                    , backgroundColor <| colorGlobalA 0.85
                     , roundedBorder
                     , displayGrid
                     , placeContentCenter
@@ -540,11 +538,7 @@ viewGameOver game =
                     , gap "20px"
                     ]
                 ]
-                [ div
-                    [ css
-                        [ textShadow4 (px 0) (px 0) (px 15) <| colorGlobal
-                        ]
-                    ]
+                [ div []
                     [ text "Game Over!" ]
                 , button [ onClick NewGameClicked, css [ buttonStyle ] ]
                     [ text "Try Again" ]
