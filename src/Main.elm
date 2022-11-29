@@ -244,7 +244,6 @@ newGame game =
     , tiles = newTiles
     , seed = seed
     }
-        |> makeRandomMoves
 
 
 randomInitialTiles : Generator (List Tile)
