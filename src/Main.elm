@@ -404,13 +404,26 @@ saveGameState game =
 loadGameState : Value -> Game -> Game
 loadGameState value game =
     case
-        decodeStringValue gameStateDecoder value
+        decodeGameState game value
     of
-        Err _ ->
+        Err error ->
+            let
+                _ =
+                    Debug.log "Debug: " <| D.errorToString error
+            in
             game
 
-        Ok ( score, tiles ) ->
+        Ok ok ->
+            ok
+
+
+decodeGameState : Game -> Value -> Result D.Error Game
+decodeGameState game =
+    let
+        fn score tiles =
             { game | score = score, tiles = tiles }
+    in
+    decodeStringValue (gameStateDecoder fn)
 
 
 gameStateEncoder : Game -> Value
@@ -418,9 +431,14 @@ gameStateEncoder model =
     E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
 
 
-gameStateDecoder : Decoder ( Score, List Tile )
-gameStateDecoder =
-    D.map2 Tuple.pair scoreDecoder tilesDecoder
+gameStateDecoder : (Score -> List Tile -> c) -> Decoder c
+gameStateDecoder fn =
+    decoder2 fn scoreDecoder tilesDecoder
+
+
+decoder2 : (a -> b -> c) -> Decoder a -> Decoder b -> Decoder c
+decoder2 fn a b =
+    D.map2 fn (D.index 0 a) (D.index 1 b)
 
 
 decodeStringValue : Decoder a -> Value -> Result D.Error a
