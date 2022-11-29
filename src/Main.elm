@@ -18,15 +18,15 @@ import Url exposing (Url)
 import Val exposing (Val)
 
 
-main : Program () Game Msg
+main : Program () Model Msg
 main =
     Browser.application
         { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
-        , onUrlChange = OnUrlChange
-        , onUrlRequest = OnUrlRequest
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         }
 
 
@@ -215,37 +215,41 @@ gridIsAnyMovePossible grid =
 -- GAME
 
 
-type alias Game =
+type alias Model =
     { score : Score
     , tiles : List Tile
     , ct : Counter
     , seed : Seed
+    , url : Url
+    , key : Key
     }
 
 
-init : () -> Url -> Key -> ( Game, Cmd Msg )
-init _ _ _ =
-    ( initGame <| Random.initialSeed 0
+init : () -> Url -> Key -> ( Model, Cmd Msg )
+init _ url key =
+    ( initGame url key <| Random.initialSeed 0
     , Random.generate GotInitialSeed Random.independentSeed
     )
 
 
-initGame : Seed -> Game
-initGame seed =
-    { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
+initGame : Url -> Key -> Seed -> Model
+initGame url key seed =
+    { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed, url = url, key = key }
         |> newGame
 
 
-newGame : Game -> Game
-newGame game =
+newGame : Model -> Model
+newGame model =
     let
         ( newTiles, seed ) =
-            Random.step randomInitialTiles game.seed
+            Random.step randomInitialTiles model.seed
     in
-    { ct = game.ct
+    { ct = model.ct
     , score = scoreInitial
     , tiles = newTiles
     , seed = seed
+    , url = model.url
+    , key = model.key
     }
 
 
@@ -282,16 +286,16 @@ tilesGrid =
 
 
 type Msg
-    = OnKeyDown String
+    = KeyDowned String
     | NewGameClicked
     | GotInitialSeed Seed
-    | OnUrlChange Url
-    | OnUrlRequest UrlRequest
+    | UrlChanged Url
+    | LinkClicked UrlRequest
 
 
-subscriptions : Game -> Sub Msg
+subscriptions : Model -> Sub Msg
 subscriptions _ =
-    [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
+    [ Browser.Events.onKeyDown (JD.map KeyDowned keyDecoder)
     ]
         |> Sub.batch
 
@@ -301,41 +305,36 @@ keyDecoder =
     JD.field "key" JD.string
 
 
-update : Msg -> Game -> ( Game, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OnUrlRequest _ ->
+        LinkClicked _ ->
             ( model, Cmd.none )
 
-        OnUrlChange _ ->
+        UrlChanged _ ->
             ( model, Cmd.none )
 
         NewGameClicked ->
             ( newGame model, Cmd.none )
 
         GotInitialSeed seed ->
-            ( { score = scoreInitial
-              , ct = initialCounter
-              , tiles = []
-              , seed = seed
-              }
-                |> newGame
+            ( newGame { model | seed = seed }
             , Cmd.none
             )
 
-        OnKeyDown "ArrowRight" ->
+        KeyDowned "ArrowRight" ->
             move Right model
 
-        OnKeyDown "ArrowLeft" ->
+        KeyDowned "ArrowLeft" ->
             move Left model
 
-        OnKeyDown "ArrowUp" ->
+        KeyDowned "ArrowUp" ->
             move Up model
 
-        OnKeyDown "ArrowDown" ->
+        KeyDowned "ArrowDown" ->
             move Down model
 
-        OnKeyDown _ ->
+        KeyDowned _ ->
             ( model, Cmd.none )
 
 
@@ -343,14 +342,14 @@ update msg model =
 --noinspection ElmUnusedSymbol
 
 
-makeRandomMoves : Game -> Game
+makeRandomMoves : Model -> Model
 makeRandomMoves game =
     List.repeat 100 [ Left, Right, Up, Down ]
         |> List.concat
         |> List.foldl (\dir -> move dir >> Tuple.first) game
 
 
-move : Dir -> Game -> ( Game, Cmd Msg )
+move : Dir -> Model -> ( Model, Cmd Msg )
 move dir game =
     ( attemptMove dir game
         |> Maybe.withDefault game
@@ -358,26 +357,28 @@ move dir game =
     )
 
 
-attemptMove : Dir -> Game -> Maybe Game
+attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
     tilesGrid game.tiles
         |> gridAttemptMove dir
-        |> Maybe.map (updateGameFromMergedGrid game)
+        |> Maybe.map (updateFromMergedGrid game)
 
 
-updateGameFromMergedGrid : Game -> Grid Merged -> Game
-updateGameFromMergedGrid game grid =
+updateFromMergedGrid : Model -> Grid Merged -> Model
+updateFromMergedGrid model grid =
     let
         ( scoreDelta, updatedTiles ) =
             updateTiles grid
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove grid) game.seed
+            Random.step (randomTilesAfterMove grid) model.seed
     in
-    { score = scoreAddDelta scoreDelta game.score
-    , ct = counterIncrement game.ct
+    { score = scoreAddDelta scoreDelta model.score
+    , ct = counterIncrement model.ct
     , tiles = updatedTiles ++ newTiles
     , seed = seed
+    , url = model.url
+    , key = model.key
     }
 
 
@@ -405,7 +406,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
 
 
-isGameOver : Game -> Bool
+isGameOver : Model -> Bool
 isGameOver game =
     tilesGrid game.tiles
         |> gridIsAnyMovePossible
@@ -416,7 +417,7 @@ isGameOver game =
 -- VIEW
 
 
-view : Game -> Browser.Document Msg
+view : Model -> Browser.Document Msg
 view game =
     { title = ""
     , body =
@@ -429,7 +430,7 @@ view game =
     }
 
 
-viewGame : Game -> Html Msg
+viewGame : Model -> Html Msg
 viewGame game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
         [ Keyed.node "div"
@@ -511,7 +512,7 @@ fadeUpAnim =
         ]
 
 
-viewBoard : Game -> Html Msg
+viewBoard : Model -> Html Msg
 viewBoard game =
     Keyed.node "div"
         [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
@@ -522,7 +523,7 @@ viewBoard game =
         ]
 
 
-viewTiles : Game -> ( String, Html Msg )
+viewTiles : Model -> ( String, Html Msg )
 viewTiles game =
     ( toKey game.ct
     , div
@@ -531,7 +532,7 @@ viewTiles game =
     )
 
 
-viewGameOver : Game -> Html Msg
+viewGameOver : Model -> Html Msg
 viewGameOver game =
     case isGameOver game of
         True ->
