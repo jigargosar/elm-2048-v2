@@ -1,12 +1,12 @@
 module Main exposing (main)
 
-import Browser exposing (UrlRequest)
+import Browser
 import Browser.Events
-import Browser.Navigation exposing (Key)
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
+import Html
 import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
@@ -14,19 +14,16 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
 import Random.List
-import Url exposing (Url)
 import Val exposing (Val)
 
 
-main : Program () Model Msg
+main : Program () Game Msg
 main =
-    Browser.application
+    Browser.element
         { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
-        , onUrlChange = UrlChanged
-        , onUrlRequest = LinkClicked
         }
 
 
@@ -215,46 +212,37 @@ gridIsAnyMovePossible grid =
 -- GAME
 
 
-type alias Model =
+type alias Game =
     { score : Score
     , tiles : List Tile
     , ct : Counter
     , seed : Seed
-    , url : Url
-    , key : Key
     }
 
 
-init : () -> Url -> Key -> ( Model, Cmd Msg )
-init _ url key =
-    let
-        initialModel : Model
-        initialModel =
-            { ct = initialCounter
-            , score = scoreInitial
-            , tiles = []
-            , seed = Random.initialSeed 0
-            , url = url
-            , key = key
-            }
-    in
-    ( initialModel
+init : () -> ( Game, Cmd Msg )
+init _ =
+    ( initGame <| Random.initialSeed 0
     , Random.generate GotInitialSeed Random.independentSeed
     )
 
 
-newGame : Model -> Model
-newGame model =
+initGame : Seed -> Game
+initGame seed =
+    { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
+        |> newGame
+
+
+newGame : Game -> Game
+newGame game =
     let
         ( newTiles, seed ) =
-            Random.step randomInitialTiles model.seed
+            Random.step randomInitialTiles game.seed
     in
-    { ct = model.ct
+    { ct = game.ct
     , score = scoreInitial
     , tiles = newTiles
     , seed = seed
-    , url = model.url
-    , key = model.key
     }
 
 
@@ -291,16 +279,14 @@ tilesGrid =
 
 
 type Msg
-    = KeyDowned String
+    = OnKeyDown String
     | NewGameClicked
     | GotInitialSeed Seed
-    | UrlChanged Url
-    | LinkClicked UrlRequest
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Game -> Sub Msg
 subscriptions _ =
-    [ Browser.Events.onKeyDown (JD.map KeyDowned keyDecoder)
+    [ Browser.Events.onKeyDown (JD.map OnKeyDown keyDecoder)
     ]
         |> Sub.batch
 
@@ -310,36 +296,35 @@ keyDecoder =
     JD.field "key" JD.string
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Game -> ( Game, Cmd Msg )
 update msg model =
     case msg of
-        LinkClicked _ ->
-            ( model, Cmd.none )
-
-        UrlChanged _ ->
-            ( model, Cmd.none )
-
         NewGameClicked ->
             ( newGame model, Cmd.none )
 
         GotInitialSeed seed ->
-            ( newGame { model | seed = seed }
+            ( { score = scoreInitial
+              , ct = initialCounter
+              , tiles = []
+              , seed = seed
+              }
+                |> newGame
             , Cmd.none
             )
 
-        KeyDowned "ArrowRight" ->
+        OnKeyDown "ArrowRight" ->
             move Right model
 
-        KeyDowned "ArrowLeft" ->
+        OnKeyDown "ArrowLeft" ->
             move Left model
 
-        KeyDowned "ArrowUp" ->
+        OnKeyDown "ArrowUp" ->
             move Up model
 
-        KeyDowned "ArrowDown" ->
+        OnKeyDown "ArrowDown" ->
             move Down model
 
-        KeyDowned _ ->
+        OnKeyDown _ ->
             ( model, Cmd.none )
 
 
@@ -347,14 +332,14 @@ update msg model =
 --noinspection ElmUnusedSymbol
 
 
-makeRandomMoves : Model -> Model
+makeRandomMoves : Game -> Game
 makeRandomMoves game =
     List.repeat 100 [ Left, Right, Up, Down ]
         |> List.concat
         |> List.foldl (\dir -> move dir >> Tuple.first) game
 
 
-move : Dir -> Model -> ( Model, Cmd Msg )
+move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( attemptMove dir game
         |> Maybe.withDefault game
@@ -362,28 +347,26 @@ move dir game =
     )
 
 
-attemptMove : Dir -> Model -> Maybe Model
+attemptMove : Dir -> Game -> Maybe Game
 attemptMove dir game =
     tilesGrid game.tiles
         |> gridAttemptMove dir
-        |> Maybe.map (updateFromMergedGrid game)
+        |> Maybe.map (updateGameFromMergedGrid game)
 
 
-updateFromMergedGrid : Model -> Grid Merged -> Model
-updateFromMergedGrid model grid =
+updateGameFromMergedGrid : Game -> Grid Merged -> Game
+updateGameFromMergedGrid game grid =
     let
         ( scoreDelta, updatedTiles ) =
             updateTiles grid
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove grid) model.seed
+            Random.step (randomTilesAfterMove grid) game.seed
     in
-    { score = scoreAddDelta scoreDelta model.score
-    , ct = counterIncrement model.ct
+    { score = scoreAddDelta scoreDelta game.score
+    , ct = counterIncrement game.ct
     , tiles = updatedTiles ++ newTiles
     , seed = seed
-    , url = model.url
-    , key = model.key
     }
 
 
@@ -411,7 +394,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
 
 
-isGameOver : Model -> Bool
+isGameOver : Game -> Bool
 isGameOver game =
     tilesGrid game.tiles
         |> gridIsAnyMovePossible
@@ -422,20 +405,16 @@ isGameOver game =
 -- VIEW
 
 
-view : Model -> Browser.Document Msg
+view : Game -> Html.Html Msg
 view game =
-    { title = ""
-    , body =
-        [ div [ css [ padding <| px 30 ] ]
-            [ globalStyleNode
-            , viewGame game
-            ]
-            |> toUnstyled
+    div [ css [ padding <| px 30 ] ]
+        [ globalStyleNode
+        , viewGame game
         ]
-    }
+        |> toUnstyled
 
 
-viewGame : Model -> Html Msg
+viewGame : Game -> Html Msg
 viewGame game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
         [ Keyed.node "div"
@@ -517,7 +496,7 @@ fadeUpAnim =
         ]
 
 
-viewBoard : Model -> Html Msg
+viewBoard : Game -> Html Msg
 viewBoard game =
     Keyed.node "div"
         [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
@@ -528,7 +507,7 @@ viewBoard game =
         ]
 
 
-viewTiles : Model -> ( String, Html Msg )
+viewTiles : Game -> ( String, Html Msg )
 viewTiles game =
     ( toKey game.ct
     , div
@@ -537,7 +516,7 @@ viewTiles game =
     )
 
 
-viewGameOver : Model -> Html Msg
+viewGameOver : Game -> Html Msg
 viewGameOver game =
     case isGameOver game of
         True ->
