@@ -510,7 +510,7 @@ viewTiles game =
     )
 
 
-viewGameOver : Game -> Html msg
+viewGameOver : Game -> Html Msg
 viewGameOver game =
     case isGameOver game |> always True of
         True ->
@@ -531,7 +531,7 @@ viewGameOver game =
                     ]
                 ]
                 [ div [] [ text "Game Over!" ]
-                , button [ css [ buttonStyle ] ]
+                , button [ onClick NewGameClicked, css [ buttonStyle ] ]
                     [ text "Try Again" ]
                 ]
 
