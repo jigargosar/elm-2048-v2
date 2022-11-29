@@ -289,7 +289,6 @@ tilesGrid =
 type Msg
     = OnKeyDown String
     | NewGameClicked
-    | GotInitialSeed Seed
 
 
 subscriptions : Game -> Sub Msg
@@ -309,16 +308,6 @@ update msg model =
     case msg of
         NewGameClicked ->
             ( newGame model, Cmd.none )
-
-        GotInitialSeed seed ->
-            ( { score = scoreInitial
-              , ct = initialCounter
-              , tiles = []
-              , seed = seed
-              }
-                |> newGame
-            , Cmd.none
-            )
 
         OnKeyDown "ArrowRight" ->
             move Right model
@@ -351,7 +340,7 @@ move : Dir -> Game -> ( Game, Cmd Msg )
 move dir game =
     ( attemptMove dir game
         |> Maybe.withDefault game
-    , Cmd.none
+    , save ""
     )
 
 

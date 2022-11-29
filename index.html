@@ -14,7 +14,7 @@
     },
   })
 
-  app.ports?.save((jsonString) => {
+  app.ports?.save.subscribe((jsonString) => {
     sessionStorage.setItem('app-state', jsonString)
   })
 
