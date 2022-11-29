@@ -13,6 +13,8 @@ NEXT STEPS:
 * [x] game over colors
 * [x] tile font size
 * [x] game over ui
+* [ ] save game 
+* [ ] hi scores
 * [ ] tile colors
 * [ ] score and new game UI
 * [ ] header
