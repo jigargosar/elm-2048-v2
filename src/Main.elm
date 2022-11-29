@@ -284,6 +284,19 @@ init flags =
     )
 
 
+loadState : Value -> Game -> Game
+loadState value game =
+    decodeStringValue (stateDecoder game) value
+        |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
+        |> Result.withDefault game
+
+
+decodeStringValue : Decoder a -> Value -> Result D.Error a
+decodeStringValue decoder value =
+    D.decodeValue D.string value
+        |> Result.andThen (D.decodeString decoder)
+
+
 newGame : Game -> Game
 newGame game =
     let
@@ -413,19 +426,6 @@ move dir model =
 saveState : Game -> ( Game, Cmd msg )
 saveState game =
     ( game, save <| E.encode 0 (stateEncoder game) )
-
-
-loadState : Value -> Game -> Game
-loadState value game =
-    decodeStringValue (stateDecoder game) value
-        |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
-        |> Result.withDefault game
-
-
-decodeStringValue : Decoder a -> Value -> Result D.Error a
-decodeStringValue decoder value =
-    D.decodeValue D.string value
-        |> Result.andThen (D.decodeString decoder)
 
 
 attemptMove : Dir -> Game -> Maybe Game
