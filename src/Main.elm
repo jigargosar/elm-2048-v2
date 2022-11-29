@@ -230,13 +230,14 @@ type alias Flags =
 
 
 init : Flags -> ( Game, Cmd Msg )
-init _ =
+init flags =
     let
         initialGame seed =
             { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
+                |> newGame
     in
-    ( initialGame <| Random.initialSeed 0
-    , Random.generate GotInitialSeed Random.independentSeed
+    ( initialGame <| Random.initialSeed flags.now
+    , Cmd.none
     )
 
 
