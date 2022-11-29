@@ -17,7 +17,6 @@ module FourByFourGrid exposing
     , posToInt
     )
 
-import Codex
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
 import Vector4 exposing (Index(..), Vector4)
@@ -71,12 +70,12 @@ type alias Pos =
 
 posEncoder : Pos -> Value
 posEncoder ( a, b ) =
-    Codex.encoder2 (indexEncoder a) (indexEncoder b)
+    E.list identity [ indexEncoder a, indexEncoder b ]
 
 
 posDecoder : Decoder Pos
 posDecoder =
-    Codex.decoder2 Tuple.pair indexDecoder indexDecoder
+    D.map2 Tuple.pair (D.index 0 indexDecoder) (D.index 1 indexDecoder)
 
 
 indexEncoder : Index -> Value
