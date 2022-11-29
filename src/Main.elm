@@ -244,6 +244,7 @@ newGame game =
     , tiles = newTiles
     , seed = seed
     }
+        |> makeRandomMoves
 
 
 randomInitialTiles : Generator (List Tile)
@@ -326,6 +327,17 @@ update msg model =
 
         OnKeyDown _ ->
             ( model, Cmd.none )
+
+
+
+--noinspection ElmUnusedSymbol
+
+
+makeRandomMoves : Game -> Game
+makeRandomMoves game =
+    List.repeat 100 [ Left, Right, Up, Down ]
+        |> List.concat
+        |> List.foldl (\dir -> move dir >> Tuple.first) game
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
