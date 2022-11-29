@@ -512,7 +512,7 @@ viewTiles game =
 
 viewGameOver : Game -> Html Msg
 viewGameOver game =
-    case isGameOver game |> always True of
+    case isGameOver game of
         True ->
             div
                 [ css
