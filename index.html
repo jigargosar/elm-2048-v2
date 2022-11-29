@@ -3,13 +3,15 @@
 <script type="module">
   import Mod from './src/Main.elm'
 
-
   // noinspection JSUnresolvedVariable
   const Main = Mod.Elm.Main
-  
+
   const app = Main.init({
     node: document.getElementById('main'), // 
-    flags: sessionStorage.getItem('app-state'),
+    flags: {
+      now: Date.now(), //
+      state: sessionStorage.getItem('app-state'),
+    },
   })
 
   app.ports?.save((jsonString) => {

@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Events
@@ -17,7 +17,10 @@ import Random.List
 import Val exposing (Val)
 
 
-main : Program () Game Msg
+port save : String -> Cmd msg
+
+
+main : Program Flags Game Msg
 main =
     Browser.element
         { init = init
@@ -220,17 +223,21 @@ type alias Game =
     }
 
 
-init : () -> ( Game, Cmd Msg )
+type alias Flags =
+    { now : Int
+    , state : Maybe String
+    }
+
+
+init : Flags -> ( Game, Cmd Msg )
 init _ =
-    ( initGame <| Random.initialSeed 0
+    let
+        initialGame seed =
+            { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
+    in
+    ( initialGame <| Random.initialSeed 0
     , Random.generate GotInitialSeed Random.independentSeed
     )
-
-
-initGame : Seed -> Game
-initGame seed =
-    { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
-        |> newGame
 
 
 newGame : Game -> Game
