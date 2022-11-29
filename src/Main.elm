@@ -63,6 +63,25 @@ type Score
         (Maybe Int)
 
 
+scoreEncoder : Score -> Value
+scoreEncoder (Score total _) =
+    E.int total
+
+
+scoreDecoder : Decoder Score
+scoreDecoder =
+    D.andThen scoreDecoderHelp D.int
+
+
+scoreDecoderHelp : Int -> Decoder Score
+scoreDecoderHelp total =
+    if total >= 0 then
+        D.succeed <| Score total Nothing
+
+    else
+        D.fail <| "Score cannot be negative ;)" ++ String.fromInt total
+
+
 scoreInitial : Score
 scoreInitial =
     Score 0 Nothing
@@ -252,11 +271,15 @@ type alias Value =
 init : Flags -> ( Game, Cmd Msg )
 init flags =
     let
-        initialGame seed =
-            { ct = initialCounter, score = scoreInitial, tiles = [], seed = seed }
+        initialGame =
+            { ct = initialCounter
+            , score = scoreInitial
+            , tiles = []
+            , seed = Random.initialSeed flags.now
+            }
                 |> newGame
     in
-    ( initialGame <| Random.initialSeed flags.now
+    ( loadGameState flags.state initialGame
     , Cmd.none
     )
 
@@ -300,6 +323,16 @@ randomTake n list =
 tilesGrid : List Tile -> Grid Tile
 tilesGrid =
     List.filterMap tileEntryInPlay >> Grid.fromEntries
+
+
+tilesEncoder : List Tile -> Value
+tilesEncoder tiles =
+    E.list tileEncoder tiles
+
+
+tilesDecoder : Decoder (List Tile)
+tilesDecoder =
+    D.list tileDecoder
 
 
 
@@ -357,11 +390,43 @@ makeRandomMoves game =
 
 
 move : Dir -> Game -> ( Game, Cmd Msg )
-move dir game =
-    ( attemptMove dir game
-        |> Maybe.withDefault game
-    , save ""
-    )
+move dir model =
+    attemptMove dir model
+        |> Maybe.map saveGameState
+        |> Maybe.withDefault ( model, Cmd.none )
+
+
+saveGameState : Game -> ( Game, Cmd msg )
+saveGameState game =
+    ( game, save <| E.encode 0 (gameStateEncoder game) )
+
+
+loadGameState : Value -> Game -> Game
+loadGameState value game =
+    case
+        decodeStringValue gameStateDecoder value
+    of
+        Err _ ->
+            game
+
+        Ok ( score, tiles ) ->
+            { game | score = score, tiles = tiles }
+
+
+gameStateEncoder : Game -> Value
+gameStateEncoder model =
+    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
+
+
+gameStateDecoder : Decoder ( Score, List Tile )
+gameStateDecoder =
+    D.map2 Tuple.pair scoreDecoder tilesDecoder
+
+
+decodeStringValue : Decoder a -> Value -> Result D.Error a
+decodeStringValue decoder value =
+    D.decodeValue D.string value
+        |> Result.andThen (D.decodeString decoder)
 
 
 attemptMove : Dir -> Game -> Maybe Game
