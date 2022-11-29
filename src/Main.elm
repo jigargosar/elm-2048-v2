@@ -7,7 +7,7 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
-import Html.Styled exposing (Attribute, Html, button, div, text, toUnstyled)
+import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
@@ -429,12 +429,7 @@ viewGame game =
 
 viewNewGameButton : Html Msg
 viewNewGameButton =
-    button
-        [ css [ buttonStyle ]
-        , autofocus True
-        , onClick NewGameClicked
-        ]
-        [ text "New Game" ]
+    btnFocused NewGameClicked "New Game"
 
 
 globalStyleNode : Html msg
@@ -539,11 +534,20 @@ viewGameOver game =
                     ]
                 ]
                 [ div [] [ text "Game Over!" ]
-                , button [ onClick NewGameClicked, css [ buttonStyle ] ] [ text "Try Again" ]
+                , btn NewGameClicked "Try Again"
                 ]
 
         False ->
             text ""
+
+
+btn : msg -> String -> Html msg
+btn msg string =
+    Html.Styled.button [ onClick msg, css [ buttonStyle ] ] [ text string ]
+
+
+btnFocused msg string =
+    Html.Styled.button [ autofocus True, onClick msg, css [ buttonStyle ] ] [ text string ]
 
 
 buttonStyle =
