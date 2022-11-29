@@ -335,6 +335,16 @@ tilesDecoder =
     D.list tileDecoder
 
 
+stateEncoder : Game -> Value
+stateEncoder model =
+    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
+
+
+stateDecoder : (Score -> List Tile -> c) -> Decoder c
+stateDecoder fn =
+    D.map2 fn (D.index 0 scoreDecoder) (D.index 1 tilesDecoder)
+
+
 
 -- UPDATE
 
@@ -398,13 +408,20 @@ move dir model =
 
 saveGameState : Game -> ( Game, Cmd msg )
 saveGameState game =
-    ( game, save <| E.encode 0 (gameStateEncoder game) )
+    ( game, save <| E.encode 0 (stateEncoder game) )
 
 
 loadGameState : Value -> Game -> Game
 loadGameState value game =
+    let
+        fn score tiles =
+            { game | score = score, tiles = tiles }
+
+        result =
+            decodeStringValue (stateDecoder fn) value
+    in
     case
-        decodeGameState game value
+        result
     of
         Err error ->
             let
@@ -417,29 +434,10 @@ loadGameState value game =
             ok
 
 
-decodeGameState : Game -> Value -> Result D.Error Game
-decodeGameState game =
-    let
-        fn score tiles =
-            { game | score = score, tiles = tiles }
-    in
-    decodeStringValue (gameStateDecoder fn)
-
-
 decodeStringValue : Decoder a -> Value -> Result D.Error a
 decodeStringValue decoder value =
     D.decodeValue D.string value
         |> Result.andThen (D.decodeString decoder)
-
-
-gameStateEncoder : Game -> Value
-gameStateEncoder model =
-    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
-
-
-gameStateDecoder : (Score -> List Tile -> c) -> Decoder c
-gameStateDecoder fn =
-    D.map2 fn (D.index 0 scoreDecoder) (D.index 1 tilesDecoder)
 
 
 attemptMove : Dir -> Game -> Maybe Game
