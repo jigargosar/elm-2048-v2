@@ -1,12 +1,12 @@
 module Main exposing (main)
 
-import Browser
+import Browser exposing (UrlRequest)
 import Browser.Events
+import Browser.Navigation exposing (Key)
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
-import Html
 import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
@@ -14,16 +14,19 @@ import Html.Styled.Keyed as Keyed
 import Json.Decode as JD exposing (Decoder)
 import Random exposing (Generator, Seed)
 import Random.List
+import Url exposing (Url)
 import Val exposing (Val)
 
 
 main : Program () Game Msg
 main =
-    Browser.element
+    Browser.application
         { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
+        , onUrlChange = OnUrlChange
+        , onUrlRequest = OnUrlRequest
         }
 
 
@@ -220,8 +223,8 @@ type alias Game =
     }
 
 
-init : () -> ( Game, Cmd Msg )
-init _ =
+init : () -> Url -> Key -> ( Game, Cmd Msg )
+init _ _ _ =
     ( initGame <| Random.initialSeed 0
     , Random.generate GotInitialSeed Random.independentSeed
     )
@@ -282,6 +285,8 @@ type Msg
     = OnKeyDown String
     | NewGameClicked
     | GotInitialSeed Seed
+    | OnUrlChange Url
+    | OnUrlRequest UrlRequest
 
 
 subscriptions : Game -> Sub Msg
@@ -299,6 +304,12 @@ keyDecoder =
 update : Msg -> Game -> ( Game, Cmd Msg )
 update msg model =
     case msg of
+        OnUrlRequest _ ->
+            ( model, Cmd.none )
+
+        OnUrlChange _ ->
+            ( model, Cmd.none )
+
         NewGameClicked ->
             ( newGame model, Cmd.none )
 
@@ -405,13 +416,17 @@ isGameOver game =
 -- VIEW
 
 
-view : Game -> Html.Html Msg
+view : Game -> Browser.Document Msg
 view game =
-    div [ css [ padding <| px 30 ] ]
-        [ globalStyleNode
-        , viewGame game
+    { title = ""
+    , body =
+        [ div [ css [ padding <| px 30 ] ]
+            [ globalStyleNode
+            , viewGame game
+            ]
+            |> toUnstyled
         ]
-        |> toUnstyled
+    }
 
 
 viewGame : Game -> Html Msg
