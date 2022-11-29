@@ -279,7 +279,7 @@ init flags =
             }
                 |> newGame
     in
-    ( loadGameState flags.state initialGame
+    ( loadState flags.state initialGame
     , Cmd.none
     )
 
@@ -340,9 +340,13 @@ stateEncoder model =
     E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
 
 
-stateDecoder : (Score -> List Tile -> c) -> Decoder c
-stateDecoder fn =
-    D.map2 fn (D.index 0 scoreDecoder) (D.index 1 tilesDecoder)
+stateDecoder : Game -> Decoder Game
+stateDecoder game =
+    let
+        load score tiles =
+            { game | score = score, tiles = tiles }
+    in
+    D.map2 load (D.index 0 scoreDecoder) (D.index 1 tilesDecoder)
 
 
 
@@ -402,36 +406,20 @@ makeRandomMoves game =
 move : Dir -> Game -> ( Game, Cmd Msg )
 move dir model =
     attemptMove dir model
-        |> Maybe.map saveGameState
+        |> Maybe.map saveState
         |> Maybe.withDefault ( model, Cmd.none )
 
 
-saveGameState : Game -> ( Game, Cmd msg )
-saveGameState game =
+saveState : Game -> ( Game, Cmd msg )
+saveState game =
     ( game, save <| E.encode 0 (stateEncoder game) )
 
 
-loadGameState : Value -> Game -> Game
-loadGameState value game =
-    let
-        fn score tiles =
-            { game | score = score, tiles = tiles }
-
-        result =
-            decodeStringValue (stateDecoder fn) value
-    in
-    case
-        result
-    of
-        Err error ->
-            let
-                _ =
-                    Debug.log "Debug: " <| D.errorToString error
-            in
-            game
-
-        Ok ok ->
-            ok
+loadState : Value -> Game -> Game
+loadState value game =
+    decodeStringValue (stateDecoder game) value
+        |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
+        |> Result.withDefault game
 
 
 decodeStringValue : Decoder a -> Value -> Result D.Error a
