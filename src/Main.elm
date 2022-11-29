@@ -538,10 +538,8 @@ viewGameOver game =
                     , gap "20px"
                     ]
                 ]
-                [ div []
-                    [ text "Game Over!" ]
-                , button [ onClick NewGameClicked, css [ buttonStyle ] ]
-                    [ text "Try Again" ]
+                [ div [] [ text "Game Over!" ]
+                , button [ onClick NewGameClicked, css [ buttonStyle ] ] [ text "Try Again" ]
                 ]
 
         False ->
