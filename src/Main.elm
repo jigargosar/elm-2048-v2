@@ -2,6 +2,7 @@ port module Main exposing (main)
 
 import Browser
 import Browser.Events
+import Codex
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
@@ -127,9 +128,7 @@ tileEncoder (Tile _ p v) =
 
 tileDecoder : Decoder Tile
 tileDecoder =
-    D.map2 (Tile InitialEnter)
-        (D.index 0 Grid.posDecoder)
-        (D.index 1 Val.decoder)
+    Codex.decoder2 (Tile InitialEnter) Grid.posDecoder Val.decoder
 
 
 tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
@@ -423,7 +422,7 @@ decodeGameState game =
         fn score tiles =
             { game | score = score, tiles = tiles }
     in
-    decodeStringValue (gameStateDecoder fn)
+    Codex.decodeStringValue (gameStateDecoder fn)
 
 
 gameStateEncoder : Game -> Value
@@ -433,18 +432,7 @@ gameStateEncoder model =
 
 gameStateDecoder : (Score -> List Tile -> c) -> Decoder c
 gameStateDecoder fn =
-    decoder2 fn scoreDecoder tilesDecoder
-
-
-decoder2 : (a -> b -> c) -> Decoder a -> Decoder b -> Decoder c
-decoder2 fn a b =
-    D.map2 fn (D.index 0 a) (D.index 1 b)
-
-
-decodeStringValue : Decoder a -> Value -> Result D.Error a
-decodeStringValue decoder value =
-    D.decodeValue D.string value
-        |> Result.andThen (D.decodeString decoder)
+    Codex.decoder2 fn scoreDecoder tilesDecoder
 
 
 attemptMove : Dir -> Game -> Maybe Game
