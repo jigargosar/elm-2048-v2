@@ -567,7 +567,7 @@ viewTotalScoreWithDelta (Score _ total delta) =
     in
     ( totalString
     , div [ css [ minWidth <| ch 6, textAlign center ] ]
-        [ div [ css [ fontSize <| rem 1 ] ] [ text "SCORE" ]
+        [ lbl "SCORE"
         , div
             [ css [ displayGrid, position relative ] ]
             [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
@@ -580,9 +580,17 @@ viewTotalScoreWithDelta (Score _ total delta) =
 viewHiScore : Score -> Html msg
 viewHiScore (Score hi _ _) =
     div [ css [ minWidth <| ch 6, textAlign center ] ]
-        [ div [ css [ fontSize <| rem 1 ] ] [ text "BEST" ]
+        [ lbl "BEST"
         , div [] [ text <| String.fromInt hi ]
         ]
+
+
+lbl s =
+    div [ css [ fontSize <| rem 0.8, color <| colorDull ] ] [ text s ]
+
+
+colorDull =
+    hsl 0 0 0.7
 
 
 viewScoreDelta : Maybe Int -> Html msg
@@ -689,6 +697,7 @@ buttonStyle =
         , color currentColor
         , border3 (px 1) solid colorButtonBorder
         , roundedBorder
+        , placeSelfCenter
         , focus
             [ color colorWhite
             , backgroundColor colorButtonFocus
@@ -1049,6 +1058,10 @@ displayInlineGrid =
 
 placeContentCenter =
     property "place-content" "center"
+
+
+placeSelfCenter =
+    property "place-self" "center"
 
 
 placeItemsCenter =
