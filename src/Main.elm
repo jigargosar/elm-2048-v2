@@ -516,6 +516,7 @@ viewGame game =
         [ Keyed.node "div"
             [ css [ displayFlex, gap "20px" ] ]
             [ ( "", viewNewGameButton )
+            , ( "", div [ css [ flexGrow <| num 1 ] ] [] )
             , viewTotalScoreWithDelta game.score
             , ( "", viewHiScore game.score )
             ]
