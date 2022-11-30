@@ -320,13 +320,13 @@ decodeStringValue decoder value =
 
 
 newGame : Model -> ( Model, Cmd msg )
-newGame game =
+newGame model =
     let
         ( newTiles, seed ) =
-            Random.step randomInitialTiles game.seed
+            Random.step randomInitialTiles model.seed
     in
-    { ct = game.ct
-    , score = scoreReset game.score
+    { ct = counterIncrement model.ct
+    , score = scoreReset model.score
     , tiles = newTiles
     , seed = seed
     }
