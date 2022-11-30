@@ -65,21 +65,22 @@ type Score
 
 scoreEncoder : Score -> Value
 scoreEncoder (Score total _) =
-    E.int total
+    E.list identity [ E.int total ]
 
 
 scoreDecoder : Decoder Score
 scoreDecoder =
-    D.andThen scoreDecoderHelp D.int
+    D.map scoreInit D.int
 
 
-scoreDecoderHelp : Int -> Decoder Score
-scoreDecoderHelp total =
-    if total >= 0 then
-        D.succeed <| Score total Nothing
+scoreInit : Int -> Score
+scoreInit total =
+    Score (atLeast 0 total) Nothing
 
-    else
-        D.fail <| "Score cannot be negative ;)" ++ String.fromInt total
+
+atLeast : comparable -> comparable -> comparable
+atLeast =
+    max
 
 
 scoreInitial : Score
