@@ -297,18 +297,20 @@ init flags =
             , tiles = []
             , seed = Random.initialSeed flags.now
             }
-                |> newGame
     in
-    ( loadState flags.state initialGame
-    , Cmd.none
-    )
+    case loadState flags.state initialGame of
+        Just model ->
+            ( model, Cmd.none )
+
+        Nothing ->
+            newGame initialGame
 
 
-loadState : Value -> Model -> Model
+loadState : Value -> Model -> Maybe Model
 loadState value game =
     decodeStringValue (stateDecoder game) value
         |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
-        |> Result.withDefault game
+        |> Result.toMaybe
 
 
 decodeStringValue : Decoder a -> Value -> Result D.Error a
@@ -317,7 +319,7 @@ decodeStringValue decoder value =
         |> Result.andThen (D.decodeString decoder)
 
 
-newGame : Model -> Model
+newGame : Model -> ( Model, Cmd msg )
 newGame game =
     let
         ( newTiles, seed ) =
@@ -328,6 +330,7 @@ newGame game =
     , tiles = newTiles
     , seed = seed
     }
+        |> saveState
 
 
 randomInitialTiles : Generator (List Tile)
@@ -407,7 +410,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewGameClicked ->
-            ( newGame model, Cmd.none )
+            newGame model
 
         OnKeyDown "ArrowRight" ->
             move Right model
