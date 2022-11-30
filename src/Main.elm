@@ -552,18 +552,23 @@ viewScore (Score hi total delta) =
     , div
         [ css [ displayGrid ] ]
         [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
-        , case delta of
-            Just d ->
-                viewScoreDelta d
-
-            Nothing ->
-                text ""
+        , viewScoreDelta delta
         ]
     )
 
 
-viewScoreDelta : Int -> Html msg
-viewScoreDelta s =
+viewScoreDelta : Maybe Int -> Html msg
+viewScoreDelta mbDelta =
+    case mbDelta of
+        Just d ->
+            viewScoreDeltaHelp d
+
+        Nothing ->
+            text ""
+
+
+viewScoreDeltaHelp : Int -> Html msg
+viewScoreDeltaHelp s =
     div
         [ css
             [ gridArea11
