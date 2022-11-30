@@ -516,7 +516,8 @@ viewGame game =
         [ Keyed.node "div"
             [ css [ displayFlex, gap "20px" ] ]
             [ ( "", viewNewGameButton )
-            , viewScore game.score
+            , viewTotalScoreWithDelta game.score
+            , ( "", viewHiScore game.score )
             ]
         , viewBoard game
         ]
@@ -530,7 +531,14 @@ viewNewGameButton =
 globalStyleNode : Html msg
 globalStyleNode =
     Global.global
-        [ Global.html
+        [ Global.everything
+            [ fontSize inherit
+            , margin zero
+            , padding zero
+            , boxSizing borderBox
+            , verticalAlign baseline
+            ]
+        , Global.html
             [ fontSize <| px 20
             , backgroundColor <| colorGlobal
             , color <| hsl 0 0 0.9
@@ -542,19 +550,30 @@ globalStyleNode =
         ]
 
 
-viewScore : Score -> ( String, Html msg )
-viewScore (Score hi total delta) =
+viewTotalScoreWithDelta : Score -> ( String, Html msg )
+viewTotalScoreWithDelta (Score _ total delta) =
     let
         totalString =
             String.fromInt total
     in
     ( totalString
-    , div
-        [ css [ displayGrid ] ]
-        [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
-        , viewScoreDelta delta
+    , div [ css [ minWidth <| ch 6, textAlign center ] ]
+        [ div [ css [ fontSize <| rem 1 ] ] [ text "SCORE" ]
+        , div
+            [ css [ displayGrid, position relative ] ]
+            [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
+            , viewScoreDelta delta
+            ]
         ]
     )
+
+
+viewHiScore : Score -> Html msg
+viewHiScore (Score hi _ _) =
+    div [ css [ minWidth <| ch 6, textAlign center ] ]
+        [ div [ css [ fontSize <| rem 1 ] ] [ text "BEST" ]
+        , div [] [ text <| String.fromInt hi ]
+        ]
 
 
 viewScoreDelta : Maybe Int -> Html msg
@@ -573,8 +592,9 @@ viewScoreDeltaHelp s =
         [ css
             [ gridArea11
             , fadeUpAnim
-            , position relative
-            , left <| pct 100
+            , position absolute
+            , top <| pct 100
+            , width <| pct 100
             , fontSize <| em 0.8
             ]
         ]
@@ -600,7 +620,7 @@ fadeUpAnim =
 viewBoard : Model -> Html Msg
 viewBoard game =
     Keyed.node "div"
-        [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
+        [ css [ displayInlineGrid, placeContentCenter, fontFamily monospace, fontSize (px 50) ]
         ]
         [ ( "", viewBackgroundTiles )
         , viewTiles game
