@@ -80,6 +80,11 @@ scoreInit hi total =
     Score (atLeast 0 hi) (atLeast 0 total) Nothing
 
 
+scoreReset : Score -> Score
+scoreReset (Score hi _ _) =
+    scoreInit hi 0
+
+
 atLeast : comparable -> comparable -> comparable
 atLeast =
     max
@@ -319,7 +324,7 @@ newGame game =
             Random.step randomInitialTiles game.seed
     in
     { ct = game.ct
-    , score = scoreInitial
+    , score = scoreReset game.score
     , tiles = newTiles
     , seed = seed
     }
