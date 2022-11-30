@@ -57,6 +57,8 @@ toKey (Counter i) =
 
 type Score
     = Score
+        -- HI SCORE
+        Int
         -- total
         Int
         -- deltas for animation
@@ -64,18 +66,18 @@ type Score
 
 
 scoreEncoder : Score -> Value
-scoreEncoder (Score total _) =
-    E.list identity [ E.int total ]
+scoreEncoder (Score hi total _) =
+    E.list identity [ E.int hi, E.int total ]
 
 
 scoreDecoder : Decoder Score
 scoreDecoder =
-    D.map scoreInit D.int
+    D.map2 scoreInit (D.index 0 D.int) (D.index 1 D.int)
 
 
-scoreInit : Int -> Score
-scoreInit total =
-    Score (atLeast 0 total) Nothing
+scoreInit : Int -> Int -> Score
+scoreInit hi total =
+    Score (atLeast 0 hi) (atLeast 0 total) Nothing
 
 
 atLeast : comparable -> comparable -> comparable
@@ -85,16 +87,28 @@ atLeast =
 
 scoreInitial : Score
 scoreInitial =
-    Score 0 Nothing
+    Score 0 0 Nothing
 
 
 scoreAddDelta : Int -> Score -> Score
-scoreAddDelta scoreDelta ((Score total _) as score) =
+scoreAddDelta scoreDelta score =
     if scoreDelta > 0 then
-        Score (total + scoreDelta) (Just scoreDelta)
+        scoreAddDeltaHelp scoreDelta score
 
     else
         score
+
+
+scoreAddDeltaHelp : Int -> Score -> Score
+scoreAddDeltaHelp scoreDelta (Score hi total _) =
+    let
+        updatedTotal =
+            total + scoreDelta
+
+        updatedHi =
+            max hi updatedTotal
+    in
+    Score updatedHi updatedTotal (Just scoreDelta)
 
 
 
@@ -529,7 +543,7 @@ globalStyleNode =
 
 
 viewScore : Score -> ( String, Html msg )
-viewScore (Score total delta) =
+viewScore (Score hi total delta) =
     let
         totalString =
             String.fromInt total
