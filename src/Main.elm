@@ -186,7 +186,7 @@ gridAttemptMove : Dir -> Grid Tile -> Maybe (Grid Merged)
 gridAttemptMove dir grid =
     let
         mergedGrid =
-            slideAndMerge dir grid
+            slideAndMergeInDir dir grid
 
         unmergedGrid =
             Grid.map Stayed grid
@@ -198,8 +198,8 @@ gridAttemptMove dir grid =
         Just mergedGrid
 
 
-slideAndMerge : Dir -> Grid Tile -> Grid Merged
-slideAndMerge dir =
+slideAndMergeInDir : Dir -> Grid Tile -> Grid Merged
+slideAndMergeInDir dir =
     case dir of
         Left ->
             Grid.mapEachRowAsList mergeLeft
