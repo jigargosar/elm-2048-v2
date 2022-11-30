@@ -21,7 +21,7 @@ import Val exposing (Val)
 port save : String -> Cmd msg
 
 
-main : Program Flags Game Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
@@ -250,7 +250,7 @@ gridIsAnyMovePossible grid =
 -- GAME
 
 
-type alias Game =
+type alias Model =
     { score : Score
     , tiles : List Tile
     , ct : Counter
@@ -268,7 +268,7 @@ type alias Value =
     E.Value
 
 
-init : Flags -> ( Game, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         initialGame =
@@ -284,7 +284,7 @@ init flags =
     )
 
 
-loadState : Value -> Game -> Game
+loadState : Value -> Model -> Model
 loadState value game =
     decodeStringValue (stateDecoder game) value
         |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
@@ -297,7 +297,7 @@ decodeStringValue decoder value =
         |> Result.andThen (D.decodeString decoder)
 
 
-newGame : Game -> Game
+newGame : Model -> Model
 newGame game =
     let
         ( newTiles, seed ) =
@@ -348,12 +348,12 @@ tilesDecoder =
     D.list tileDecoder
 
 
-stateEncoder : Game -> Value
+stateEncoder : Model -> Value
 stateEncoder model =
     E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
 
 
-stateDecoder : Game -> Decoder Game
+stateDecoder : Model -> Decoder Model
 stateDecoder game =
     let
         load score tiles =
@@ -371,7 +371,7 @@ type Msg
     | NewGameClicked
 
 
-subscriptions : Game -> Sub Msg
+subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (D.map OnKeyDown keyDecoder)
     ]
@@ -383,7 +383,7 @@ keyDecoder =
     D.field "key" D.string
 
 
-update : Msg -> Game -> ( Game, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewGameClicked ->
@@ -409,33 +409,33 @@ update msg model =
 --noinspection ElmUnusedSymbol
 
 
-makeRandomMoves : Game -> Game
+makeRandomMoves : Model -> Model
 makeRandomMoves game =
     List.repeat 100 [ Left, Right, Up, Down ]
         |> List.concat
         |> List.foldl (\dir -> move dir >> Tuple.first) game
 
 
-move : Dir -> Game -> ( Game, Cmd Msg )
+move : Dir -> Model -> ( Model, Cmd Msg )
 move dir model =
     attemptMove dir model
         |> Maybe.map saveState
         |> Maybe.withDefault ( model, Cmd.none )
 
 
-saveState : Game -> ( Game, Cmd msg )
+saveState : Model -> ( Model, Cmd msg )
 saveState game =
     ( game, save <| E.encode 0 (stateEncoder game) )
 
 
-attemptMove : Dir -> Game -> Maybe Game
+attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
     tilesGrid game.tiles
         |> gridAttemptMove dir
         |> Maybe.map (updateGameFromMergedGrid game)
 
 
-updateGameFromMergedGrid : Game -> Grid Merged -> Game
+updateGameFromMergedGrid : Model -> Grid Merged -> Model
 updateGameFromMergedGrid game grid =
     let
         ( scoreDelta, updatedTiles ) =
@@ -475,7 +475,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
 
 
-isGameOver : Game -> Bool
+isGameOver : Model -> Bool
 isGameOver game =
     tilesGrid game.tiles
         |> gridIsAnyMovePossible
@@ -486,7 +486,7 @@ isGameOver game =
 -- VIEW
 
 
-view : Game -> Html.Html Msg
+view : Model -> Html.Html Msg
 view game =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
@@ -495,7 +495,7 @@ view game =
         |> toUnstyled
 
 
-viewGame : Game -> Html Msg
+viewGame : Model -> Html Msg
 viewGame game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
         [ Keyed.node "div"
@@ -577,7 +577,7 @@ fadeUpAnim =
         ]
 
 
-viewBoard : Game -> Html Msg
+viewBoard : Model -> Html Msg
 viewBoard game =
     Keyed.node "div"
         [ css [ displayInlineGrid, fontFamily monospace, fontSize (px 50) ]
@@ -588,7 +588,7 @@ viewBoard game =
         ]
 
 
-viewTiles : Game -> ( String, Html Msg )
+viewTiles : Model -> ( String, Html Msg )
 viewTiles game =
     ( toKey game.ct
     , div
@@ -597,7 +597,7 @@ viewTiles game =
     )
 
 
-viewGameOver : Game -> Html Msg
+viewGameOver : Model -> Html Msg
 viewGameOver game =
     case isGameOver game of
         True ->
