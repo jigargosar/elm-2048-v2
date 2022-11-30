@@ -1,5 +1,6 @@
 <div id="main"></div>
 
+
 <script type="module">
   import Mod from './src/Main.elm'
 
@@ -7,18 +8,69 @@
   const Main = Mod.Elm.Main
 
   const app = Main.init({
-    node: document.getElementById('main'), // 
+    node: document.getElementById('main'),
     flags: {
-      now: Date.now(), //
+      now: Date.now(),
       state: sessionStorage.getItem('app-state'),
     },
   })
 
-  app.ports?.save.subscribe((jsonString) => {
+  app.ports.save.subscribe((jsonString) => {
     sessionStorage.setItem('app-state', jsonString)
   })
 
 </script>
 
 
+<script type="module">
 
+  /*import {html, LitElement} from 'lit-element'
+
+
+  class IntersectionNotifier extends LitElement {
+    static get properties() {
+      return {
+        thresholds: {type: Array},
+        rootMargin: {type: String},
+      }
+    }
+
+    render() {
+      return html`
+          <div id="slottedData">
+              <slot></slot>
+          </div>
+      `
+    }
+
+    firstUpdated(_changedProperties) {
+      super.firstUpdated(_changedProperties)
+      console.log('_changedProperties', _changedProperties)
+
+      const options = {
+        root: null, rootMargin: this.rootMargin ?? undefined, // "0px",
+        threshold: this.thresholds ?? null, // [0.1]
+      }
+
+      const callback = entries => {
+        for (const entry of entries) {
+          const detail = {
+            isIntersecting: entry.isIntersecting,
+            intersectionRatio: entry.intersectionRatio,
+          }
+          this.dispatchEvent(new CustomEvent('intersect', {detail}))
+        }
+      }
+
+      this.observer = new IntersectionObserver(callback, options)
+      this.observer.observe(this.shadowRoot.querySelector('#slottedData'))
+    }
+  }
+
+  window.customElements.define(
+    'intersection-notifier',
+    IntersectionNotifier,
+  )
+*/
+
+</script>
