@@ -307,7 +307,8 @@ init flags =
         Err err ->
             let
                 _ =
-                    err |> D.errorToString >> Debug.log "Debug: unable to load state. Initializing."
+                    Debug.log "Debug: Unable to load state. Initializing."
+                        (D.errorToString err)
 
                 ( tiles, seed ) =
                     Random.step randomInitialTiles initialSeed
