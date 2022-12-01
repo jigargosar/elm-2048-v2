@@ -1,4 +1,14 @@
-module Val exposing (Val, decoder, encoder, fromIntInternal, next, random, toDisplayString, toIndex, toScore)
+module Val exposing
+    ( Val
+    , decoder
+    , encoder
+    , firstN
+    , next
+    , random
+    , toDisplayString
+    , toIndex
+    , toScore
+    )
 
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
@@ -7,6 +17,11 @@ import Random exposing (Generator)
 
 type Val
     = Val Int
+
+
+firstN : Int -> List Val
+firstN n =
+    List.range 1 n |> List.map Val
 
 
 fromIntInternal : Int -> Maybe Val

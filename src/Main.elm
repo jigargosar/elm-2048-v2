@@ -39,7 +39,7 @@ type Counter
     = Counter Int
 
 
-counterInitial =
+counterNew =
     Counter 0
 
 
@@ -90,8 +90,8 @@ atLeast =
     max
 
 
-scoreInitial : Score
-scoreInitial =
+scoreZero : Score
+scoreZero =
     Score 0 0 Nothing
 
 
@@ -296,7 +296,7 @@ init flags =
     in
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
-            ( { ct = counterInitial
+            ( { ct = counterNew
               , score = saved.score
               , tiles = saved.tiles
               , seed = initialSeed
@@ -313,8 +313,8 @@ init flags =
                 ( tiles, seed ) =
                     Random.step randomInitialTiles initialSeed
             in
-            { ct = counterInitial
-            , score = scoreInitial
+            { ct = counterNew
+            , score = scoreZero
             , tiles = tiles
             , seed = seed
             }
@@ -664,22 +664,19 @@ viewTiles game =
     )
 
 
+docs : Html.Html Msg
 docs =
     let
-        mbTile =
-            Maybe.map2 (Tile InitialEnter)
-                (List.head Grid.allPositions)
-                (Val.fromIntInternal 1)
-
         tiles =
-            [ mbTile ]
-                |> List.filterMap identity
+            List.map2 (Tile InitialEnter)
+                Grid.allPositions
+                (Val.firstN 16 |> List.drop 1)
 
         model : Model
         model =
-            { score = scoreInitial
+            { score = scoreZero
             , tiles = tiles
-            , ct = counterInitial
+            , ct = counterNew
             , seed = Random.initialSeed 0
             }
     in
@@ -834,7 +831,7 @@ valFontSize val =
     in
     fontSize <|
         if len > 3 then
-            em 0.7
+            em 0.6
 
         else
             em 1
