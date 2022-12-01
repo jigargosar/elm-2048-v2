@@ -1,4 +1,4 @@
-port module Main exposing (main)
+port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
@@ -664,6 +664,32 @@ viewTiles game =
     )
 
 
+docs =
+    let
+        mbTile =
+            Maybe.map2 (Tile InitialEnter)
+                (List.head Grid.allPositions)
+                (Val.fromIntInternal 1)
+
+        tiles =
+            [ mbTile ]
+                |> List.filterMap identity
+
+        model : Model
+        model =
+            { score = scoreInitial
+            , tiles = tiles
+            , ct = counterInitial
+            , seed = Random.initialSeed 0
+            }
+    in
+    div [ css [ padding <| px 30 ] ]
+        [ globalStyleNode
+        , viewBoard model
+        ]
+        |> toUnstyled
+
+
 viewGameOver : Model -> Html Msg
 viewGameOver game =
     case isGameOver game of
@@ -774,7 +800,7 @@ boardStyle =
         ]
 
 
-viewTile : Tile -> Html Msg
+viewTile : Tile -> Html msg
 viewTile ((Tile anim pos val) as tile) =
     div
         [ css

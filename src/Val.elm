@@ -1,4 +1,4 @@
-module Val exposing (Val, decoder, encoder, next, random, toDisplayString, toIndex, toScore)
+module Val exposing (Val, decoder, encoder, fromIntInternal, next, random, toDisplayString, toIndex, toScore)
 
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
@@ -9,8 +9,8 @@ type Val
     = Val Int
 
 
-fromInt : Int -> Maybe Val
-fromInt i =
+fromIntInternal : Int -> Maybe Val
+fromIntInternal i =
     if i > 0 then
         Just <| Val i
 
@@ -27,7 +27,7 @@ decoder : Decoder Val
 decoder =
     D.andThen
         (\i ->
-            case fromInt i of
+            case fromIntInternal i of
                 Nothing ->
                     D.fail <| "Invalid Val" ++ String.fromInt i
 
