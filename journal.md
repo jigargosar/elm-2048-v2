@@ -16,7 +16,7 @@ NEXT STEPS:
 * [x] save game 
 * [x] hi scores
 * [x] score and new game UI
-* [ ] tile colors
+* [x] tile colors
 * [ ] header
 * [ ] footer
 
