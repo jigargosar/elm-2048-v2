@@ -15,7 +15,8 @@
             "elm/time": "1.0.0",
             "elm-community/easing-functions": "2.0.0",
             "elm-community/random-extra": "3.2.0",
-            "rtfeldman/elm-css": "18.0.0"
+            "rtfeldman/elm-css": "18.0.0",
+            "tesk9/palette": "3.0.1"
         },
         "indirect": {
             "elm/url": "1.0.0",

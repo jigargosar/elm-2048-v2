@@ -1057,7 +1057,7 @@ valColor val =
 
 valColorList =
     List.range 0 7
-        |> List.map (\i -> i * -18 + 36 |> modBy 360 |> toFloat |> (\h -> hsl h 0.88 0.4))
+        |> List.map (\i -> i * -15 + 36 |> modBy 360 |> toFloat |> (\h -> hsl h 0.88 0.4))
 
 
 gap =
