@@ -294,8 +294,8 @@ init flags =
         initialSeed =
             Random.initialSeed flags.now
     in
-    case loadSavedState flags.state of
-        Just saved ->
+    case decodeStringValue savedDecoder flags.state of
+        Ok saved ->
             ( { ct = counterInitial
               , score = saved.score
               , tiles = saved.tiles
@@ -304,8 +304,11 @@ init flags =
             , Cmd.none
             )
 
-        Nothing ->
+        Err err ->
             let
+                _ =
+                    err |> D.errorToString >> Debug.log "Debug: unable to load state. Initializing."
+
                 ( tiles, seed ) =
                     Random.step randomInitialTiles initialSeed
             in
@@ -315,13 +318,6 @@ init flags =
             , seed = seed
             }
                 |> saveState
-
-
-loadSavedState : Value -> Maybe Saved
-loadSavedState value =
-    decodeStringValue savedDecoder value
-        |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
-        |> Result.toMaybe
 
 
 decodeStringValue : Decoder a -> Value -> Result D.Error a
