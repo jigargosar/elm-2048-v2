@@ -17,6 +17,7 @@ NEXT STEPS:
 * [x] hi scores
 * [x] score and new game UI
 * [x] tile colors
+* [ ] undo?
 * [ ] header
 * [ ] footer
 
