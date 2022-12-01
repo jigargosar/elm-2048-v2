@@ -39,7 +39,7 @@ type Counter
     = Counter Int
 
 
-initialCounter =
+counterInitial =
     Counter 0
 
 
@@ -291,24 +291,35 @@ type alias Value =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
-        initialGame =
-            { ct = initialCounter
-            , score = scoreInitial
-            , tiles = []
-            , seed = Random.initialSeed flags.now
-            }
+        initialSeed =
+            Random.initialSeed flags.now
     in
-    case loadState flags.state initialGame of
-        Just model ->
-            ( model, Cmd.none )
+    case loadSavedState flags.state of
+        Just saved ->
+            ( { ct = counterInitial
+              , score = saved.score
+              , tiles = saved.tiles
+              , seed = initialSeed
+              }
+            , Cmd.none
+            )
 
         Nothing ->
-            newGame initialGame
+            let
+                ( tiles, seed ) =
+                    Random.step randomInitialTiles initialSeed
+            in
+            { ct = counterInitial
+            , score = scoreInitial
+            , tiles = tiles
+            , seed = seed
+            }
+                |> saveState
 
 
-loadState : Value -> Model -> Maybe Model
-loadState value game =
-    decodeStringValue (stateDecoder game) value
+loadSavedState : Value -> Maybe Saved
+loadSavedState value =
+    decodeStringValue savedDecoder value
         |> Result.mapError (D.errorToString >> Debug.log "Debug: load error")
         |> Result.toMaybe
 
@@ -371,18 +382,20 @@ tilesDecoder =
     D.list tileDecoder
 
 
-stateEncoder : Model -> Value
-stateEncoder model =
+type alias Saved =
+    { score : Score
+    , tiles : List Tile
+    }
+
+
+savedEncoder : Model -> Value
+savedEncoder model =
     E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
 
 
-stateDecoder : Model -> Decoder Model
-stateDecoder game =
-    let
-        load score tiles =
-            { game | score = score, tiles = tiles }
-    in
-    D.map2 load (D.index 0 scoreDecoder) (D.index 1 tilesDecoder)
+savedDecoder : Decoder Saved
+savedDecoder =
+    D.map2 Saved (D.index 0 scoreDecoder) (D.index 1 tilesDecoder)
 
 
 
@@ -448,7 +461,7 @@ move dir model =
 
 saveState : Model -> ( Model, Cmd msg )
 saveState game =
-    ( game, save <| E.encode 0 (stateEncoder game) )
+    ( game, save <| E.encode 0 (savedEncoder game) )
 
 
 attemptMove : Dir -> Model -> Maybe Model
