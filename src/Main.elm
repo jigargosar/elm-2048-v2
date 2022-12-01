@@ -670,7 +670,7 @@ docs =
         tiles =
             List.map2 (Tile InitialEnter)
                 Grid.allPositions
-                (Val.firstN 16 |> List.drop 1)
+                (Val.firstN 12)
 
         model : Model
         model =
