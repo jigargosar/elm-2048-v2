@@ -1049,32 +1049,15 @@ valColor val =
         2 ->
             colorVal4
 
-        3 ->
-            hsl 36 0.88 0.4
+        threePlus ->
+            List.drop (threePlus - 3) valColorList
+                |> List.head
+                |> Maybe.withDefault colorMaxVal
 
-        4 ->
-            hsl 26 0.88 0.4
 
-        5 ->
-            hsl 16 0.88 0.4
-
-        6 ->
-            hsl 6 0.88 0.4
-
-        7 ->
-            hsl (360 - 6) 0.88 0.4
-
-        8 ->
-            hsl (360 - 16) 0.88 0.4
-
-        9 ->
-            hsl (360 - 26) 0.88 0.4
-
-        10 ->
-            hsl (360 - 36) 0.88 0.4
-
-        _ ->
-            colorMaxVal
+valColorList =
+    List.range 0 7
+        |> List.map (\i -> i * -18 + 36 |> modBy 360 |> toFloat |> (\h -> hsl h 0.88 0.4))
 
 
 gap =
