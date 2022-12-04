@@ -19,6 +19,7 @@ NEXT STEPS:
 * [x] tile colors
 * [ ] mobile/touch swipe interface
 * [ ] manual animation?
+* [ ] group colors into record?
 * [ ] undo?
 * [ ] header
 * [ ] footer
