@@ -17,6 +17,8 @@ NEXT STEPS:
 * [x] hi scores
 * [x] score and new game UI
 * [x] tile colors
+* [ ] mobile/touch swipe interface
+* [ ] manual animation?
 * [ ] undo?
 * [ ] header
 * [ ] footer
