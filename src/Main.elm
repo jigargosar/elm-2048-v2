@@ -5,6 +5,7 @@ import Browser.Events
 import Css exposing (..)
 import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
+import Ease
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
 import Html.Lazy
@@ -64,7 +65,7 @@ type Score
         -- total
         Int
         -- deltas for animation
-        (Maybe Int)
+        (Maybe ( Clock, Int ))
 
 
 scoreEncoder : Score -> Value
@@ -97,17 +98,21 @@ scoreZero =
     Score 0 0 Nothing
 
 
-scoreAddDelta : Int -> Score -> Score
-scoreAddDelta scoreDelta score =
+type alias Clock =
+    Float
+
+
+scoreAddDelta : Clock -> Int -> Score -> Score
+scoreAddDelta clock scoreDelta score =
     if scoreDelta > 0 then
-        scoreAddDeltaHelp scoreDelta score
+        scoreAddDeltaHelp clock scoreDelta score
 
     else
         score
 
 
-scoreAddDeltaHelp : Int -> Score -> Score
-scoreAddDeltaHelp scoreDelta (Score hi total _) =
+scoreAddDeltaHelp : Clock -> Int -> Score -> Score
+scoreAddDeltaHelp clock scoreDelta (Score hi total _) =
     let
         updatedTotal =
             total + scoreDelta
@@ -115,7 +120,7 @@ scoreAddDeltaHelp scoreDelta (Score hi total _) =
         updatedHi =
             max hi updatedTotal
     in
-    Score updatedHi updatedTotal (Just scoreDelta)
+    Score updatedHi updatedTotal (Just ( clock, scoreDelta ))
 
 
 
@@ -499,7 +504,7 @@ updateGameFromMergedGrid model grid =
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove grid) model.seed
     in
-    { score = scoreAddDelta scoreDelta model.score
+    { score = scoreAddDelta model.lastFrameTime scoreDelta model.score
     , ct = counterIncrement model.ct
     , tiles = updatedTiles ++ newTiles
     , seed = seed
@@ -558,7 +563,7 @@ viewGame game =
             [ css [ displayFlex, gap "20px" ] ]
             [ ( "", viewNewGameButton )
             , ( "", div [ css [ flexGrow <| num 1 ] ] [] )
-            , viewTotalScoreWithDelta game.score
+            , viewTotalScoreWithDelta game.lastFrameTime game.score
             , ( "", viewHiScore game.score )
             ]
         , viewBoard game
@@ -592,8 +597,8 @@ globalStyleNode =
         ]
 
 
-viewTotalScoreWithDelta : Score -> ( String, Html msg )
-viewTotalScoreWithDelta (Score _ total delta) =
+viewTotalScoreWithDelta : Clock -> Score -> ( String, Html msg )
+viewTotalScoreWithDelta now (Score _ total delta) =
     let
         totalString =
             String.fromInt total
@@ -604,7 +609,7 @@ viewTotalScoreWithDelta (Score _ total delta) =
         , div
             [ css [ displayGrid, position relative ] ]
             [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
-            , viewScoreDelta delta
+            , viewScoreDelta now delta
             ]
         ]
     )
@@ -626,29 +631,68 @@ colorDull =
     hsl 0 0 0.7
 
 
-viewScoreDelta : Maybe Int -> Html msg
-viewScoreDelta mbDelta =
+viewScoreDelta : Clock -> Maybe ( Clock, Int ) -> Html msg
+viewScoreDelta now mbDelta =
     case mbDelta of
         Just d ->
-            viewScoreDeltaHelp d
+            viewScoreDeltaHelp now d
 
         Nothing ->
             text ""
 
 
-viewScoreDeltaHelp : Int -> Html msg
-viewScoreDeltaHelp s =
+rangeMap a b c d x =
+    norm a b x |> lerp c d |> Ease.inOutSine
+
+
+lerp a b x =
+    a + (b - a) * x
+
+
+norm a b x =
+    let
+        denominator =
+            b - a
+    in
+    if denominator == 0 then
+        a
+
+    else
+        clamp a b x / denominator
+
+
+viewScoreDeltaHelp : Clock -> ( Clock, Int ) -> Html msg
+viewScoreDeltaHelp now ( start, delta ) =
+    let
+        elapsed =
+            abs (now - start)
+
+        tx =
+            rangeMap 0 durationVeryLong 0 -1 elapsed
+
+        op =
+            rangeMap 0 durationVeryLong 1 0 elapsed
+    in
     div
         [ css
             [ gridArea11
+            , batch []
             , fadeUpAnim
+
+            --|> always noStyle
+            , transform <| translateY <| em tx
+            , opacity <| num op
             , position absolute
             , top <| pct 100
             , width <| pct 100
             , fontSize <| em 0.8
             ]
         ]
-        [ text "+", text <| String.fromInt s ]
+        [ text "+", text <| String.fromInt delta ]
+
+
+noStyle =
+    batch []
 
 
 fadeUpAnim : Style
