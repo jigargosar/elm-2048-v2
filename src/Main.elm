@@ -7,6 +7,8 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
+import Html.Keyed
+import Html.Lazy
 import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
 import Html.Styled.Events exposing (onClick)
@@ -15,6 +17,7 @@ import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
 import Random exposing (Generator, Seed)
 import Random.List
+import Time exposing (Posix)
 import Val exposing (Val)
 
 
@@ -26,7 +29,7 @@ main =
     Browser.element
         { init = init
         , update = update
-        , view = view
+        , view = Html.Lazy.lazy view
         , subscriptions = subscriptions
         }
 
@@ -271,7 +274,8 @@ gridIsAnyMovePossible grid =
 
 
 type alias Model =
-    { score : Score
+    { lastFrameTime : Posix
+    , score : Score
     , tiles : List Tile
     , ct : Counter
     , seed : Seed
@@ -293,6 +297,9 @@ init flags =
     let
         initialSeed =
             Random.initialSeed flags.now
+
+        now =
+            Time.millisToPosix flags.now
     in
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
@@ -300,6 +307,7 @@ init flags =
               , score = saved.score
               , tiles = saved.tiles
               , seed = initialSeed
+              , lastFrameTime = now
               }
             , Cmd.none
             )
@@ -317,6 +325,7 @@ init flags =
             , score = scoreZero
             , tiles = tiles
             , seed = seed
+            , lastFrameTime = now
             }
                 |> saveState
 
@@ -337,6 +346,7 @@ newGame model =
     , score = scoreReset model.score
     , tiles = newTiles
     , seed = seed
+    , lastFrameTime = model.lastFrameTime
     }
         |> saveState
 
@@ -400,13 +410,15 @@ savedDecoder =
 
 
 type Msg
-    = OnKeyDown String
+    = GotKeyDown String
     | NewGameClicked
+    | GotAnimationFrame Posix
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    [ Browser.Events.onKeyDown (D.map OnKeyDown keyDecoder)
+    [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
+    , Browser.Events.onAnimationFrame GotAnimationFrame
     ]
         |> Sub.batch
 
@@ -422,19 +434,30 @@ update msg model =
         NewGameClicked ->
             newGame model
 
-        OnKeyDown "ArrowRight" ->
+        GotAnimationFrame now ->
+            let
+                elapsed =
+                    abs (Time.posixToMillis model.lastFrameTime - Time.posixToMillis now)
+            in
+            if toFloat elapsed > (1000 / 30) then
+                ( { model | lastFrameTime = now }, Cmd.none )
+
+            else
+                ( model, Cmd.none )
+
+        GotKeyDown "ArrowRight" ->
             move Right model
 
-        OnKeyDown "ArrowLeft" ->
+        GotKeyDown "ArrowLeft" ->
             move Left model
 
-        OnKeyDown "ArrowUp" ->
+        GotKeyDown "ArrowUp" ->
             move Up model
 
-        OnKeyDown "ArrowDown" ->
+        GotKeyDown "ArrowDown" ->
             move Down model
 
-        OnKeyDown _ ->
+        GotKeyDown _ ->
             ( model, Cmd.none )
 
 
@@ -469,18 +492,19 @@ attemptMove dir game =
 
 
 updateGameFromMergedGrid : Model -> Grid Merged -> Model
-updateGameFromMergedGrid game grid =
+updateGameFromMergedGrid model grid =
     let
         ( scoreDelta, updatedTiles ) =
             updateTiles grid
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove grid) game.seed
+            Random.step (randomTilesAfterMove grid) model.seed
     in
-    { score = scoreAddDelta scoreDelta game.score
-    , ct = counterIncrement game.ct
+    { score = scoreAddDelta scoreDelta model.score
+    , ct = counterIncrement model.ct
     , tiles = updatedTiles ++ newTiles
     , seed = seed
+    , lastFrameTime = model.lastFrameTime
     }
 
 
@@ -520,10 +544,10 @@ isGameOver game =
 
 
 view : Model -> Html.Html Msg
-view game =
+view model =
     div [ css [ padding <| px 30 ] ]
         [ globalStyleNode
-        , viewGame game
+        , viewGame model
         ]
         |> toUnstyled
 
@@ -678,6 +702,7 @@ docs =
             , tiles = tiles
             , ct = counterNew
             , seed = Random.initialSeed 0
+            , lastFrameTime = Time.millisToPosix 0
             }
     in
     div [ css [ padding <| px 30 ] ]
