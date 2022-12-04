@@ -7,7 +7,6 @@ import Css.Animations as A exposing (keyframes)
 import Css.Global as Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
-import Html.Keyed
 import Html.Lazy
 import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css)
@@ -274,7 +273,7 @@ gridIsAnyMovePossible grid =
 
 
 type alias Model =
-    { lastFrameTime : Posix
+    { lastFrameTime : Float
     , score : Score
     , tiles : List Tile
     , ct : Counter
@@ -299,7 +298,7 @@ init flags =
             Random.initialSeed flags.now
 
         now =
-            Time.millisToPosix flags.now
+            toFloat flags.now
     in
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
@@ -412,13 +411,13 @@ savedDecoder =
 type Msg
     = GotKeyDown String
     | NewGameClicked
-    | GotAnimationFrame Posix
+    | GotAnimationFrame Float
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
-    , Browser.Events.onAnimationFrame GotAnimationFrame
+    , Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
     ]
         |> Sub.batch
 
@@ -437,9 +436,9 @@ update msg model =
         GotAnimationFrame now ->
             let
                 elapsed =
-                    abs (Time.posixToMillis model.lastFrameTime - Time.posixToMillis now)
+                    abs (model.lastFrameTime - now)
             in
-            if toFloat elapsed > (1000 / 30) then
+            if elapsed > (1000 / 30) then
                 ( { model | lastFrameTime = now }, Cmd.none )
 
             else
@@ -702,7 +701,7 @@ docs =
             , tiles = tiles
             , ct = counterNew
             , seed = Random.initialSeed 0
-            , lastFrameTime = Time.millisToPosix 0
+            , lastFrameTime = 0
             }
     in
     div [ css [ padding <| px 30 ] ]
