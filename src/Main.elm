@@ -642,7 +642,7 @@ viewScoreDelta now mbDelta =
 
 
 rangeMap a b c d x =
-    norm a b x |> lerp c d |> Ease.inOutSine
+    norm a b x |> Ease.inOutSine |> lerp c d
 
 
 lerp a b x =
@@ -678,8 +678,7 @@ viewScoreDeltaHelp now ( start, delta ) =
             [ gridArea11
             , batch []
             , fadeUpAnim
-
-            --|> always noStyle
+                |> always noStyle
             , transform <| translateY <| em tx
             , opacity <| num op
             , position absolute
