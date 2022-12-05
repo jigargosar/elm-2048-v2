@@ -439,16 +439,17 @@ update msg model =
             newGame model
 
         GotAnimationFrame now ->
-            let
-                elapsed =
-                    abs (model.lastFrameTime - now)
-            in
-            if elapsed > (1000 / 144) then
-                ( { model | lastFrameTime = now }, Cmd.none )
+            ( { model | lastFrameTime = now }, Cmd.none )
 
-            else
-                ( model, Cmd.none )
-
+        --let
+        --    elapsed =
+        --        abs (model.lastFrameTime - now)
+        --in
+        --if elapsed > (1000 / 30) then
+        --    ( { model | lastFrameTime = now }, Cmd.none )
+        --
+        --else
+        --    ( model, Cmd.none )
         GotKeyDown "ArrowRight" ->
             move Right model
 
