@@ -10,7 +10,7 @@ import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html
 import Html.Lazy
 import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
-import Html.Styled.Attributes as HA exposing (autofocus, css)
+import Html.Styled.Attributes as HA exposing (autofocus, css, style)
 import Html.Styled.Events exposing (onClick)
 import Html.Styled.Keyed as Keyed
 import Json.Decode as D exposing (Decoder)
@@ -662,32 +662,41 @@ norm a b x =
 
 
 viewScoreDeltaHelp : Clock -> ( Clock, Int ) -> Html msg
-viewScoreDeltaHelp now ( start, delta ) =
-    let
-        elapsed =
-            abs (now - start)
-
-        tx =
-            rangeMap 0 durationVeryLong 0 -1 elapsed
-
-        op =
-            rangeMap 0 durationVeryLong 1 0 elapsed
-    in
+viewScoreDeltaHelp now ( start, scoreDelta ) =
     div
-        [ css
+        (css
             [ gridArea11
             , batch []
-            , fadeUpAnim
-                |> always noStyle
-            , transform <| translateY <| em tx
-            , opacity <| num op
+            , fadeUpAnim |> always noStyle
             , position absolute
             , top <| pct 100
             , width <| pct 100
             , fontSize <| em 0.8
             ]
-        ]
-        [ text "+", text <| String.fromInt delta ]
+            :: fadeUpStyles now start
+        )
+        [ text "+", text <| String.fromInt scoreDelta ]
+
+
+fadeUpStyles : Clock -> Clock -> List (Attribute msg)
+fadeUpStyles now start =
+    let
+        elapsed =
+            abs (now - start)
+
+        n =
+            norm 0 durationVeryLong elapsed
+                |> Ease.inOutSine
+
+        translateYEmVal =
+            lerp 0 -1 n
+
+        opacityVal =
+            lerp 1 0 n
+    in
+    [ style "opacity" (String.fromFloat opacityVal)
+    , style "transform" ("translateY(" ++ String.fromFloat translateYEmVal ++ "em)")
+    ]
 
 
 noStyle =
