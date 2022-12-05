@@ -900,6 +900,7 @@ viewTile now start ((Tile anim pos val) as tile) =
         ]
 
 
+tileMovedStyle : Clock -> Clock -> Anim -> Pos -> Attribute msg
 tileMovedStyle now start anim endPos =
     let
         elapsed =
