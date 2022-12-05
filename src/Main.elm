@@ -30,26 +30,6 @@ main =
 
 
 
--- COUNTER
-
-
-type Counter
-    = Counter Int
-
-
-counterNew =
-    Counter 0
-
-
-counterIncrement (Counter i) =
-    Counter <| i + 1
-
-
-toKey (Counter i) =
-    String.fromInt i
-
-
-
 -- SCORE
 
 
@@ -276,7 +256,6 @@ type alias Model =
     { lastFrameTime : Clock
     , score : Score
     , tiles : ( Clock, List Tile )
-    , ct : Counter
     , seed : Seed
     }
 
@@ -302,8 +281,7 @@ init flags =
     in
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
-            ( { ct = counterNew
-              , score = saved.score
+            ( { score = saved.score
               , tiles = ( now, saved.tiles )
               , seed = initialSeed
               , lastFrameTime = now
@@ -320,8 +298,7 @@ init flags =
                 ( tiles, seed ) =
                     Random.step randomInitialTiles initialSeed
             in
-            { ct = counterNew
-            , score = scoreZero
+            { score = scoreZero
             , tiles = ( now, tiles )
             , seed = seed
             , lastFrameTime = now
@@ -341,8 +318,7 @@ newGame model =
         ( newTiles, seed ) =
             Random.step randomInitialTiles model.seed
     in
-    { ct = counterIncrement model.ct
-    , score = scoreReset model.score
+    { score = scoreReset model.score
     , tiles = ( model.lastFrameTime, newTiles )
     , seed = seed
     , lastFrameTime = model.lastFrameTime
@@ -501,7 +477,6 @@ updateGameFromMergedGrid model grid =
             Random.step (randomTilesAfterMove grid) model.seed
     in
     { score = scoreAddDelta model.lastFrameTime scoreDelta model.score
-    , ct = counterIncrement model.ct
     , tiles = ( model.lastFrameTime, updatedTiles ++ newTiles )
     , seed = seed
     , lastFrameTime = model.lastFrameTime
@@ -557,13 +532,11 @@ viewGame game =
         [ --Keyed.node "div"
           div
             [ displayFlex, gap "20px" ]
-            ([ ( "", viewNewGameButton )
-             , ( "", div [ flexGrow1 ] [] )
-             , viewTotalScoreWithDelta game.lastFrameTime game.score
-             , ( "", viewHiScore game.score )
-             ]
-                |> List.map Tuple.second
-            )
+            [ viewNewGameButton
+            , div [ flexGrow1 ] []
+            , viewTotalScoreWithDelta game.lastFrameTime game.score
+            , viewHiScore game.score
+            ]
         , viewBoard game
         ]
 
@@ -617,14 +590,13 @@ body {
         ]
 
 
-viewTotalScoreWithDelta : Clock -> Score -> ( String, Html msg )
+viewTotalScoreWithDelta : Clock -> Score -> Html msg
 viewTotalScoreWithDelta now (Score _ total delta) =
     let
         totalString =
             String.fromInt total
     in
-    ( totalString
-    , div [ minWidth "6ch", textAlignCenter ]
+    div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
         , div
             [ displayGrid, positionRelative ]
@@ -632,7 +604,6 @@ viewTotalScoreWithDelta now (Score _ total delta) =
             , viewScoreDelta now delta
             ]
         ]
-    )
 
 
 minWidth =
@@ -767,28 +738,24 @@ viewBoard game =
     --Keyed.node "div"
     div
         [ displayInlineGrid, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
-        ([ ( "", viewBackgroundTiles )
-         , viewTiles game
-         , ( "", viewGameOver game )
-         ]
-            |> List.map Tuple.second
-        )
+        [ viewBackgroundTiles
+        , viewTiles game
+        , viewGameOver game
+        ]
 
 
 fontFamilyMonospace =
     style "font-family" "monospace"
 
 
-viewTiles : Model -> ( String, Html Msg )
+viewTiles : Model -> Html Msg
 viewTiles game =
     let
         ( start, tiles ) =
             game.tiles
     in
-    ( toKey game.ct
-    , div boardStyle
+    div boardStyle
         (List.map (viewTile game.lastFrameTime start) tiles)
-    )
 
 
 docs : Html.Html Msg
@@ -803,7 +770,6 @@ docs =
         model =
             { score = scoreZero
             , tiles = ( 0, tiles )
-            , ct = counterNew
             , seed = Random.initialSeed 0
             , lastFrameTime = 0
             }
