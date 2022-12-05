@@ -12,7 +12,6 @@ import Html.Lazy
 import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
 import Html.Styled.Attributes as HA exposing (autofocus, css, style)
 import Html.Styled.Events exposing (onClick)
-import Html.Styled.Keyed as Keyed
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
 import Random exposing (Generator, Seed)
@@ -1046,13 +1045,14 @@ tileAnimation anim =
 
 tileAnimationStyles : Clock -> Clock -> Anim -> List (Attribute msg)
 tileAnimationStyles now start anim =
+    let
+        elapsed =
+            abs (now - start)
+    in
     case anim of
         InitialEnter ->
             --appearAnim o & s 0 to 1
             let
-                elapsed =
-                    abs (now - start)
-
                 n =
                     normDuration durationMedium elapsed
             in
@@ -1062,7 +1062,13 @@ tileAnimationStyles now start anim =
 
         MergedEnter ->
             --delayedPopInAnim
-            []
+            let
+                n =
+                    normDurationWithDelay durationMedium durationShort elapsed
+            in
+            [ styleOpacity n
+            , styleTransforms [ styleScale (n |> Ease.outBack) ]
+            ]
 
         MergedExit _ ->
             --delayedDisappearAnim
@@ -1071,9 +1077,6 @@ tileAnimationStyles now start anim =
         NewDelayedEnter ->
             --delayedAppearAnim
             let
-                elapsed =
-                    abs (now - start)
-
                 n =
                     normDurationWithDelay durationMedium durationShort elapsed
             in
