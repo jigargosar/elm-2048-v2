@@ -878,14 +878,6 @@ border =
     style "border"
 
 
-colorWhite =
-    hsl 1 1 1
-
-
-colorWhiteA =
-    hsla 1 1 1
-
-
 viewBackgroundTiles : Html msg
 viewBackgroundTiles =
     div
@@ -1115,10 +1107,6 @@ colorGlobal =
 
 colorButtonBorder =
     hsl 0 0 0.5
-
-
-colorButtonFocus =
-    hsl 0 0 0.17
 
 
 colorGlobalA a =
