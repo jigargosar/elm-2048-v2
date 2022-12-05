@@ -641,26 +641,6 @@ viewScoreDelta now mbDelta =
             text ""
 
 
-rangeMap a b c d x =
-    norm a b x |> Ease.inOutSine |> lerp c d
-
-
-lerp a b x =
-    a + (b - a) * x
-
-
-norm a b x =
-    let
-        denominator =
-            b - a
-    in
-    if denominator == 0 then
-        a
-
-    else
-        clamp a b x / denominator
-
-
 viewScoreDeltaHelp : Clock -> ( Clock, Int ) -> Html msg
 viewScoreDeltaHelp now ( start, scoreDelta ) =
     div
@@ -685,7 +665,7 @@ fadeUpStyles now start =
             abs (now - start)
 
         n =
-            norm 0 durationVeryLong elapsed
+            normClamped 0 durationVeryLong elapsed
                 |> Ease.inOutSine
 
         translateYEmVal =
@@ -697,6 +677,22 @@ fadeUpStyles now start =
     [ style "opacity" (String.fromFloat opacityVal)
     , style "transform" ("translateY(" ++ String.fromFloat translateYEmVal ++ "em)")
     ]
+
+
+lerp a b x =
+    a + (b - a) * x
+
+
+normClamped a b x =
+    let
+        denominator =
+            b - a
+    in
+    if denominator == 0 then
+        a
+
+    else
+        clamp a b x / denominator
 
 
 noStyle =
