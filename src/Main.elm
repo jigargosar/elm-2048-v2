@@ -560,13 +560,16 @@ view model =
 viewGame : Model -> Html Msg
 viewGame game =
     div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
-        [ Keyed.node "div"
+        [ --Keyed.node "div"
+          div
             [ css [ displayFlex, gap "20px" ] ]
-            [ ( "", viewNewGameButton )
-            , ( "", div [ css [ flexGrow <| num 1 ] ] [] )
-            , viewTotalScoreWithDelta game.lastFrameTime game.score
-            , ( "", viewHiScore game.score )
-            ]
+            ([ ( "", viewNewGameButton )
+             , ( "", div [ css [ flexGrow <| num 1 ] ] [] )
+             , viewTotalScoreWithDelta game.lastFrameTime game.score
+             , ( "", viewHiScore game.score )
+             ]
+                |> List.map Tuple.second
+            )
         , viewBoard game
         ]
 
@@ -718,13 +721,16 @@ fadeUpAnim =
 
 viewBoard : Model -> Html Msg
 viewBoard game =
-    Keyed.node "div"
+    --Keyed.node "div"
+    div
         [ css [ displayInlineGrid, placeContentCenter, fontFamily monospace, fontSize (px 50) ]
         ]
-        [ ( "", viewBackgroundTiles )
-        , viewTiles game
-        , ( "", viewGameOver game )
-        ]
+        ([ ( "", viewBackgroundTiles )
+         , viewTiles game
+         , ( "", viewGameOver game )
+         ]
+            |> List.map Tuple.second
+        )
 
 
 viewTiles : Model -> ( String, Html Msg )
