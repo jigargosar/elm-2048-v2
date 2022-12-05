@@ -892,16 +892,18 @@ viewTile now start ((Tile anim pos val) as tile) =
         , tileMovedStyle now start anim pos
         ]
         [ div
-            [ css
+            ([ css
                 [ backgroundColor <| valColor val
                 , roundedBorder
                 , displayGrid
                 , placeContentCenter
-                , tileAnimation anim
+                , tileAnimation anim |> always noStyle
                 , valFontSize val
                 ]
-            , HA.title <| Debug.toString tile
-            ]
+             , HA.title <| Debug.toString tile
+             ]
+                ++ tileAnimationStyles now start anim
+            )
             [ text <| Val.toDisplayString val
             ]
         ]
@@ -1052,7 +1054,7 @@ tileAnimationStyles now start anim =
                     abs (now - start)
 
                 n =
-                    normClamped 0 durationMedium elapsed
+                    normDuration durationMedium elapsed
             in
             [ styleOpacity n
             , styleTransforms [ styleScale n ]
@@ -1068,11 +1070,28 @@ tileAnimationStyles now start anim =
 
         NewDelayedEnter ->
             --delayedAppearAnim
-            []
+            let
+                elapsed =
+                    abs (now - start)
+
+                n =
+                    normDurationWithDelay durationMedium durationShort elapsed
+            in
+            [ styleOpacity n
+            , styleTransforms [ styleScale n ]
+            ]
 
         Moved _ ->
             --batch []
             []
+
+
+normDuration duration elapsed =
+    normDurationWithDelay duration 0 elapsed
+
+
+normDurationWithDelay duration delay elapsed =
+    normClamped 0 duration (elapsed - delay)
 
 
 styleOpacity o =
