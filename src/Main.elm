@@ -1046,8 +1046,17 @@ tileAnimationStyles : Clock -> Clock -> Anim -> List (Attribute msg)
 tileAnimationStyles now start anim =
     case anim of
         InitialEnter ->
-            --appearAnim
-            []
+            --appearAnim o & s 0 to 1
+            let
+                elapsed =
+                    abs (now - start)
+
+                n =
+                    normClamped 0 durationMedium elapsed
+            in
+            [ styleOpacity n
+            , styleTransforms [ styleScale n ]
+            ]
 
         MergedEnter ->
             --delayedPopInAnim
@@ -1064,6 +1073,14 @@ tileAnimationStyles now start anim =
         Moved _ ->
             --batch []
             []
+
+
+styleOpacity o =
+    style "opacity" (String.fromFloat o)
+
+
+styleScale s =
+    "scale(" ++ String.fromFloat s ++ ")"
 
 
 roundedBorder =
