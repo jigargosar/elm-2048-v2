@@ -278,9 +278,9 @@ gridIsAnyMovePossible grid =
 
 
 type alias Model =
-    { lastFrameTime : Float
+    { lastFrameTime : Clock
     , score : Score
-    , tiles : List Tile
+    , tiles : ( Clock, List Tile )
     , ct : Counter
     , seed : Seed
     }
@@ -309,7 +309,7 @@ init flags =
         Ok saved ->
             ( { ct = counterNew
               , score = saved.score
-              , tiles = saved.tiles
+              , tiles = ( now, saved.tiles )
               , seed = initialSeed
               , lastFrameTime = now
               }
@@ -327,7 +327,7 @@ init flags =
             in
             { ct = counterNew
             , score = scoreZero
-            , tiles = tiles
+            , tiles = ( now, tiles )
             , seed = seed
             , lastFrameTime = now
             }
@@ -348,7 +348,7 @@ newGame model =
     in
     { ct = counterIncrement model.ct
     , score = scoreReset model.score
-    , tiles = newTiles
+    , tiles = ( model.lastFrameTime, newTiles )
     , seed = seed
     , lastFrameTime = model.lastFrameTime
     }
@@ -401,7 +401,7 @@ type alias Saved =
 
 savedEncoder : Model -> Value
 savedEncoder model =
-    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
+    E.list identity [ scoreEncoder model.score, tilesEncoder (Tuple.second model.tiles) ]
 
 
 savedDecoder : Decoder Saved
@@ -490,7 +490,7 @@ saveState game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    tilesGrid game.tiles
+    tilesGrid (Tuple.second game.tiles)
         |> gridAttemptMove dir
         |> Maybe.map (updateGameFromMergedGrid game)
 
@@ -506,7 +506,7 @@ updateGameFromMergedGrid model grid =
     in
     { score = scoreAddDelta model.lastFrameTime scoreDelta model.score
     , ct = counterIncrement model.ct
-    , tiles = updatedTiles ++ newTiles
+    , tiles = ( model.lastFrameTime, updatedTiles ++ newTiles )
     , seed = seed
     , lastFrameTime = model.lastFrameTime
     }
@@ -538,7 +538,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
 
 isGameOver : Model -> Bool
 isGameOver game =
-    tilesGrid game.tiles
+    tilesGrid (Tuple.second game.tiles)
         |> gridIsAnyMovePossible
         |> not
 
@@ -728,10 +728,14 @@ viewBoard game =
 
 viewTiles : Model -> ( String, Html Msg )
 viewTiles game =
+    let
+        ( start, tiles ) =
+            game.tiles
+    in
     ( toKey game.ct
     , div
         [ css [ boardStyle ] ]
-        (List.map viewTile game.tiles)
+        (List.map (viewTile game.lastFrameTime start) tiles)
     )
 
 
@@ -746,7 +750,7 @@ docs =
         model : Model
         model =
             { score = scoreZero
-            , tiles = tiles
+            , tiles = ( 0, tiles )
             , ct = counterNew
             , seed = Random.initialSeed 0
             , lastFrameTime = 0
@@ -869,8 +873,8 @@ boardStyle =
         ]
 
 
-viewTile : Tile -> Html msg
-viewTile ((Tile anim pos val) as tile) =
+viewTile : Clock -> Clock -> Tile -> Html msg
+viewTile now start ((Tile anim pos val) as tile) =
     div
         [ css
             [ gridArea11
