@@ -1042,6 +1042,30 @@ tileAnimation anim =
             batch []
 
 
+tileAnimationStyles : Clock -> Clock -> Anim -> List (Attribute msg)
+tileAnimationStyles now start anim =
+    case anim of
+        InitialEnter ->
+            --appearAnim
+            []
+
+        MergedEnter ->
+            --delayedPopInAnim
+            []
+
+        MergedExit _ ->
+            --delayedDisappearAnim
+            []
+
+        NewDelayedEnter ->
+            --delayedAppearAnim
+            []
+
+        Moved _ ->
+            --batch []
+            []
+
+
 roundedBorder =
     Css.borderRadius <| px 8
 
