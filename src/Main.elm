@@ -443,7 +443,7 @@ update msg model =
                 elapsed =
                     abs (model.lastFrameTime - now)
             in
-            if elapsed > (1000 / 30) then
+            if elapsed > (1000 / 144) then
                 ( { model | lastFrameTime = now }, Cmd.none )
 
             else
@@ -878,10 +878,11 @@ viewTile now start ((Tile anim pos val) as tile) =
     div
         [ css
             [ gridArea11
-            , tileMovedToAnimation pos anim
+            , tileMovedToAnimation pos anim |> always noStyle
             , displayGrid
             , paddingForTileAndBoard
             ]
+        , tileMovedStyle now start anim pos
         ]
         [ div
             [ css
@@ -899,6 +900,46 @@ viewTile now start ((Tile anim pos val) as tile) =
         ]
 
 
+tileMovedStyle now start anim endPos =
+    let
+        elapsed =
+            abs (now - start)
+
+        n =
+            normClamped 0 durationShort elapsed
+                |> Ease.inOutSine
+
+        ( xStart, yStart ) =
+            tileAnimStartPos anim |> Maybe.withDefault endPos |> posToFloat
+
+        ( xEnd, yEnd ) =
+            endPos |> posToFloat
+
+        ( x, y ) =
+            ( lerp xStart xEnd n, lerp yStart yEnd n )
+                |> mapBothWith (mul 100 >> pctFromFloat)
+    in
+    styleTransforms [ styleTranslate2 x y ]
+
+
+styleTransforms : List String -> Attribute msg
+styleTransforms list =
+    style "transform" (String.join " " list)
+
+
+styleTranslate2 : String -> String -> String
+styleTranslate2 x y =
+    "translate(" ++ x ++ "," ++ y ++ ")"
+
+
+pctFromFloat f =
+    String.fromFloat f ++ "%"
+
+
+posToFloat =
+    Grid.posToInt >> Tuple.mapBoth toFloat toFloat
+
+
 valFontSize : Val -> Style
 valFontSize val =
     let
@@ -911,6 +952,25 @@ valFontSize val =
 
         else
             em 1
+
+
+tileAnimStartPos : Anim -> Maybe Pos
+tileAnimStartPos anim =
+    case anim of
+        InitialEnter ->
+            Nothing
+
+        MergedExit from ->
+            Just from
+
+        MergedEnter ->
+            Nothing
+
+        NewDelayedEnter ->
+            Nothing
+
+        Moved from ->
+            Just from
 
 
 tileMovedToAnimation : Pos -> Anim -> Style
