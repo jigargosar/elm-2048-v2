@@ -2,16 +2,12 @@ port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
-import Css exposing (..)
-import Css.Animations as A exposing (keyframes)
-import Css.Global as Global
 import Ease
 import FourByFourGrid as Grid exposing (Grid, Pos)
-import Html
+import Html exposing (..)
+import Html.Attributes as HA exposing (autofocus, style)
+import Html.Events exposing (onClick)
 import Html.Lazy
-import Html.Styled exposing (Attribute, Html, div, text, toUnstyled)
-import Html.Styled.Attributes as HA exposing (autofocus, css, style)
-import Html.Styled.Events exposing (onClick)
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
 import Random exposing (Generator, Seed)
@@ -547,23 +543,22 @@ isGameOver game =
 -- VIEW
 
 
-view : Model -> Html.Html Msg
+view : Model -> Html Msg
 view model =
-    div [ css [ padding <| px 30 ] ]
+    div [ style "padding" "30px" ]
         [ globalStyleNode
         , viewGame model
         ]
-        |> toUnstyled
 
 
 viewGame : Model -> Html Msg
 viewGame game =
-    div [ css [ display inlineFlex, flexDirection column, gap "20px" ] ]
+    div [ displayInlineFlex, flexDirectionColumn, gap "20px" ]
         [ --Keyed.node "div"
           div
-            [ css [ displayFlex, gap "20px" ] ]
+            [ displayFlex, gap "20px" ]
             ([ ( "", viewNewGameButton )
-             , ( "", div [ css [ flexGrow <| num 1 ] ] [] )
+             , ( "", div [ flexGrow1 ] [] )
              , viewTotalScoreWithDelta game.lastFrameTime game.score
              , ( "", viewHiScore game.score )
              ]
@@ -573,6 +568,22 @@ viewGame game =
         ]
 
 
+displayInlineFlex =
+    style "display" "inline-flex"
+
+
+displayFlex =
+    style "display" "flex"
+
+
+flexDirectionColumn =
+    style "flex-direction" "column"
+
+
+flexGrow1 =
+    style "flex-grow" "1"
+
+
 viewNewGameButton : Html Msg
 viewNewGameButton =
     btnFocused NewGameClicked "New Game"
@@ -580,23 +591,29 @@ viewNewGameButton =
 
 globalStyleNode : Html msg
 globalStyleNode =
-    Global.global
-        [ Global.everything
-            [ fontSize inherit
-            , margin zero
-            , padding zero
-            , boxSizing borderBox
-            , verticalAlign baseline
-            ]
-        , Global.html
-            [ fontSize <| px 20
-            , backgroundColor <| colorGlobal
-            , color <| hsl 0 0 0.9
-            ]
-        , Global.body
-            [ fontSize <| px 30
-            , fontFamily monospace
-            ]
+    node "style"
+        []
+        [ text
+            """
+* {
+    font-size: inherit;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    vertical-align: baseline;
+}
+
+html {
+    font-size: 20px;
+    background-color: hsl(0deg 0% 13%);
+    color: hsl(0deg 0% 90%)
+}
+
+body {
+    font-size: 30px;
+    font-family: monospace;
+}
+        """
         ]
 
 
@@ -607,31 +624,73 @@ viewTotalScoreWithDelta now (Score _ total delta) =
             String.fromInt total
     in
     ( totalString
-    , div [ css [ minWidth <| ch 6, textAlign center ] ]
+    , div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
         , div
-            [ css [ displayGrid, position relative ] ]
-            [ div [ css [ gridArea11, displayGrid, placeContentCenter ] ] [ text totalString ]
+            [ displayGrid, positionRelative ]
+            [ div [ gridArea11, displayGrid, placeContentCenter ] [ text totalString ]
             , viewScoreDelta now delta
             ]
         ]
     )
 
 
+minWidth =
+    style "min-width"
+
+
+textAlignCenter =
+    style "text-align" "center"
+
+
+positionRelative =
+    style "position" "relative"
+
+
 viewHiScore : Score -> Html msg
 viewHiScore (Score hi _ _) =
-    div [ css [ minWidth <| ch 6, textAlign center ] ]
+    div [ minWidth "6ch", textAlignCenter ]
         [ lbl "BEST"
         , div [] [ text <| String.fromInt hi ]
         ]
 
 
 lbl s =
-    div [ css [ fontSize <| rem 0.8, color <| colorDull ] ] [ text s ]
+    div [ fontSize "0.8rem", color <| colorDull ] [ text s ]
+
+
+fontSize =
+    style "font-size"
+
+
+color =
+    style "color"
 
 
 colorDull =
     hsl 0 0 0.7
+
+
+hsl h s l =
+    "hsl("
+        ++ String.fromFloat h
+        ++ "deg "
+        ++ String.fromFloat (s * 100)
+        ++ "% "
+        ++ String.fromFloat (l * 100)
+        ++ "%)"
+
+
+hsla h s l a =
+    "hsl("
+        ++ String.fromFloat h
+        ++ "deg "
+        ++ String.fromFloat (s * 100)
+        ++ "% "
+        ++ String.fromFloat (l * 100)
+        ++ "%/"
+        ++ String.fromFloat a
+        ++ ")"
 
 
 viewScoreDelta : Clock -> Maybe ( Clock, Int ) -> Html msg
@@ -647,18 +706,23 @@ viewScoreDelta now mbDelta =
 viewScoreDeltaHelp : Clock -> ( Clock, Int ) -> Html msg
 viewScoreDeltaHelp now ( start, scoreDelta ) =
     div
-        (css
-            [ gridArea11
-            , batch []
-            , fadeUpAnim |> always noStyle
-            , position absolute
-            , top <| pct 100
-            , width <| pct 100
-            , fontSize <| em 0.8
-            ]
-            :: fadeUpStyles now start
+        ([ gridArea11
+         , positionAbsolute
+         , style "top" "100"
+         , width100
+         , fontSize "0.8em"
+         ]
+            ++ fadeUpStyles now start
         )
         [ text "+", text <| String.fromInt scoreDelta ]
+
+
+positionAbsolute =
+    style "position" "absolute"
+
+
+width100 =
+    style "width" "100%"
 
 
 fadeUpStyles : Clock -> Clock -> List (Attribute msg)
@@ -698,38 +762,21 @@ normClamped a b x =
         clamp a b x / denominator
 
 
-noStyle =
-    batch []
-
-
-fadeUpAnim : Style
-fadeUpAnim =
-    batch
-        [ animationName <|
-            keyframes
-                [ ( 100
-                  , [ A.transform [ translateY <| em -1 ]
-                    , A.opacity zero
-                    ]
-                  )
-                ]
-        , animationDuration <| ms durationVeryLong
-        , animFillBoth
-        ]
-
-
 viewBoard : Model -> Html Msg
 viewBoard game =
     --Keyed.node "div"
     div
-        [ css [ displayInlineGrid, placeContentCenter, fontFamily monospace, fontSize (px 50) ]
-        ]
+        [ displayInlineGrid, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
         ([ ( "", viewBackgroundTiles )
          , viewTiles game
          , ( "", viewGameOver game )
          ]
             |> List.map Tuple.second
         )
+
+
+fontFamilyMonospace =
+    style "font-family" "monospace"
 
 
 viewTiles : Model -> ( String, Html Msg )
@@ -739,8 +786,7 @@ viewTiles game =
             game.tiles
     in
     ( toKey game.ct
-    , div
-        [ css [ boardStyle ] ]
+    , div boardStyle
         (List.map (viewTile game.lastFrameTime start) tiles)
     )
 
@@ -762,11 +808,14 @@ docs =
             , lastFrameTime = 0
             }
     in
-    div [ css [ padding <| px 30 ] ]
+    div [ padding "30px" ]
         [ globalStyleNode
         , viewBoard model
         ]
-        |> toUnstyled
+
+
+padding =
+    style "padding"
 
 
 viewGameOver : Model -> Html Msg
@@ -774,16 +823,14 @@ viewGameOver game =
     case isGameOver game of
         True ->
             div
-                [ css
-                    [ gridArea11
-                    , position relative
-                    , backgroundColor <| colorGlobalA 0.85
-                    , roundedBorder
-                    , displayGrid
-                    , placeContentCenter
-                    , placeItemsCenter
-                    , gap "20px"
-                    ]
+                [ gridArea11
+                , positionRelative
+                , backgroundColor <| colorGlobalA 0.85
+                , roundedBorder
+                , displayGrid
+                , placeContentCenter
+                , placeItemsCenter
+                , gap "20px"
                 ]
                 [ div [] [ text "Game Over!" ]
                 , btn NewGameClicked "Try Again"
@@ -793,32 +840,42 @@ viewGameOver game =
             text ""
 
 
+backgroundColor =
+    style "background-color"
+
+
 btn : msg -> String -> Html msg
 btn msg string =
-    Html.Styled.button [ onClick msg, css [ buttonStyle ] ] [ text string ]
+    button (onClick msg :: buttonStyles) [ text string ]
 
 
 btnFocused msg string =
-    Html.Styled.button [ autofocus True, onClick msg, css [ buttonStyle ] ] [ text string ]
+    button (autofocus True :: onClick msg :: buttonStyles) [ text string ]
 
 
-buttonStyle =
-    batch
-        [ fontSize <| rem 1
-        , fontFamily monospace
-        , padding2 (rem 0.5) (rem 0.8)
-        , fontWeight normal
-        , backgroundColor <| colorGlobal
-        , color currentColor
-        , border3 (px 1) solid colorButtonBorder
-        , roundedBorder
-        , placeSelfCenter
-        , focus
-            [ color colorWhite
-            , backgroundColor colorButtonFocus
-            , boxShadow5 (px 0) (px 0) (px 20) (px 4) (colorWhiteA 0.05)
-            ]
-        ]
+buttonStyles =
+    [ fontSize "1rem"
+    , fontFamilyMonospace
+    , padding "0.5rem 0.8rem"
+    , fontWeightNormal
+    , backgroundColor <| colorGlobal
+    , colorCurrentColor
+    , border ("1px solid " ++ colorButtonBorder)
+    , roundedBorder
+    , placeSelfCenter
+    ]
+
+
+fontWeightNormal =
+    style "font-weight" "normal"
+
+
+colorCurrentColor =
+    color "currentColor"
+
+
+border =
+    style "border"
 
 
 colorWhite =
@@ -832,73 +889,58 @@ colorWhiteA =
 viewBackgroundTiles : Html msg
 viewBackgroundTiles =
     div
-        [ css
-            [ boardStyle
-            , backgroundColor <| colorBoardGap
-            ]
-        ]
+        (boardStyle
+            ++ [ backgroundColor <| colorBoardGap ]
+        )
         (Grid.allPositions |> List.map viewBackgroundTile)
 
 
 viewBackgroundTile : Pos -> Html msg
 viewBackgroundTile pos =
     div
-        [ css
-            [ gridAreaFromPos pos
-            , displayGrid
-            , paddingForTileAndBoard
-            ]
+        [ gridAreaFromPos pos
+        , displayGrid
+        , paddingForTileAndBoard
         ]
         [ div
-            [ css
-                [ roundedBorder
-                , backgroundColor <| colorBoard
-                ]
+            [ roundedBorder
+            , backgroundColor <| colorBoard
             ]
             []
         ]
 
 
-gridAreaFromPos : Pos -> Style
 gridAreaFromPos pos =
     let
         ( col, row ) =
             pos |> Grid.posToInt >> mapBothWith (add 1 >> String.fromInt)
     in
-    property "grid-area" (row ++ "/" ++ col)
+    style "grid-area" (row ++ "/" ++ col)
 
 
-boardStyle : Style
 boardStyle =
-    batch
-        [ displayGrid
-        , gridArea11
-        , property "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
-        , paddingForTileAndBoard
-        , roundedBorder
-        ]
+    [ displayGrid
+    , gridArea11
+    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
+    , paddingForTileAndBoard
+    , roundedBorder
+    ]
 
 
 viewTile : Clock -> Clock -> Tile -> Html msg
 viewTile now start ((Tile anim pos val) as tile) =
     div
-        [ css
-            [ gridArea11
-            , tileMovedToAnimation pos anim |> always noStyle
-            , displayGrid
-            , paddingForTileAndBoard
-            ]
+        [ gridArea11
+        , displayGrid
+        , paddingForTileAndBoard
         , tileMovedStyle now start anim pos
         ]
         [ div
-            ([ css
-                [ backgroundColor <| valColor val
-                , roundedBorder
-                , displayGrid
-                , placeContentCenter
-                , tileAnimation anim |> always noStyle
-                , valFontSize val
-                ]
+            ([ backgroundColor <| valColor val
+             , roundedBorder
+             , displayGrid
+             , placeContentCenter
+             , valFontSize val
              , HA.title <| Debug.toString tile
              ]
                 ++ tileAnimationStyles now start anim
@@ -949,7 +991,6 @@ posToFloat =
     Grid.posToInt >> Tuple.mapBoth toFloat toFloat
 
 
-valFontSize : Val -> Style
 valFontSize val =
     let
         len =
@@ -957,10 +998,10 @@ valFontSize val =
     in
     fontSize <|
         if len > 3 then
-            em 0.6
+            "0.6em"
 
         else
-            em 1
+            "1em"
 
 
 tileAnimStartPos : Anim -> Maybe Pos
@@ -980,67 +1021,6 @@ tileAnimStartPos anim =
 
         Moved from ->
             Just from
-
-
-tileMovedToAnimation : Pos -> Anim -> Style
-tileMovedToAnimation to anim =
-    case anim of
-        InitialEnter ->
-            moveFromToAnim to to
-
-        MergedExit from ->
-            moveFromToAnim from to
-
-        MergedEnter ->
-            moveFromToAnim to to
-
-        NewDelayedEnter ->
-            moveFromToAnim to to
-
-        Moved from ->
-            moveFromToAnim from to
-
-
-moveFromToAnim : Pos -> Pos -> Style
-moveFromToAnim from to =
-    batch
-        [ animationName <|
-            keyframes
-                [ ( 0, [ A.transform [ posTranslate from ] ] )
-                , ( 100, [ A.transform [ posTranslate to ] ] )
-                ]
-        , animFillBoth
-        , animDurationShort
-        , property "animation-timing-function" "ease-in-out"
-        ]
-
-
-posTranslate : Pos -> Transform {}
-posTranslate pos =
-    let
-        ( dx, dy ) =
-            pos |> Grid.posToInt |> mapBothWith (toFloat >> mul 100 >> pct)
-    in
-    translate2 dx dy
-
-
-tileAnimation : Anim -> Style
-tileAnimation anim =
-    case anim of
-        InitialEnter ->
-            appearAnim
-
-        MergedEnter ->
-            delayedPopInAnim
-
-        MergedExit _ ->
-            delayedDisappearAnim
-
-        NewDelayedEnter ->
-            delayedAppearAnim
-
-        Moved _ ->
-            batch []
 
 
 tileAnimationStyles : Clock -> Clock -> Anim -> List (Attribute msg)
@@ -1106,11 +1086,15 @@ styleScale s =
 
 
 roundedBorder =
-    Css.borderRadius <| px 8
+    borderRadius <| "8px"
+
+
+borderRadius =
+    style "border-radius"
 
 
 paddingForTileAndBoard =
-    padding <| px 8
+    padding <| "8px"
 
 
 durationShort =
@@ -1123,93 +1107,6 @@ durationMedium =
 
 durationVeryLong =
     1000
-
-
-animDurationMedium : Style
-animDurationMedium =
-    animationDuration <| ms durationMedium
-
-
-animDurationShort : Style
-animDurationShort =
-    animationDuration <| ms durationShort
-
-
-animDelayShort : Style
-animDelayShort =
-    animationDelay <| ms durationShort
-
-
-animFillBoth : Style
-animFillBoth =
-    property "animation-fill-mode" "both"
-
-
-animNameAppear : Style
-animNameAppear =
-    animationName <|
-        keyframes
-            [ ( 0, [ A.opacity zero, A.transform [ scale 0 ] ] )
-            , ( 100, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-            ]
-
-
-animNameDisappear : Style
-animNameDisappear =
-    animationName <|
-        keyframes
-            [ ( 0, [ A.opacity (num 1), A.transform [ scale 1 ] ] )
-            , ( 100, [ A.opacity zero, A.transform [ scale 0 ] ] )
-            ]
-
-
-animNamePop : Style
-animNamePop =
-    animationName <|
-        keyframes
-            [ ( 0, [ A.transform [ scale 0 ] ] )
-            , ( 50, [ A.transform [ scale 1.2 ] ] )
-            , ( 100, [ A.transform [ scale 1 ] ] )
-            ]
-
-
-appearAnim : Style
-appearAnim =
-    batch
-        [ animNameAppear
-        , animDurationMedium
-        , animFillBoth
-        ]
-
-
-delayedAppearAnim : Style
-delayedAppearAnim =
-    batch
-        [ animNameAppear
-        , animDurationMedium
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-delayedPopInAnim : Style
-delayedPopInAnim =
-    batch
-        [ animNamePop
-        , animDurationMedium
-        , animDelayShort
-        , animFillBoth
-        ]
-
-
-delayedDisappearAnim : Style
-delayedDisappearAnim =
-    batch
-        [ animNameDisappear
-        , animDurationShort
-        , animDelayShort
-        , animFillBoth
-        ]
 
 
 colorGlobal =
@@ -1268,31 +1165,31 @@ valColorList =
 
 
 gap =
-    property "gap"
+    style "gap"
 
 
 displayGrid =
-    property "display" "grid"
+    style "display" "grid"
 
 
 displayInlineGrid =
-    property "display" "inline-grid"
+    style "display" "inline-grid"
 
 
 placeContentCenter =
-    property "place-content" "center"
+    style "place-content" "center"
 
 
 placeSelfCenter =
-    property "place-self" "center"
+    style "place-self" "center"
 
 
 placeItemsCenter =
-    property "place-items" "center"
+    style "place-items" "center"
 
 
 gridArea11 =
-    property "grid-area" "1/1"
+    style "grid-area" "1/1"
 
 
 
