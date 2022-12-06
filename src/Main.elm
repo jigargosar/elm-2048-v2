@@ -40,12 +40,12 @@ type Score
         -- total
         Int
         -- deltas for animation
-        (Maybe ( Transition, Int ))
+        (Maybe ( DoubleRender, Int ))
 
 
-type Transition
-    = TransitionStart
-    | TransitionEnd
+type DoubleRender
+    = RenderTransitionStart
+    | RenderTransitionEnd
 
 
 scoreEncoder : Score -> Value
@@ -100,7 +100,7 @@ scoreAddDeltaHelp _ scoreDelta (Score hi total _) =
         updatedHi =
             max hi updatedTotal
     in
-    Score updatedHi updatedTotal (Just ( TransitionStart, scoreDelta ))
+    Score updatedHi updatedTotal (Just ( RenderTransitionStart, scoreDelta ))
 
 
 
@@ -403,7 +403,7 @@ subscriptions model =
 
     --|> always Sub.none
     , case model.score of
-        Score _ _ (Just ( TransitionStart, _ )) ->
+        Score _ _ (Just ( RenderTransitionStart, _ )) ->
             Time.every 100 (always FlipTransition)
 
         _ ->
@@ -425,8 +425,8 @@ update msg model =
 
         FlipTransition ->
             case model.score of
-                Score a b (Just ( TransitionStart, c )) ->
-                    ( { model | score = Score a b (Just ( TransitionEnd, c )) }, Cmd.none )
+                Score a b (Just ( RenderTransitionStart, c )) ->
+                    ( { model | score = Score a b (Just ( RenderTransitionEnd, c )) }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -705,7 +705,7 @@ hsla h s l a =
         ++ ")"
 
 
-viewScoreDelta : Maybe ( Transition, Int ) -> Html msg
+viewScoreDelta : Maybe ( DoubleRender, Int ) -> Html msg
 viewScoreDelta mbDelta =
     case mbDelta of
         Just d ->
@@ -715,15 +715,15 @@ viewScoreDelta mbDelta =
             text ""
 
 
-viewScoreDeltaHelp : ( Transition, Int ) -> Html msg
+viewScoreDeltaHelp : ( DoubleRender, Int ) -> Html msg
 viewScoreDeltaHelp ( transition, scoreDelta ) =
     let
         animAttr =
             case transition of
-                TransitionStart ->
+                RenderTransitionStart ->
                     noAttr
 
-                TransitionEnd ->
+                RenderTransitionEnd ->
                     class "animFadeUpScoreDelta"
     in
     div
