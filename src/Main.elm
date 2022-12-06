@@ -718,6 +718,21 @@ body {
         transform: scale(1);
     }
 }
+.animDelayedPopIn{
+    animation: popIn var(--durationMedium) var(--durationShort) both;
+}
+
+@keyframes popIn{
+    0%{
+        transform: scale(0);
+    }
+    50%{
+        transform: scale(1.2);
+    }
+    100%{
+        transform: scale(1);
+    }
+}
         """
         ]
 
@@ -1185,8 +1200,7 @@ tileAnimationAttrs doubleRender anim =
                     []
 
                 MergedEnter ->
-                    --[ class "animDelayedPopIn" ]
-                    [ class "animDelayedAppear" ]
+                    [ class "animDelayedPopIn" ]
 
                 NewDelayedEnter ->
                     [ class "animDelayedAppear" ]
