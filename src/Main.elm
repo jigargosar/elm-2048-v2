@@ -420,7 +420,7 @@ subscriptions model =
       in
       case foo || bar of
         True ->
-            Time.every 1 (always RenderNext)
+            Time.every 10 (always RenderNext)
 
         _ ->
             Sub.none
@@ -1012,8 +1012,8 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
              , valFontSize val
              , Html.Attributes.title <| Debug.toString tile
              ]
-                ++ tileAnimationStyles 0 0 anim
-             --++ tileAnimationAttrs doubleRender anim
+                ++ (tileAnimationStyles 0 0 anim |> always [])
+                ++ tileAnimationAttrs doubleRender anim
             )
             [ text <| Val.toDisplayString val
             ]
@@ -1124,7 +1124,21 @@ tileAnimationAttrs : DoubleRender -> Anim -> List (Attribute msg)
 tileAnimationAttrs doubleRender anim =
     case doubleRender of
         RenderTransitionStart ->
-            []
+            case anim of
+                InitialEnter ->
+                    [ style "display" "none" ]
+
+                MergedExit _ ->
+                    []
+
+                MergedEnter ->
+                    [ style "display" "none" ]
+
+                NewDelayedEnter ->
+                    [ style "display" "none" ]
+
+                Moved _ ->
+                    []
 
         RenderTransitionEnd ->
             case anim of
@@ -1135,7 +1149,8 @@ tileAnimationAttrs doubleRender anim =
                     []
 
                 MergedEnter ->
-                    [ class "animDelayedPopIn" ]
+                    --[ class "animDelayedPopIn" ]
+                    [ class "animDelayedAppear" ]
 
                 NewDelayedEnter ->
                     [ class "animDelayedAppear" ]
