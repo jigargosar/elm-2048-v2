@@ -10,9 +10,10 @@ import Html.Events exposing (onClick)
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
+import Process
 import Random exposing (Generator, Seed)
 import Random.List
-import Time
+import Task
 import Val exposing (Val)
 
 
@@ -22,11 +23,40 @@ port save : String -> Cmd msg
 main : Program Flags Model Msg
 main =
     Browser.element
-        { init = init
-        , update = update
+        { init = init >> withRenderNext
+        , update = \a b -> update a b |> withRenderNext
         , view = Html.Lazy.lazy view
         , subscriptions = subscriptions
         }
+
+
+withRenderNext ( m, c ) =
+    if shouldRenderNext m then
+        ( m, Cmd.batch [ c, Process.sleep 10 |> Task.perform (always RenderNext) ] )
+
+    else
+        ( m, c )
+
+
+shouldRenderNext model =
+    let
+        foo =
+            case model.score of
+                Score _ _ (Just ( RenderTransitionStart, _ )) ->
+                    True
+
+                _ ->
+                    False
+
+        bar =
+            case model.tiles of
+                ( RenderTransitionStart, _ ) ->
+                    True
+
+                _ ->
+                    False
+    in
+    foo || bar
 
 
 
@@ -397,33 +427,34 @@ type Msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
-    , Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
-        |> always Sub.none
-    , let
-        foo =
-            case model.score of
-                Score _ _ (Just ( RenderTransitionStart, _ )) ->
-                    True
 
-                _ ->
-                    False
-
-        bar =
-            case model.tiles of
-                ( RenderTransitionStart, _ ) ->
-                    True
-
-                _ ->
-                    False
-      in
-      case foo || bar of
-        True ->
-            Time.every 10 (always RenderNext)
-
-        _ ->
-            Sub.none
+    --, Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
+    --    |> always Sub.none
+    --, let
+    --    foo =
+    --        case model.score of
+    --            Score _ _ (Just ( RenderTransitionStart, _ )) ->
+    --                True
+    --
+    --            _ ->
+    --                False
+    --
+    --    bar =
+    --        case model.tiles of
+    --            ( RenderTransitionStart, _ ) ->
+    --                True
+    --
+    --            _ ->
+    --                False
+    --  in
+    --  case foo || bar of
+    --    True ->
+    --        Time.every 10 (always RenderNext)
+    --
+    --    _ ->
+    --        Sub.none
     ]
         |> Sub.batch
 
