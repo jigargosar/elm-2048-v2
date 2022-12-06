@@ -591,7 +591,7 @@ globalStyleNode =
         [ text
             """
 :root{
-    --durationLong: 1000ms
+    --durationVeryLong: 1000ms
 
 }
 * {
@@ -614,7 +614,7 @@ body {
 }
 
 .animFadeUpScoreDelta{
-    animation: fadeUpScoreDelta var(--durationLong) both;
+    animation: fadeUpScoreDelta var(--durationVeryLong) both;
 }
 
 @keyframes fadeUpScoreDelta{
