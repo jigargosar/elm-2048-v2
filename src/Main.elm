@@ -679,7 +679,7 @@ viewScoreDeltaHelp now ( start, scoreDelta ) =
     div
         ([ gridArea11
          , positionAbsolute
-         , style "top" "100"
+         , style "top" "100%"
          , width100
          , fontSize "0.8em"
          ]
