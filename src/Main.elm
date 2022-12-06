@@ -10,14 +10,18 @@ import Html.Events exposing (onClick)
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
-import Process
 import Random exposing (Generator, Seed)
 import Random.List
-import Task
 import Val exposing (Val)
 
 
 port save : String -> Cmd msg
+
+
+port requestNextAnimationFrame : () -> Cmd msg
+
+
+port receivedNextAnimationFrame : (Value -> msg) -> Sub msg
 
 
 main : Program Flags Model Msg
@@ -32,7 +36,7 @@ main =
 
 withRenderNext ( m, c ) =
     if shouldRenderNext m then
-        ( m, Cmd.batch [ c, Process.sleep 10 |> Task.perform (always RenderNext) ] )
+        ( m, Cmd.batch [ c, requestNextAnimationFrame () ] )
 
     else
         ( m, c )
@@ -429,6 +433,7 @@ type Msg
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
+    , receivedNextAnimationFrame (always RenderNext)
 
     --, Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
     --    |> always Sub.none
