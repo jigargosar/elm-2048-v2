@@ -992,6 +992,7 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
              , Html.Attributes.title <| Debug.toString tile
              ]
                 ++ tileAnimationStyles 0 0 anim
+                ++ tileAnimationAttrs doubleRender anim
             )
             [ text <| Val.toDisplayString val
             ]
@@ -1096,6 +1097,30 @@ tileAnimStartPos anim =
 
         Moved from ->
             Just from
+
+
+tileAnimationAttrs : DoubleRender -> Anim -> List (Attribute msg)
+tileAnimationAttrs doubleRender anim =
+    case doubleRender of
+        RenderTransitionStart ->
+            []
+
+        RenderTransitionEnd ->
+            case anim of
+                InitialEnter ->
+                    [ class "animAppear" ]
+
+                MergedExit _ ->
+                    []
+
+                MergedEnter ->
+                    [ class "animDelayedPopIn" ]
+
+                NewDelayedEnter ->
+                    [ class "animDelayedAppear" ]
+
+                Moved _ ->
+                    []
 
 
 tileAnimationStyles : Clock -> Clock -> Anim -> List (Attribute msg)
