@@ -5,7 +5,7 @@ import Browser.Events
 import Ease
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
-import Html.Attributes as HA exposing (autofocus, style)
+import Html.Attributes as HA exposing (autofocus, class, style)
 import Html.Events exposing (onClick)
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
@@ -590,6 +590,10 @@ globalStyleNode =
         []
         [ text
             """
+:root{
+    --durationLong: 1000ms
+
+}
 * {
     font-size: inherit;
     margin: 0;
@@ -607,6 +611,21 @@ html {
 body {
     font-size: 30px;
     font-family: monospace;
+}
+
+.animFadeUpScoreDelta{
+    animation: fadeUpScoreDelta var(--durationLong) both;
+}
+
+@keyframes fadeUpScoreDelta{
+    0%{
+        opacity:1;
+        transform: translateY(0em);
+    }
+    100%{
+        opacity:0;
+        transform: translateY(-1em);
+    }
 }
         """
         ]
@@ -702,10 +721,10 @@ viewScoreDeltaHelp transitionScoreDelta =
         ( transitionStyles, scoreDelta ) =
             case transitionScoreDelta of
                 TransitionStart i ->
-                    ( fadeUpTransitionStartStyles, i )
+                    ( [], i )
 
                 TransitionEnd i ->
-                    ( fadeUpTransitionEndStyles, i )
+                    ( [ class "animFadeUpScoreDelta" ], i )
     in
     div
         ([ gridArea11
@@ -717,21 +736,6 @@ viewScoreDeltaHelp transitionScoreDelta =
             ++ transitionStyles
         )
         [ text "+", text <| String.fromInt scoreDelta ]
-
-
-fadeUpTransitionStartStyles =
-    [ styleOpacity 1
-    , styleTransforms [ "translateY(0em)" ]
-    , style "transition" "none"
-    ]
-
-
-fadeUpTransitionEndStyles =
-    [ styleOpacity 0
-    , styleTransforms [ "translateY(-1em)" ]
-    , style "transition"
-        ("all " ++ String.fromInt durationVeryLong ++ "ms")
-    ]
 
 
 positionAbsolute =
