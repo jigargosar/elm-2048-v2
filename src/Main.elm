@@ -5,7 +5,7 @@ import Browser.Events
 import Ease
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
-import Html.Attributes as HA exposing (autofocus, class, style)
+import Html.Attributes exposing (autofocus, class, style)
 import Html.Events exposing (onClick)
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
@@ -40,12 +40,12 @@ type Score
         -- total
         Int
         -- deltas for animation
-        (Maybe (Transition Int))
+        (Maybe ( Transition, Int ))
 
 
-type Transition a
-    = TransitionStart a
-    | TransitionEnd a
+type Transition
+    = TransitionStart
+    | TransitionEnd
 
 
 scoreEncoder : Score -> Value
@@ -100,7 +100,7 @@ scoreAddDeltaHelp _ scoreDelta (Score hi total _) =
         updatedHi =
             max hi updatedTotal
     in
-    Score updatedHi updatedTotal (Just (TransitionStart scoreDelta))
+    Score updatedHi updatedTotal (Just ( TransitionStart, scoreDelta ))
 
 
 
@@ -403,7 +403,7 @@ subscriptions model =
 
     --|> always Sub.none
     , case model.score of
-        Score _ _ (Just (TransitionStart _)) ->
+        Score _ _ (Just ( TransitionStart, _ )) ->
             Time.every 100 (always FlipTransition)
 
         _ ->
@@ -425,8 +425,8 @@ update msg model =
 
         FlipTransition ->
             case model.score of
-                Score a b (Just (TransitionStart c)) ->
-                    ( { model | score = Score a b (Just (TransitionEnd c)) }, Cmd.none )
+                Score a b (Just ( TransitionStart, c )) ->
+                    ( { model | score = Score a b (Just ( TransitionEnd, c )) }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -705,7 +705,7 @@ hsla h s l a =
         ++ ")"
 
 
-viewScoreDelta : Maybe (Transition Int) -> Html msg
+viewScoreDelta : Maybe ( Transition, Int ) -> Html msg
 viewScoreDelta mbDelta =
     case mbDelta of
         Just d ->
@@ -715,27 +715,30 @@ viewScoreDelta mbDelta =
             text ""
 
 
-viewScoreDeltaHelp : Transition Int -> Html msg
-viewScoreDeltaHelp transitionScoreDelta =
+viewScoreDeltaHelp : ( Transition, Int ) -> Html msg
+viewScoreDeltaHelp ( transition, scoreDelta ) =
     let
-        ( transitionStyles, scoreDelta ) =
-            case transitionScoreDelta of
-                TransitionStart i ->
-                    ( [], i )
+        animAttr =
+            case transition of
+                TransitionStart ->
+                    noAttr
 
-                TransitionEnd i ->
-                    ( [ class "animFadeUpScoreDelta" ], i )
+                TransitionEnd ->
+                    class "animFadeUpScoreDelta"
     in
     div
-        ([ gridArea11
-         , positionAbsolute
-         , style "top" "100%"
-         , width100
-         , fontSize "0.8em"
-         ]
-            ++ transitionStyles
-        )
+        [ gridArea11
+        , positionAbsolute
+        , style "top" "100%"
+        , width100
+        , fontSize "0.8em"
+        , animAttr
+        ]
         [ text "+", text <| String.fromInt scoreDelta ]
+
+
+noAttr =
+    class ""
 
 
 positionAbsolute =
@@ -950,7 +953,7 @@ viewTile now start ((Tile anim pos val) as tile) =
              , displayGrid
              , placeContentCenter
              , valFontSize val
-             , HA.title <| Debug.toString tile
+             , Html.Attributes.title <| Debug.toString tile
              ]
                 ++ tileAnimationStyles now start anim
             )
