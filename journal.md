@@ -18,7 +18,7 @@ NEXT STEPS:
 * [x] score and new game UI
 * [x] tile colors
 * [x] manual animation? remove elm-css
-* [ ] use css transitions for animation?
+* [ ] use css transitions/classes for animation?
 * [ ] mobile/touch swipe interface
 * [ ] group colors into record?
 * [ ] undo?
