@@ -418,7 +418,7 @@ subscriptions model =
                 _ ->
                     False
       in
-      case foo && bar of
+      case foo || bar of
         True ->
             Time.every 1 (always RenderNext)
 
@@ -625,7 +625,9 @@ globalStyleNode =
         [ text
             """
 :root{
-    --durationVeryLong: 1000ms
+    --durationVeryLong: 1000ms;
+    --durationShort: 100ms;
+    --durationMedium: 200ms;
 
 }
 * {
@@ -659,6 +661,25 @@ body {
     100%{
         opacity:0;
         transform: translateY(-1em);
+    }
+}
+
+.animAppear{
+    animation: appear var(--durationMedium) both;
+}
+
+.animDelayedAppear{
+    animation: appear var(--durationMedium) var(--durationShort) both;
+}
+
+@keyframes appear{
+    0%{
+        opacity:0;
+        transform: scale(0);
+    }
+    100%{
+        opacity:1;
+        transform: scale(1);
     }
 }
         """
@@ -979,7 +1000,7 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
         ([ gridArea11
          , displayGrid
          , paddingForTileAndBoard
-         , tileMovedStyle 0 0 anim pos
+         , tileMovedStyle 0 0 anim pos |> always noAttr
          ]
             ++ tileMovedAttrs doubleRender anim pos
         )
@@ -992,7 +1013,7 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
              , Html.Attributes.title <| Debug.toString tile
              ]
                 ++ tileAnimationStyles 0 0 anim
-                ++ tileAnimationAttrs doubleRender anim
+             --++ tileAnimationAttrs doubleRender anim
             )
             [ text <| Val.toDisplayString val
             ]
@@ -1007,7 +1028,7 @@ tileMovedAttrs doubleRender anim endPos =
     in
     case doubleRender of
         RenderTransitionStart ->
-            [ posTransform startPos ]
+            [ posTransform startPos, style "transition" "none" ]
 
         RenderTransitionEnd ->
             [ posTransform endPos, style "transition" "transform 200ms 100ms" ]
