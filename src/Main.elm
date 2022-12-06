@@ -82,17 +82,17 @@ type alias Clock =
     Float
 
 
-scoreAddDelta : Clock -> Int -> Score -> Score
-scoreAddDelta clock scoreDelta score =
+scoreAddDelta : Int -> Score -> Score
+scoreAddDelta scoreDelta score =
     if scoreDelta > 0 then
-        scoreAddDeltaHelp clock scoreDelta score
+        scoreAddDeltaHelp scoreDelta score
 
     else
         score
 
 
-scoreAddDeltaHelp : Clock -> Int -> Score -> Score
-scoreAddDeltaHelp _ scoreDelta (Score hi total _) =
+scoreAddDeltaHelp : Int -> Score -> Score
+scoreAddDeltaHelp scoreDelta (Score hi total _) =
     let
         updatedTotal =
             total + scoreDelta
@@ -260,7 +260,7 @@ gridIsAnyMovePossible grid =
 type alias Model =
     { lastFrameTime : Clock
     , score : Score
-    , tiles : ( Clock, List Tile )
+    , tiles : ( DoubleRender, List Tile )
     , seed : Seed
     }
 
@@ -287,7 +287,7 @@ init flags =
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
             ( { score = saved.score
-              , tiles = ( now, saved.tiles )
+              , tiles = ( RenderTransitionStart, saved.tiles )
               , seed = initialSeed
               , lastFrameTime = now
               }
@@ -304,7 +304,7 @@ init flags =
                     Random.step randomInitialTiles initialSeed
             in
             { score = scoreZero
-            , tiles = ( now, tiles )
+            , tiles = ( RenderTransitionStart, tiles )
             , seed = seed
             , lastFrameTime = now
             }
@@ -324,7 +324,7 @@ newGame model =
             Random.step randomInitialTiles model.seed
     in
     { score = scoreReset model.score
-    , tiles = ( model.lastFrameTime, newTiles )
+    , tiles = ( RenderTransitionStart, newTiles )
     , seed = seed
     , lastFrameTime = model.lastFrameTime
     }
@@ -401,9 +401,26 @@ subscriptions model =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
     , Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
         |> always Sub.none
-    , case model.score of
-        Score _ _ (Just ( RenderTransitionStart, _ )) ->
-            Time.every 10 (always RenderNext)
+    , let
+        foo =
+            case model.score of
+                Score _ _ (Just ( RenderTransitionStart, _ )) ->
+                    True
+
+                _ ->
+                    False
+
+        bar =
+            case model.tiles of
+                ( RenderTransitionStart, _ ) ->
+                    True
+
+                _ ->
+                    False
+      in
+      case foo && bar of
+        True ->
+            Time.every 1 (always RenderNext)
 
         _ ->
             Sub.none
@@ -423,12 +440,10 @@ update msg model =
             newGame model
 
         RenderNext ->
-            case model.score of
-                Score a b (Just ( RenderTransitionStart, c )) ->
-                    ( { model | score = Score a b (Just ( RenderTransitionEnd, c )) }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            ( stepDoubleRenderScoreDelta model
+                |> stepDoubleRenderTiles
+            , Cmd.none
+            )
 
         GotAnimationFrame now ->
             ( { model | lastFrameTime = now }, Cmd.none )
@@ -456,6 +471,26 @@ update msg model =
 
         GotKeyDown _ ->
             ( model, Cmd.none )
+
+
+stepDoubleRenderScoreDelta : Model -> Model
+stepDoubleRenderScoreDelta model =
+    case model.score of
+        Score a b (Just ( RenderTransitionStart, c )) ->
+            { model | score = Score a b (Just ( RenderTransitionEnd, c )) }
+
+        _ ->
+            model
+
+
+stepDoubleRenderTiles : Model -> Model
+stepDoubleRenderTiles model =
+    case model.tiles of
+        ( RenderTransitionStart, a ) ->
+            { model | tiles = ( RenderTransitionEnd, a ) }
+
+        _ ->
+            model
 
 
 
@@ -497,8 +532,8 @@ updateGameFromMergedGrid model grid =
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove grid) model.seed
     in
-    { score = scoreAddDelta model.lastFrameTime scoreDelta model.score
-    , tiles = ( model.lastFrameTime, updatedTiles ++ newTiles )
+    { score = scoreAddDelta scoreDelta model.score
+    , tiles = ( RenderTransitionStart, updatedTiles ++ newTiles )
     , seed = seed
     , lastFrameTime = model.lastFrameTime
     }
@@ -715,10 +750,10 @@ viewScoreDelta mbDelta =
 
 
 viewScoreDeltaHelp : ( DoubleRender, Int ) -> Html msg
-viewScoreDeltaHelp ( transition, scoreDelta ) =
+viewScoreDeltaHelp ( doubleRender, scoreDelta ) =
     let
         animAttr =
-            case transition of
+            case doubleRender of
                 RenderTransitionStart ->
                     noAttr
 
@@ -804,11 +839,11 @@ fontFamilyMonospace =
 viewTiles : Model -> Html Msg
 viewTiles game =
     let
-        ( start, tiles ) =
+        ( doubleRender, tiles ) =
             game.tiles
     in
     div boardStyle
-        (List.map (viewTile game.lastFrameTime start) tiles)
+        (List.map (viewTile doubleRender) tiles)
 
 
 docs : Html.Html Msg
@@ -822,7 +857,7 @@ docs =
         model : Model
         model =
             { score = scoreZero
-            , tiles = ( 0, tiles )
+            , tiles = ( RenderTransitionEnd, tiles )
             , seed = Random.initialSeed 0
             , lastFrameTime = 0
             }
@@ -938,14 +973,16 @@ boardStyle =
     ]
 
 
-viewTile : Clock -> Clock -> Tile -> Html msg
-viewTile now start ((Tile anim pos val) as tile) =
+viewTile : DoubleRender -> Tile -> Html msg
+viewTile doubleRender ((Tile anim pos val) as tile) =
     div
-        [ gridArea11
-        , displayGrid
-        , paddingForTileAndBoard
-        , tileMovedStyle now start anim pos
-        ]
+        ([ gridArea11
+         , displayGrid
+         , paddingForTileAndBoard
+         , tileMovedStyle 0 0 anim pos
+         ]
+            ++ tileMovedAttrs doubleRender anim pos
+        )
         [ div
             ([ backgroundColor <| valColor val
              , roundedBorder
@@ -954,11 +991,38 @@ viewTile now start ((Tile anim pos val) as tile) =
              , valFontSize val
              , Html.Attributes.title <| Debug.toString tile
              ]
-                ++ tileAnimationStyles now start anim
+                ++ tileAnimationStyles 0 0 anim
             )
             [ text <| Val.toDisplayString val
             ]
         ]
+
+
+tileMovedAttrs : DoubleRender -> Anim -> Pos -> List (Attribute msg)
+tileMovedAttrs doubleRender anim endPos =
+    let
+        startPos =
+            tileAnimStartPos anim |> Maybe.withDefault endPos
+    in
+    case doubleRender of
+        RenderTransitionStart ->
+            [ posTransform startPos ]
+
+        RenderTransitionEnd ->
+            [ posTransform endPos, style "transition" "transform 200ms 100ms" ]
+
+
+posTransform : Pos -> Attribute msg
+posTransform pos =
+    let
+        ( x, y ) =
+            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
+    in
+    styleTransforms [ styleTranslate2 x y ]
+
+
+pctFromInt i =
+    String.fromInt i ++ "%"
 
 
 tileMovedStyle : Clock -> Clock -> Anim -> Pos -> Attribute msg
