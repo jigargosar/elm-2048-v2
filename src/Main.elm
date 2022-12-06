@@ -1117,10 +1117,6 @@ durationMedium =
     durationShort * 2
 
 
-durationVeryLong =
-    1000
-
-
 colorGlobal =
     colorGlobalA 1
 
