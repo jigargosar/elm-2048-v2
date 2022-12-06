@@ -40,7 +40,12 @@ type Score
         -- total
         Int
         -- deltas for animation
-        (Maybe ( Clock, Int ))
+        (Maybe (Transition Int))
+
+
+type Transition a
+    = TransitionStart a
+    | TransitionEnd a
 
 
 scoreEncoder : Score -> Value
@@ -87,7 +92,7 @@ scoreAddDelta clock scoreDelta score =
 
 
 scoreAddDeltaHelp : Clock -> Int -> Score -> Score
-scoreAddDeltaHelp clock scoreDelta (Score hi total _) =
+scoreAddDeltaHelp _ scoreDelta (Score hi total _) =
     let
         updatedTotal =
             total + scoreDelta
@@ -95,7 +100,7 @@ scoreAddDeltaHelp clock scoreDelta (Score hi total _) =
         updatedHi =
             max hi updatedTotal
     in
-    Score updatedHi updatedTotal (Just ( clock, scoreDelta ))
+    Score updatedHi updatedTotal (Just (TransitionStart scoreDelta))
 
 
 
@@ -388,12 +393,21 @@ type Msg
     = GotKeyDown String
     | NewGameClicked
     | GotAnimationFrame Float
+    | FlipTransition
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
     , Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
+
+    --|> always Sub.none
+    , case model.score of
+        Score _ _ (Just (TransitionStart _)) ->
+            Time.every 100 (always FlipTransition)
+
+        _ ->
+            Sub.none
     ]
         |> Sub.batch
 
@@ -408,6 +422,14 @@ update msg model =
     case msg of
         NewGameClicked ->
             newGame model
+
+        FlipTransition ->
+            case model.score of
+                Score a b (Just (TransitionStart c)) ->
+                    ( { model | score = Score a b (Just (TransitionEnd c)) }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         GotAnimationFrame now ->
             ( { model | lastFrameTime = now }, Cmd.none )
@@ -534,7 +556,7 @@ viewGame game =
             [ displayFlex, gap "20px" ]
             [ viewNewGameButton
             , div [ flexGrow1 ] []
-            , viewTotalScoreWithDelta game.lastFrameTime game.score
+            , viewTotalScoreWithDelta game.score
             , viewHiScore game.score
             ]
         , viewBoard game
@@ -590,8 +612,8 @@ body {
         ]
 
 
-viewTotalScoreWithDelta : Clock -> Score -> Html msg
-viewTotalScoreWithDelta now (Score _ total delta) =
+viewTotalScoreWithDelta : Score -> Html msg
+viewTotalScoreWithDelta (Score _ total delta) =
     let
         totalString =
             String.fromInt total
@@ -601,7 +623,7 @@ viewTotalScoreWithDelta now (Score _ total delta) =
         , div
             [ displayGrid, positionRelative ]
             [ div [ gridArea11, displayGrid, placeContentCenter ] [ text totalString ]
-            , viewScoreDelta now delta
+            , viewScoreDelta delta
             ]
         ]
 
@@ -664,18 +686,27 @@ hsla h s l a =
         ++ ")"
 
 
-viewScoreDelta : Clock -> Maybe ( Clock, Int ) -> Html msg
-viewScoreDelta now mbDelta =
+viewScoreDelta : Maybe (Transition Int) -> Html msg
+viewScoreDelta mbDelta =
     case mbDelta of
         Just d ->
-            viewScoreDeltaHelp now d
+            Html.Lazy.lazy viewScoreDeltaHelp d
 
         Nothing ->
             text ""
 
 
-viewScoreDeltaHelp : Clock -> ( Clock, Int ) -> Html msg
-viewScoreDeltaHelp now ( start, scoreDelta ) =
+viewScoreDeltaHelp : Transition Int -> Html msg
+viewScoreDeltaHelp transitionScoreDelta =
+    let
+        ( transitionStyles, scoreDelta ) =
+            case transitionScoreDelta of
+                TransitionStart i ->
+                    ( fadeUpTransitionStartStyles, i )
+
+                TransitionEnd i ->
+                    ( fadeUpTransitionEndStyles, i )
+    in
     div
         ([ gridArea11
          , positionAbsolute
@@ -683,9 +714,24 @@ viewScoreDeltaHelp now ( start, scoreDelta ) =
          , width100
          , fontSize "0.8em"
          ]
-            ++ fadeUpStyles now start
+            ++ transitionStyles
         )
         [ text "+", text <| String.fromInt scoreDelta ]
+
+
+fadeUpTransitionStartStyles =
+    [ styleOpacity 1
+    , styleTransforms [ "translateY(0em)" ]
+    , style "transition" "none"
+    ]
+
+
+fadeUpTransitionEndStyles =
+    [ styleOpacity 0
+    , styleTransforms [ "translateY(-1em)" ]
+    , style "transition"
+        ("all " ++ String.fromInt durationVeryLong ++ "ms")
+    ]
 
 
 positionAbsolute =
@@ -696,25 +742,26 @@ width100 =
     style "width" "100%"
 
 
-fadeUpStyles : Clock -> Clock -> List (Attribute msg)
-fadeUpStyles now start =
-    let
-        elapsed =
-            abs (now - start)
 
-        n =
-            normClamped 0 durationVeryLong elapsed
-                |> Ease.inOutSine
-
-        translateYEmVal =
-            lerp 0 -1 n
-
-        opacityVal =
-            lerp 1 0 n
-    in
-    [ style "opacity" (String.fromFloat opacityVal)
-    , style "transform" ("translateY(" ++ String.fromFloat translateYEmVal ++ "em)")
-    ]
+--fadeUpStyles : Clock -> Clock -> List (Attribute msg)
+--fadeUpStyles now start =
+--    let
+--        elapsed =
+--            abs (now - start)
+--
+--        n =
+--            normClamped 0 durationVeryLong elapsed
+--                |> Ease.inOutSine
+--
+--        translateYEmVal =
+--            lerp 0 -1 n
+--
+--        opacityVal =
+--            lerp 1 0 n
+--    in
+--    [ style "opacity" (String.fromFloat opacityVal)
+--    , style "transform" ("translateY(" ++ String.fromFloat translateYEmVal ++ "em)")
+--    ]
 
 
 lerp a b x =
@@ -919,7 +966,7 @@ tileMovedStyle now start anim endPos =
                 |> Ease.inOutSine
 
         ( xStart, yStart ) =
-            tileAnimStartPos anim |> Maybe.withDefault endPos |> posToFloat
+            tileAnimStartPos anim |> Maybe.withDefault endPos |> always endPos |> posToFloat
 
         ( xEnd, yEnd ) =
             endPos |> posToFloat
@@ -993,6 +1040,7 @@ tileAnimationStyles now start anim =
             let
                 n =
                     normDuration durationMedium elapsed
+                        |> always 1
             in
             [ styleOpacity n
             , styleTransforms [ styleScale n ]
@@ -1003,6 +1051,7 @@ tileAnimationStyles now start anim =
             let
                 n =
                     normDurationWithDelay durationMedium durationShort elapsed
+                        |> always 1
             in
             [ styleOpacity n
             , styleTransforms [ styleScale (n |> Ease.outBack) ]
@@ -1017,6 +1066,7 @@ tileAnimationStyles now start anim =
             let
                 n =
                     normDurationWithDelay durationMedium durationShort elapsed
+                        |> always 1
             in
             [ styleOpacity n
             , styleTransforms [ styleScale n ]
