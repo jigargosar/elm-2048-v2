@@ -12,7 +12,7 @@ import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
 import Random exposing (Generator, Seed)
 import Random.List
-import Time exposing (Posix)
+import Time
 import Val exposing (Val)
 
 
