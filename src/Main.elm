@@ -393,18 +393,17 @@ type Msg
     = GotKeyDown String
     | NewGameClicked
     | GotAnimationFrame Float
-    | FlipTransition
+    | RenderNext
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
     , Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
-
-    --|> always Sub.none
+        |> always Sub.none
     , case model.score of
         Score _ _ (Just ( RenderTransitionStart, _ )) ->
-            Time.every 100 (always FlipTransition)
+            Time.every 10 (always RenderNext)
 
         _ ->
             Sub.none
@@ -423,7 +422,7 @@ update msg model =
         NewGameClicked ->
             newGame model
 
-        FlipTransition ->
+        RenderNext ->
             case model.score of
                 Score a b (Just ( RenderTransitionStart, c )) ->
                     ( { model | score = Score a b (Just ( RenderTransitionEnd, c )) }, Cmd.none )
