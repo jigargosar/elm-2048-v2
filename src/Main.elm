@@ -42,11 +42,6 @@ type Score
         (Maybe Int)
 
 
-type DoubleRender
-    = RenderTransitionStart
-    | RenderTransitionEnd
-
-
 scoreEncoder : Score -> Value
 scoreEncoder (Score hi total _) =
     E.list identity [ E.int hi, E.int total ]
@@ -918,7 +913,6 @@ viewTile ((Tile anim pos val) as tile) =
                     [ "grid-area:1/1"
                     , "display:grid"
                     , paddingForTileAndBoardAsStyleString
-                    , posTransformAsStyleString pos
                     , tileMoveAnimCssVars anim pos
                     ]
                 , class "animTileMove"
@@ -952,14 +946,6 @@ tileMoveAnimCssVars anim endPos =
     "--tile-move-start:" ++ posToTranslateParams startPos ++ ";--tile-move-end:" ++ posToTranslateParams endPos
 
 
-posTransformAsStyleString pos =
-    let
-        ( x, y ) =
-            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
-    in
-    "transform:" ++ styleTranslate2 x y
-
-
 posToTranslateParams pos =
     let
         ( x, y ) =
@@ -970,11 +956,6 @@ posToTranslateParams pos =
 
 pctFromInt i =
     String.fromInt i ++ "%"
-
-
-styleTranslate2 : String -> String -> String
-styleTranslate2 x y =
-    "translate(" ++ x ++ "," ++ y ++ ")"
 
 
 valFontSize val =
