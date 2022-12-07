@@ -4,7 +4,7 @@ import Browser
 import Browser.Events
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, autofocus, class, style)
+import Html.Attributes exposing (attribute, autofocus, class)
 import Html.Events exposing (onClick)
 import Html.Keyed
 import Html.Lazy
@@ -499,18 +499,24 @@ isGameOver game =
 
 view : Model -> Html Msg
 view model =
-    div [ padding "30px" ]
+    div [ css [ padding "30px" ] ]
         [ viewGame model
         ]
 
 
+css =
+    List.map (\( a, b ) -> a ++ ":" ++ b)
+        >> String.join ";"
+        >> attribute "style"
+
+
 viewGame : Model -> Html Msg
 viewGame game =
-    div [ displayInlineFlex, flexDirectionColumn, gap "20px" ]
+    div [ css [ displayInlineFlex, flexDirectionColumn, gap "20px" ] ]
         [ div
-            [ displayFlex, gap "20px" ]
+            [ css [ displayFlex, gap "20px" ] ]
             [ viewNewGameButton
-            , div [ flexGrow1 ] []
+            , div [ css [ flexGrow1 ] ] []
             , viewTotalScoreWithDelta game.score
             , viewHiScore game.score
             ]
@@ -519,19 +525,19 @@ viewGame game =
 
 
 displayInlineFlex =
-    style "display" "inline-flex"
+    Tuple.pair "display" "inline-flex"
 
 
 displayFlex =
-    style "display" "flex"
+    Tuple.pair "display" "flex"
 
 
 flexDirectionColumn =
-    style "flex-direction" "column"
+    Tuple.pair "flex-direction" "column"
 
 
 flexGrow1 =
-    style "flex-grow" "1"
+    Tuple.pair "flex-grow" "1"
 
 
 viewNewGameButton : Html Msg
@@ -548,12 +554,12 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
         scoreDeltaResetAnimationKey =
             totalString
     in
-    div [ minWidth "6ch", textAlignCenter ]
+    div [ css [ minWidth "6ch", textAlignCenter ] ]
         [ lbl "SCORE"
         , Html.Keyed.node "div"
-            [ displayStack, positionRelative ]
+            [ displayStack, css [ positionRelative ] ]
             [ withoutKey <|
-                div [ displayGrid, placeContentCenter ] [ text totalString ]
+                div [ displayGrid, css [ placeContentCenter ] ] [ text totalString ]
             , ( scoreDeltaResetAnimationKey, maybeDelta |> viewMaybe viewScoreDelta )
             ]
         ]
@@ -564,35 +570,35 @@ withoutKey n =
 
 
 minWidth =
-    style "min-width"
+    Tuple.pair "min-width"
 
 
 textAlignCenter =
-    style "text-align" "center"
+    Tuple.pair "text-align" "center"
 
 
 positionRelative =
-    style "position" "relative"
+    Tuple.pair "position" "relative"
 
 
 viewHiScore : Score -> Html msg
 viewHiScore (Score hi _ _) =
-    div [ minWidth "6ch", textAlignCenter ]
+    div [ css [ minWidth "6ch", textAlignCenter ] ]
         [ lbl "BEST"
         , div [] [ text <| String.fromInt hi ]
         ]
 
 
 lbl s =
-    div [ fontSize "0.8rem", color <| colorDull ] [ text s ]
+    div [ css [ fontSize "0.8rem", color <| colorDull ] ] [ text s ]
 
 
 fontSize =
-    style "font-size"
+    Tuple.pair "font-size"
 
 
 color =
-    style "color"
+    Tuple.pair "color"
 
 
 colorDull =
@@ -633,27 +639,29 @@ viewMaybe fn mb =
 viewScoreDelta : Int -> Html msg
 viewScoreDelta scoreDelta =
     div
-        [ positionAbsolute
-        , style "top" "100%"
-        , width100
-        , fontSize "0.8em"
+        [ css
+            [ positionAbsolute
+            , ( "top", "100%" )
+            , width100
+            , fontSize "0.8em"
+            ]
         , class "animFadeUpScoreDelta"
         ]
         [ text "+", text <| String.fromInt scoreDelta ]
 
 
 positionAbsolute =
-    style "position" "absolute"
+    Tuple.pair "position" "absolute"
 
 
 width100 =
-    style "width" "100%"
+    Tuple.pair "width" "100%"
 
 
 viewBoard : Model -> Html Msg
 viewBoard game =
     div
-        [ displayInlineStack, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
+        [ displayInlineStack, css [ placeContentCenter, fontFamilyMonospace, fontSize "50px" ] ]
         [ viewBackgroundTiles
         , viewTiles game
         , viewGameOver game
@@ -661,7 +669,7 @@ viewBoard game =
 
 
 fontFamilyMonospace =
-    style "font-family" "monospace"
+    Tuple.pair "font-family" "monospace"
 
 
 viewTiles : Model -> Html Msg
@@ -674,7 +682,7 @@ viewTiles game =
             String.fromInt intKey
     in
     Html.Keyed.node "div"
-        boardStyle
+        (css boardStyles :: boardClasses)
         (List.map (viewTile >> Tuple.pair key) tiles)
 
 
@@ -693,13 +701,13 @@ docs =
             , seed = Random.initialSeed 0
             }
     in
-    div [ padding "30px" ]
+    div [ css [ padding "30px" ] ]
         [ viewBoard model
         ]
 
 
 padding =
-    style "padding"
+    Tuple.pair "padding"
 
 
 viewGameOver : Model -> Html Msg
@@ -707,13 +715,15 @@ viewGameOver game =
     case isGameOver game of
         True ->
             div
-                [ positionRelative
-                , backgroundColor <| colorGlobalA 0.85
-                , roundedBorder
-                , displayGrid
-                , placeContentCenter
-                , placeItemsCenter
-                , gap "20px"
+                [ displayGrid
+                , css
+                    [ positionRelative
+                    , backgroundColor <| colorGlobalA 0.85
+                    , roundedBorder
+                    , placeContentCenter
+                    , placeItemsCenter
+                    , gap "20px"
+                    ]
                 ]
                 [ div [] [ text "Game Over!" ]
                 , btn NewGameClicked "Try Again"
@@ -724,16 +734,16 @@ viewGameOver game =
 
 
 backgroundColor =
-    style "background-color"
+    Tuple.pair "background-color"
 
 
 btn : msg -> String -> Html msg
 btn msg string =
-    button (onClick msg :: buttonStyles) [ text string ]
+    button [ onClick msg, css buttonStyles ] [ text string ]
 
 
 btnFocused msg string =
-    button (autofocus True :: onClick msg :: buttonStyles) [ text string ]
+    button [ autofocus True, onClick msg, css buttonStyles ] [ text string ]
 
 
 buttonStyles =
@@ -750,7 +760,7 @@ buttonStyles =
 
 
 fontWeightNormal =
-    style "font-weight" "normal"
+    Tuple.pair "font-weight" "normal"
 
 
 colorCurrentColor =
@@ -758,30 +768,24 @@ colorCurrentColor =
 
 
 border =
-    style "border"
+    Tuple.pair "border"
 
 
 viewBackgroundTiles : Html msg
 viewBackgroundTiles =
     div
-        (boardStyle
-            ++ [ backgroundColor <| colorBoardGap ]
-        )
+        (css (boardStyles ++ [ backgroundColor <| colorBoardGap ]) :: boardClasses)
         (Grid.allPositions |> List.map viewBackgroundTile)
 
 
 viewBackgroundTile : Pos -> Html msg
 viewBackgroundTile pos =
     div
-        [ gridAreaFromPos pos
-        , displayGrid
+        [ displayGrid
         , paddingForTileAndBoard
+        , css [ gridAreaFromPos pos ]
         ]
-        [ div
-            [ roundedBorder
-            , backgroundColor <| colorBoard
-            ]
-            []
+        [ div [ css [ roundedBorder, backgroundColor <| colorBoard ] ] []
         ]
 
 
@@ -790,14 +794,15 @@ gridAreaFromPos pos =
         ( col, row ) =
             pos |> Grid.posToInt >> mapBothWith (add 1 >> String.fromInt)
     in
-    style "grid-area" (row ++ "/" ++ col)
+    Tuple.pair "grid-area" (row ++ "/" ++ col)
 
 
-boardStyle =
-    [ displayGrid
-    , displayStack
-    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
-    , paddingForTileAndBoard
+boardClasses =
+    [ displayStack, paddingForTileAndBoard ]
+
+
+boardStyles =
+    [ Tuple.pair "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     , roundedBorder
     ]
 
@@ -813,19 +818,21 @@ displayInlineStack =
 viewTile : Tile -> Html msg
 viewTile ((Tile anim pos val) as tile) =
     div
-        [ attribute "style" (tileMoveAnimCssVars anim pos)
+        [ attribute "Tuple.pair" (tileMoveAnimCssVars anim pos)
         , paddingForTileAndBoard
         , displayGrid
         , class "animTileMove"
         ]
         [ div
-            [ backgroundColor <| valColor val
-            , roundedBorder
-            , displayGrid
-            , placeContentCenter
-            , valFontSize val
-            , Html.Attributes.title <| Debug.toString tile
+            [ displayGrid
+            , css
+                [ backgroundColor <| valColor val
+                , roundedBorder
+                , placeContentCenter
+                , valFontSize val
+                ]
             , tileAnimationAttrs anim
+            , Html.Attributes.title <| Debug.toString tile
             ]
             [ text <| Val.toDisplayString val
             ]
@@ -913,7 +920,7 @@ roundedBorder =
 
 
 borderRadius =
-    style "border-radius"
+    Tuple.pair "border-radius"
 
 
 paddingForTileAndBoard =
@@ -972,7 +979,7 @@ valColorList =
 
 
 gap =
-    style "gap"
+    Tuple.pair "gap"
 
 
 displayGrid =
@@ -980,15 +987,15 @@ displayGrid =
 
 
 placeContentCenter =
-    style "place-content" "center"
+    Tuple.pair "place-content" "center"
 
 
 placeSelfCenter =
-    style "place-self" "center"
+    Tuple.pair "place-self" "center"
 
 
 placeItemsCenter =
-    style "place-items" "center"
+    Tuple.pair "place-items" "center"
 
 
 
