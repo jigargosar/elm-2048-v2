@@ -6,7 +6,6 @@ import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, autofocus, class, style)
 import Html.Events exposing (onClick)
-import Html.Keyed
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
@@ -291,17 +290,7 @@ type alias Model =
     { score : Score
     , tiles : ( DoubleRender, List Tile )
     , seed : Seed
-    , nodes : List Node
     }
-
-
-type alias Node =
-    { key : String, value : String }
-
-
-initialNodes : List Node
-initialNodes =
-    List.range 1 10 |> List.map (String.fromInt >> (\s -> Node s s))
 
 
 type alias Flags =
@@ -325,7 +314,6 @@ init flags =
             ( { score = saved.score
               , tiles = ( RenderTransitionStart, saved.tiles )
               , seed = initialSeed
-              , nodes = initialNodes
               }
             , Cmd.none
             )
@@ -342,7 +330,6 @@ init flags =
             { score = scoreZero
             , tiles = ( RenderTransitionStart, tiles )
             , seed = seed
-            , nodes = initialNodes
             }
                 |> saveState
 
@@ -362,7 +349,6 @@ newGame model =
     { score = scoreReset model.score
     , tiles = ( RenderTransitionStart, newTiles )
     , seed = seed
-    , nodes = model.nodes
     }
         |> saveState
 
@@ -429,7 +415,6 @@ type Msg
     = GotKeyDown String
     | NewGameClicked
     | GotNextAnimationFrame
-    | SwapDeletion
 
 
 subscriptions : Model -> Sub Msg
@@ -445,18 +430,9 @@ keyDecoder =
     D.field "key" D.string
 
 
-dropEveryNth n list =
-    List.indexedMap Tuple.pair list
-        |> List.filter (Tuple.first >> (\i -> modBy n i == 0))
-        |> List.map Tuple.second
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SwapDeletion ->
-            ( { model | nodes = dropEveryNth 3 model.nodes }, Cmd.none )
-
         NewGameClicked ->
             newGame model
 
@@ -543,7 +519,6 @@ updateGameFromMergedGrid model grid =
     in
     { score = scoreAddDelta scoreDelta model.score
     , tiles = ( RenderTransitionStart, updatedTiles ++ newTiles )
-    , nodes = model.nodes
     , seed = seed
     }
 
@@ -587,34 +562,8 @@ view : Model -> Html Msg
 view model =
     div [ attribute "style" "padding:30px;--foo:bar" ]
         [ globalStyleNode
-        , viewTestKeyedNodeDeletion model.nodes
         , viewGame model
         ]
-
-
-viewTestKeyedNodeDeletion nodes =
-    div [ attribute "style" "margin-bottom:20px;height:500px" ]
-        [ h1 [] [ text "viewTestKeyedNodeDeletion" ]
-        , btn SwapDeletion "SwapDelete"
-        , Html.Keyed.node "div"
-            [ positionRelative ]
-            (List.indexedMap viewKeyedNode nodes)
-        ]
-
-
-viewKeyedNode index node =
-    let
-        nodeTranslateYVal =
-            String.fromInt (index * 30) ++ "px"
-    in
-    ( node.key
-    , div
-        [ positionAbsolute
-        , styleTransforms [ styleTranslate2 "0" nodeTranslateYVal ]
-        , style "transition" "transform 500ms"
-        ]
-        [ text node.value ]
-    )
 
 
 viewGame : Model -> Html Msg
@@ -890,7 +839,6 @@ docs =
             { score = scoreZero
             , tiles = ( RenderTransitionEnd, tiles )
             , seed = Random.initialSeed 0
-            , nodes = []
             }
     in
     div [ padding "30px" ]
