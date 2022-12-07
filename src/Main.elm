@@ -833,8 +833,7 @@ viewTile (Tile anim pos val) =
                 ]
             , tileEnterAnimation anim
             ]
-            [ text <| Val.toDisplayString val
-            ]
+            [ text <| Val.toDisplayString val ]
         ]
 
 
