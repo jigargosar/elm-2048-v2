@@ -18,7 +18,9 @@ NEXT STEPS:
 * [x] score and new game UI
 * [x] tile colors
 * [x] manual animation? remove elm-css
-* [ ] what happens to transition when keyed dom node are deleted.
+* [x] what happens to transition when keyed dom node are deleted.
+      As long as there is single deleted node, or alternates,
+      keyed nodes are preserved, i.e. style transitions work.
 * [ ] use css transitions/classes for animation? without elm library?
 * [ ] mobile/touch swipe interface
 * [ ] group colors into record?
