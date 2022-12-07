@@ -818,10 +818,10 @@ displayInlineStack =
 viewTile : Tile -> Html msg
 viewTile ((Tile anim pos val) as tile) =
     div
-        [ attribute "style" (tileMoveAnimCssVars anim pos)
-        , paddingForTileAndBoard
+        [ paddingForTileAndBoard
         , displayGrid
         , class "animTileMove"
+        , css (tileMoveAnimCssVars anim pos)
         ]
         [ div
             [ displayGrid
@@ -831,7 +831,7 @@ viewTile ((Tile anim pos val) as tile) =
                 , placeContentCenter
                 , valFontSize val
                 ]
-            , tileAnimationAttrs anim
+            , tileEnterAnimation anim
             , Html.Attributes.title <| Debug.toString tile
             ]
             [ text <| Val.toDisplayString val
@@ -839,13 +839,14 @@ viewTile ((Tile anim pos val) as tile) =
         ]
 
 
-tileMoveAnimCssVars : Anim -> Pos -> String
 tileMoveAnimCssVars anim endPos =
     let
         startPos =
             tileAnimStartPos anim |> Maybe.withDefault endPos
     in
-    "--tile-move-start:" ++ posToTranslateParams startPos ++ ";--tile-move-end:" ++ posToTranslateParams endPos
+    [ ( "--tile-move-start", posToTranslateParams startPos )
+    , ( "--tile-move-end", posToTranslateParams endPos )
+    ]
 
 
 posToTranslateParams pos =
@@ -892,8 +893,8 @@ tileAnimStartPos anim =
             Just from
 
 
-tileAnimationAttrs : Anim -> Attribute msg
-tileAnimationAttrs anim =
+tileEnterAnimation : Anim -> Attribute msg
+tileEnterAnimation anim =
     case anim of
         InitialEnter ->
             class "animAppear"
