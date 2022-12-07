@@ -21,7 +21,7 @@ NEXT STEPS:
 * [x] what happens to transition when keyed dom node are deleted.
       As long as there is single deleted node, or alternates,
       keyed nodes are preserved, i.e. style transitions work.
-* [ ] use css transitions/classes for animation? without elm library?
+* [x] use css transitions/classes for animation? without elm library?
 * [ ] mobile/touch swipe interface
 * [ ] group colors into record?
 * [ ] undo?
