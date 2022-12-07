@@ -499,7 +499,7 @@ isGameOver game =
 
 view : Model -> Html Msg
 view model =
-    div [ styles [ "padding:30px" ] ]
+    div [ padding "30px" ]
         [ viewGame model
         ]
 
@@ -813,7 +813,7 @@ displayInlineStack =
 viewTile : Tile -> Html msg
 viewTile ((Tile anim pos val) as tile) =
     div
-        [ styles [ tileMoveAnimCssVars anim pos ]
+        [ attribute "style" (tileMoveAnimCssVars anim pos)
         , paddingForTileAndBoard
         , displayGrid
         , class "animTileMove"
@@ -830,10 +830,6 @@ viewTile ((Tile anim pos val) as tile) =
             [ text <| Val.toDisplayString val
             ]
         ]
-
-
-styles list =
-    attribute "style" (String.join ";" list)
 
 
 tileMoveAnimCssVars : Anim -> Pos -> String
