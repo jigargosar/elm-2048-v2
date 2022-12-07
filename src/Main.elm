@@ -299,6 +299,11 @@ type alias Node =
     { key : String, value : String }
 
 
+initialNodes : List Node
+initialNodes =
+    List.range 1 10 |> List.map (String.fromInt >> (\s -> Node s s))
+
+
 type alias Flags =
     { now : Int
     , state : Value
@@ -320,7 +325,7 @@ init flags =
             ( { score = saved.score
               , tiles = ( RenderTransitionStart, saved.tiles )
               , seed = initialSeed
-              , nodes = []
+              , nodes = initialNodes
               }
             , Cmd.none
             )
@@ -337,7 +342,7 @@ init flags =
             { score = scoreZero
             , tiles = ( RenderTransitionStart, tiles )
             , seed = seed
-            , nodes = []
+            , nodes = initialNodes
             }
                 |> saveState
 
@@ -424,6 +429,7 @@ type Msg
     = GotKeyDown String
     | NewGameClicked
     | GotNextAnimationFrame
+    | SwapDeletion
 
 
 subscriptions : Model -> Sub Msg
@@ -439,9 +445,18 @@ keyDecoder =
     D.field "key" D.string
 
 
+dropEveryNth n list =
+    List.indexedMap Tuple.pair list
+        |> List.filter (Tuple.first >> (\i -> modBy n i == 0))
+        |> List.map Tuple.second
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SwapDeletion ->
+            ( { model | nodes = dropEveryNth 3 model.nodes }, Cmd.none )
+
         NewGameClicked ->
             newGame model
 
@@ -580,16 +595,26 @@ view model =
 viewTestKeyedNodeDeletion nodes =
     div [ attribute "style" "margin-top:20px;" ]
         [ h1 [] [ text "viewTestKeyedNodeDeletion" ]
-
-        --, btn SwapDeletion "SwapDelete"
+        , btn SwapDeletion "SwapDelete"
         , Html.Keyed.node "div"
-            []
-            (List.map viewKeyedNode nodes)
+            [ positionRelative ]
+            (List.indexedMap viewKeyedNode nodes)
         ]
 
 
-viewKeyedNode node =
-    ( node.key, div [] [ text node.value ] )
+viewKeyedNode index node =
+    let
+        nodeTranslateYVal =
+            String.fromInt (index * 30) ++ "px"
+    in
+    ( node.key
+    , div
+        [ positionAbsolute
+        , styleTransforms [ styleTranslate2 "0" nodeTranslateYVal ]
+        , style "transition" "transform 500ms"
+        ]
+        [ text node.value ]
+    )
 
 
 viewGame : Model -> Html Msg
