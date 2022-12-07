@@ -919,15 +919,14 @@ viewTile ((Tile anim pos val) as tile) =
                 ]
         )
         [ div
-            ([ backgroundColor <| valColor val
-             , roundedBorder
-             , displayGrid
-             , placeContentCenter
-             , valFontSize val
-             , Html.Attributes.title <| Debug.toString tile
-             ]
-                ++ tileAnimationAttrs anim
-            )
+            [ backgroundColor <| valColor val
+            , roundedBorder
+            , displayGrid
+            , placeContentCenter
+            , valFontSize val
+            , Html.Attributes.title <| Debug.toString tile
+            , tileAnimationAttrs anim
+            ]
             [ text <| Val.toDisplayString val
             ]
         ]
@@ -990,23 +989,27 @@ tileAnimStartPos anim =
             Just from
 
 
-tileAnimationAttrs : Anim -> List (Attribute msg)
+tileAnimationAttrs : Anim -> Attribute msg
 tileAnimationAttrs anim =
     case anim of
         InitialEnter ->
-            [ class "animAppear" ]
+            class "animAppear"
 
         MergedExit _ ->
-            []
+            noAttr
 
         MergedEnter ->
-            [ class "animDelayedPopIn" ]
+            class "animDelayedPopIn"
 
         NewDelayedEnter ->
-            [ class "animDelayedAppear" ]
+            class "animDelayedAppear"
 
         Moved _ ->
-            []
+            noAttr
+
+
+noAttr =
+    class ""
 
 
 roundedBorder =
