@@ -500,8 +500,7 @@ isGameOver game =
 view : Model -> Html Msg
 view model =
     div [ attribute "style" "padding:30px;--foo:bar" ]
-        [ globalStyleNode
-        , viewGame model
+        [ viewGame model
         ]
 
 
@@ -538,101 +537,6 @@ flexGrow1 =
 viewNewGameButton : Html Msg
 viewNewGameButton =
     btnFocused NewGameClicked "New Game"
-
-
-globalStyleNode : Html msg
-globalStyleNode =
-    node "style"
-        []
-        [ text
-            """
-:root{
-    --durationVeryLong: 1000ms;
-    --durationShort: 100ms;
-    --durationMedium: 200ms;
-}
-* {
-    font-size: inherit;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    vertical-align: baseline;
-}
-
-html {
-    font-size: 20px;
-    background-color: hsl(0deg 0% 13%);
-    color: hsl(0deg 0% 90%)
-}
-
-body {
-    font-size: 30px;
-    font-family: monospace;
-}
-
-.animFadeUpScoreDelta{
-    animation: fadeUpScoreDelta var(--durationVeryLong) both;
-}
-
-@keyframes fadeUpScoreDelta{
-    0%{
-        opacity:1;
-        transform: translateY(0em);
-    }
-    100%{
-        opacity:0;
-        transform: translateY(-1em);
-    }
-}
-
-.animAppear{
-    animation: appear var(--durationMedium) both;
-}
-
-.animDelayedAppear{
-    animation: appear var(--durationMedium) var(--durationShort) both;
-}
-
-@keyframes appear{
-    0%{
-        opacity:0;
-        transform: scale(0);
-    }
-    100%{
-        opacity:1;
-        transform: scale(1);
-    }
-}
-.animDelayedPopIn{
-    animation: popIn var(--durationMedium) var(--durationShort) both;
-}
-
-@keyframes popIn{
-    0%{
-        transform: scale(0);
-    }
-    50%{
-        transform: scale(1.2);
-    }
-    100%{
-        transform: scale(1);
-    }
-}
-
-.animTileMove{
-    animation: tileMove var(--durationShort) both;
-}
-
-@keyframes tileMove{
-    0%{
-        transform: translate(var(--tile-move-start));
-    }
-    100%{
-        transform: translate(var(--tile-move-end));
-    }
-}
-        """
-        ]
 
 
 viewTotalScoreWithDelta : Score -> Html msg
@@ -791,8 +695,7 @@ docs =
             }
     in
     div [ padding "30px" ]
-        [ globalStyleNode
-        , viewBoard model
+        [ viewBoard model
         ]
 
 
