@@ -6,6 +6,7 @@ import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, autofocus, class, style)
 import Html.Events exposing (onClick)
+import Html.Keyed
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
@@ -43,14 +44,6 @@ withRenderNext ( m, c ) =
 
 shouldRenderNext model =
     let
-        foo =
-            case model.score of
-                Score _ _ (Just ( RenderTransitionStart, _ )) ->
-                    True
-
-                _ ->
-                    False
-
         bar =
             case model.tiles of
                 ( RenderTransitionStart, _ ) ->
@@ -59,7 +52,7 @@ shouldRenderNext model =
                 _ ->
                     False
     in
-    foo || bar
+    bar
 
 
 
@@ -73,7 +66,7 @@ type Score
         -- total
         Int
         -- deltas for animation
-        (Maybe ( DoubleRender, Int ))
+        (Maybe Int)
 
 
 type DoubleRender
@@ -129,7 +122,7 @@ scoreAddDeltaHelp scoreDelta (Score hi total _) =
         updatedHi =
             max hi updatedTotal
     in
-    Score updatedHi updatedTotal (Just ( RenderTransitionStart, scoreDelta ))
+    Score updatedHi updatedTotal (Just scoreDelta)
 
 
 
@@ -461,8 +454,8 @@ update msg model =
 stepDoubleRenderScoreDelta : Model -> Model
 stepDoubleRenderScoreDelta model =
     case model.score of
-        Score a b (Just ( RenderTransitionStart, c )) ->
-            { model | score = Score a b (Just ( RenderTransitionEnd, c )) }
+        Score a b (Just c) ->
+            { model | score = Score a b (Just c) }
 
         _ ->
             model
@@ -685,19 +678,27 @@ body {
 
 
 viewTotalScoreWithDelta : Score -> Html msg
-viewTotalScoreWithDelta (Score _ total delta) =
+viewTotalScoreWithDelta (Score _ total maybeDelta) =
     let
         totalString =
             String.fromInt total
+
+        scoreDeltaResetAnimationKey =
+            totalString
     in
     div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
-        , div
+        , Html.Keyed.node "div"
             [ displayGrid, positionRelative ]
-            [ div [ gridArea11, displayGrid, placeContentCenter ] [ text totalString ]
-            , viewScoreDelta delta
+            [ withoutKey <|
+                div [ gridArea11, displayGrid, placeContentCenter ] [ text totalString ]
+            , ( scoreDeltaResetAnimationKey, maybeDelta |> viewMaybe viewScoreDelta )
             ]
         ]
+
+
+withoutKey n =
+    ( "", n )
 
 
 minWidth =
@@ -758,40 +759,26 @@ hsla h s l a =
         ++ ")"
 
 
-viewScoreDelta : Maybe ( DoubleRender, Int ) -> Html msg
-viewScoreDelta mbDelta =
-    case mbDelta of
-        Just d ->
-            Html.Lazy.lazy viewScoreDeltaHelp d
-
+viewMaybe fn mb =
+    case mb of
         Nothing ->
             text ""
 
+        Just v ->
+            fn v
 
-viewScoreDeltaHelp : ( DoubleRender, Int ) -> Html msg
-viewScoreDeltaHelp ( doubleRender, scoreDelta ) =
-    let
-        animAttr =
-            case doubleRender of
-                RenderTransitionStart ->
-                    noAttr
 
-                RenderTransitionEnd ->
-                    class "animFadeUpScoreDelta"
-    in
+viewScoreDelta : Int -> Html msg
+viewScoreDelta scoreDelta =
     div
         [ gridArea11
         , positionAbsolute
         , style "top" "100%"
         , width100
         , fontSize "0.8em"
-        , animAttr
+        , class "animFadeUpScoreDelta"
         ]
         [ text "+", text <| String.fromInt scoreDelta ]
-
-
-noAttr =
-    class ""
 
 
 positionAbsolute =
