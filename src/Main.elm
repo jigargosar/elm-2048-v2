@@ -2,7 +2,6 @@ port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
-import Ease
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, autofocus, class, style)
@@ -110,10 +109,6 @@ atLeast =
 scoreZero : Score
 scoreZero =
     Score 0 0 Nothing
-
-
-type alias Clock =
-    Float
 
 
 scoreAddDelta : Int -> Score -> Score
@@ -292,8 +287,7 @@ gridIsAnyMovePossible grid =
 
 
 type alias Model =
-    { lastFrameTime : Clock
-    , score : Score
+    { score : Score
     , tiles : ( DoubleRender, List Tile )
     , seed : Seed
     }
@@ -314,16 +308,12 @@ init flags =
     let
         initialSeed =
             Random.initialSeed flags.now
-
-        now =
-            toFloat flags.now
     in
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
             ( { score = saved.score
               , tiles = ( RenderTransitionStart, saved.tiles )
               , seed = initialSeed
-              , lastFrameTime = now
               }
             , Cmd.none
             )
@@ -340,7 +330,6 @@ init flags =
             { score = scoreZero
             , tiles = ( RenderTransitionStart, tiles )
             , seed = seed
-            , lastFrameTime = now
             }
                 |> saveState
 
@@ -360,7 +349,6 @@ newGame model =
     { score = scoreReset model.score
     , tiles = ( RenderTransitionStart, newTiles )
     , seed = seed
-    , lastFrameTime = model.lastFrameTime
     }
         |> saveState
 
@@ -426,40 +414,13 @@ savedDecoder =
 type Msg
     = GotKeyDown String
     | NewGameClicked
-    | GotAnimationFrame Float
-    | RenderNext
+    | GotNextAnimationFrame
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
-    , receivedNextAnimationFrame (always RenderNext)
-
-    --, Browser.Events.onAnimationFrame (Time.posixToMillis >> toFloat >> GotAnimationFrame)
-    --    |> always Sub.none
-    --, let
-    --    foo =
-    --        case model.score of
-    --            Score _ _ (Just ( RenderTransitionStart, _ )) ->
-    --                True
-    --
-    --            _ ->
-    --                False
-    --
-    --    bar =
-    --        case model.tiles of
-    --            ( RenderTransitionStart, _ ) ->
-    --                True
-    --
-    --            _ ->
-    --                False
-    --  in
-    --  case foo || bar of
-    --    True ->
-    --        Time.every 10 (always RenderNext)
-    --
-    --    _ ->
-    --        Sub.none
+    , receivedNextAnimationFrame (always GotNextAnimationFrame)
     ]
         |> Sub.batch
 
@@ -475,24 +436,12 @@ update msg model =
         NewGameClicked ->
             newGame model
 
-        RenderNext ->
+        GotNextAnimationFrame ->
             ( stepDoubleRenderScoreDelta model
                 |> stepDoubleRenderTiles
             , Cmd.none
             )
 
-        GotAnimationFrame now ->
-            ( { model | lastFrameTime = now }, Cmd.none )
-
-        --let
-        --    elapsed =
-        --        abs (model.lastFrameTime - now)
-        --in
-        --if elapsed > (1000 / 30) then
-        --    ( { model | lastFrameTime = now }, Cmd.none )
-        --
-        --else
-        --    ( model, Cmd.none )
         GotKeyDown "ArrowRight" ->
             move Right model
 
@@ -571,7 +520,6 @@ updateGameFromMergedGrid model grid =
     { score = scoreAddDelta scoreDelta model.score
     , tiles = ( RenderTransitionStart, updatedTiles ++ newTiles )
     , seed = seed
-    , lastFrameTime = model.lastFrameTime
     }
 
 
@@ -854,47 +802,8 @@ width100 =
     style "width" "100%"
 
 
-
---fadeUpStyles : Clock -> Clock -> List (Attribute msg)
---fadeUpStyles now start =
---    let
---        elapsed =
---            abs (now - start)
---
---        n =
---            normClamped 0 durationVeryLong elapsed
---                |> Ease.inOutSine
---
---        translateYEmVal =
---            lerp 0 -1 n
---
---        opacityVal =
---            lerp 1 0 n
---    in
---    [ style "opacity" (String.fromFloat opacityVal)
---    , style "transform" ("translateY(" ++ String.fromFloat translateYEmVal ++ "em)")
---    ]
-
-
-lerp a b x =
-    a + (b - a) * x
-
-
-normClamped a b x =
-    let
-        denominator =
-            b - a
-    in
-    if denominator == 0 then
-        a
-
-    else
-        clamp a b x / denominator
-
-
 viewBoard : Model -> Html Msg
 viewBoard game =
-    --Keyed.node "div"
     div
         [ displayInlineGrid, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
         [ viewBackgroundTiles
@@ -930,7 +839,6 @@ docs =
             { score = scoreZero
             , tiles = ( RenderTransitionEnd, tiles )
             , seed = Random.initialSeed 0
-            , lastFrameTime = 0
             }
     in
     div [ padding "30px" ]
@@ -1050,7 +958,6 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
         ([ gridArea11
          , displayGrid
          , paddingForTileAndBoard
-         , tileMovedStyle 0 0 anim pos |> always noAttr
          ]
             ++ tileMovedAttrs doubleRender anim pos
         )
@@ -1062,7 +969,6 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
              , valFontSize val
              , Html.Attributes.title <| Debug.toString tile
              ]
-                ++ (tileAnimationStyles 0 0 anim |> always [])
                 ++ tileAnimationAttrs doubleRender anim
             )
             [ text <| Val.toDisplayString val
@@ -1097,29 +1003,6 @@ pctFromInt i =
     String.fromInt i ++ "%"
 
 
-tileMovedStyle : Clock -> Clock -> Anim -> Pos -> Attribute msg
-tileMovedStyle now start anim endPos =
-    let
-        elapsed =
-            abs (now - start)
-
-        n =
-            normClamped 0 durationShort elapsed
-                |> Ease.inOutSine
-
-        ( xStart, yStart ) =
-            tileAnimStartPos anim |> Maybe.withDefault endPos |> always endPos |> posToFloat
-
-        ( xEnd, yEnd ) =
-            endPos |> posToFloat
-
-        ( x, y ) =
-            ( lerp xStart xEnd n, lerp yStart yEnd n )
-                |> mapBothWith (mul 100 >> pctFromFloat)
-    in
-    styleTransforms [ styleTranslate2 x y ]
-
-
 styleTransforms : List String -> Attribute msg
 styleTransforms list =
     style "transform" (String.join " " list)
@@ -1128,14 +1011,6 @@ styleTransforms list =
 styleTranslate2 : String -> String -> String
 styleTranslate2 x y =
     "translate(" ++ x ++ "," ++ y ++ ")"
-
-
-pctFromFloat f =
-    String.fromFloat f ++ "%"
-
-
-posToFloat =
-    Grid.posToInt >> Tuple.mapBoth toFloat toFloat
 
 
 valFontSize val =
@@ -1208,71 +1083,6 @@ tileAnimationAttrs doubleRender anim =
                     []
 
 
-tileAnimationStyles : Clock -> Clock -> Anim -> List (Attribute msg)
-tileAnimationStyles now start anim =
-    let
-        elapsed =
-            abs (now - start)
-    in
-    case anim of
-        InitialEnter ->
-            --appearAnim o & s 0 to 1
-            let
-                n =
-                    normDuration durationMedium elapsed
-                        |> always 1
-            in
-            [ styleOpacity n
-            , styleTransforms [ styleScale n ]
-            ]
-
-        MergedEnter ->
-            --delayedPopInAnim
-            let
-                n =
-                    normDurationWithDelay durationMedium durationShort elapsed
-                        |> always 1
-            in
-            [ styleOpacity n
-            , styleTransforms [ styleScale (n |> Ease.outBack) ]
-            ]
-
-        MergedExit _ ->
-            --delayedDisappearAnim
-            []
-
-        NewDelayedEnter ->
-            --delayedAppearAnim
-            let
-                n =
-                    normDurationWithDelay durationMedium durationShort elapsed
-                        |> always 1
-            in
-            [ styleOpacity n
-            , styleTransforms [ styleScale n ]
-            ]
-
-        Moved _ ->
-            --batch []
-            []
-
-
-normDuration duration elapsed =
-    normDurationWithDelay duration 0 elapsed
-
-
-normDurationWithDelay duration delay elapsed =
-    normClamped 0 duration (elapsed - delay)
-
-
-styleOpacity o =
-    style "opacity" (String.fromFloat o)
-
-
-styleScale s =
-    "scale(" ++ String.fromFloat s ++ ")"
-
-
 roundedBorder =
     borderRadius <| "8px"
 
@@ -1283,14 +1093,6 @@ borderRadius =
 
 paddingForTileAndBoard =
     padding <| "8px"
-
-
-durationShort =
-    100
-
-
-durationMedium =
-    durationShort * 2
 
 
 colorGlobal =
