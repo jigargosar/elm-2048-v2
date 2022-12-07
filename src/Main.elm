@@ -816,7 +816,7 @@ displayInlineStack =
 
 
 viewTile : Tile -> Html msg
-viewTile ((Tile anim pos val) as tile) =
+viewTile (Tile anim pos val) =
     div
         [ paddingForTileAndBoard
         , displayGrid
@@ -832,7 +832,6 @@ viewTile ((Tile anim pos val) as tile) =
                 , valFontSize val
                 ]
             , tileEnterAnimation anim
-            , Html.Attributes.title <| Debug.toString tile
             ]
             [ text <| Val.toDisplayString val
             ]
@@ -917,11 +916,7 @@ noAttr =
 
 
 roundedBorder =
-    borderRadius <| "8px"
-
-
-borderRadius =
-    Tuple.pair "border-radius"
+    ( "border-radius", "8px" )
 
 
 paddingForTileAndBoard =
