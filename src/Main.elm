@@ -621,8 +621,7 @@ view model =
 viewGame : Model -> Html Msg
 viewGame game =
     div [ displayInlineFlex, flexDirectionColumn, gap "20px" ]
-        [ --Keyed.node "div"
-          div
+        [ div
             [ displayFlex, gap "20px" ]
             [ viewNewGameButton
             , div [ flexGrow1 ] []
