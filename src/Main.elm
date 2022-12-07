@@ -6,6 +6,7 @@ import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (attribute, autofocus, class, style)
 import Html.Events exposing (onClick)
+import Html.Keyed
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
@@ -290,7 +291,12 @@ type alias Model =
     { score : Score
     , tiles : ( DoubleRender, List Tile )
     , seed : Seed
+    , nodes : List Node
     }
+
+
+type alias Node =
+    { key : String, value : String }
 
 
 type alias Flags =
@@ -314,6 +320,7 @@ init flags =
             ( { score = saved.score
               , tiles = ( RenderTransitionStart, saved.tiles )
               , seed = initialSeed
+              , nodes = []
               }
             , Cmd.none
             )
@@ -330,6 +337,7 @@ init flags =
             { score = scoreZero
             , tiles = ( RenderTransitionStart, tiles )
             , seed = seed
+            , nodes = []
             }
                 |> saveState
 
@@ -349,6 +357,7 @@ newGame model =
     { score = scoreReset model.score
     , tiles = ( RenderTransitionStart, newTiles )
     , seed = seed
+    , nodes = model.nodes
     }
         |> saveState
 
@@ -519,6 +528,7 @@ updateGameFromMergedGrid model grid =
     in
     { score = scoreAddDelta scoreDelta model.score
     , tiles = ( RenderTransitionStart, updatedTiles ++ newTiles )
+    , nodes = model.nodes
     , seed = seed
     }
 
@@ -563,7 +573,23 @@ view model =
     div [ attribute "style" "padding:30px;--foo:bar" ]
         [ globalStyleNode
         , viewGame model
+        , viewTestKeyedNodeDeletion model.nodes
         ]
+
+
+viewTestKeyedNodeDeletion nodes =
+    div [ attribute "style" "margin-top:20px;" ]
+        [ h1 [] [ text "viewTestKeyedNodeDeletion" ]
+
+        --, btn SwapDeletion "SwapDelete"
+        , Html.Keyed.node "div"
+            []
+            (List.map viewKeyedNode nodes)
+        ]
+
+
+viewKeyedNode node =
+    ( node.key, div [] [ text node.value ] )
 
 
 viewGame : Model -> Html Msg
@@ -839,6 +865,7 @@ docs =
             { score = scoreZero
             , tiles = ( RenderTransitionEnd, tiles )
             , seed = Random.initialSeed 0
+            , nodes = []
             }
     in
     div [ padding "30px" ]
