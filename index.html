@@ -18,13 +18,7 @@
   app.ports['save'].subscribe((jsonString) => {
     sessionStorage.setItem('app-state', jsonString)
   })
-
-  app.ports['requestNextAnimationFrame'].subscribe(() => {
-    requestAnimationFrame(() => {
-      app.ports['receivedNextAnimationFrame'].send()
-    })
-  })
-
+  
 </script>
 
 

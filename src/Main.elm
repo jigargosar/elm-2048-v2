@@ -18,41 +18,14 @@ import Val exposing (Val)
 port save : String -> Cmd msg
 
 
-port requestNextAnimationFrame : () -> Cmd msg
-
-
-port receivedNextAnimationFrame : (Value -> msg) -> Sub msg
-
-
 main : Program Flags Model Msg
 main =
     Browser.element
-        { init = init >> withRenderNext
-        , update = \a b -> update a b |> withRenderNext
+        { init = init
+        , update = update
         , view = Html.Lazy.lazy view
         , subscriptions = subscriptions
         }
-
-
-withRenderNext ( m, c ) =
-    if shouldRenderNext m then
-        ( m, Cmd.batch [ c, requestNextAnimationFrame () ] )
-
-    else
-        ( m, c )
-
-
-shouldRenderNext model =
-    let
-        bar =
-            case model.tiles of
-                ( RenderTransitionStart, _ ) ->
-                    True
-
-                _ ->
-                    False
-    in
-    bar
 
 
 
@@ -281,7 +254,7 @@ gridIsAnyMovePossible grid =
 
 type alias Model =
     { score : Score
-    , tiles : ( DoubleRender, List Tile )
+    , tiles : ( Int, List Tile )
     , seed : Seed
     }
 
@@ -305,7 +278,7 @@ init flags =
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
             ( { score = saved.score
-              , tiles = ( RenderTransitionStart, saved.tiles )
+              , tiles = ( 0, saved.tiles )
               , seed = initialSeed
               }
             , Cmd.none
@@ -321,7 +294,7 @@ init flags =
                     Random.step randomInitialTiles initialSeed
             in
             { score = scoreZero
-            , tiles = ( RenderTransitionStart, tiles )
+            , tiles = ( 0, tiles )
             , seed = seed
             }
                 |> saveState
@@ -338,9 +311,12 @@ newGame model =
     let
         ( newTiles, seed ) =
             Random.step randomInitialTiles model.seed
+
+        newTilesKey =
+            Tuple.first model.tiles + 1
     in
     { score = scoreReset model.score
-    , tiles = ( RenderTransitionStart, newTiles )
+    , tiles = ( newTilesKey, newTiles )
     , seed = seed
     }
         |> saveState
@@ -407,13 +383,11 @@ savedDecoder =
 type Msg
     = GotKeyDown String
     | NewGameClicked
-    | GotNextAnimationFrame
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     [ Browser.Events.onKeyDown (D.map GotKeyDown keyDecoder)
-    , receivedNextAnimationFrame (always GotNextAnimationFrame)
     ]
         |> Sub.batch
 
@@ -429,12 +403,6 @@ update msg model =
         NewGameClicked ->
             newGame model
 
-        GotNextAnimationFrame ->
-            ( stepDoubleRenderScoreDelta model
-                |> stepDoubleRenderTiles
-            , Cmd.none
-            )
-
         GotKeyDown "ArrowRight" ->
             move Right model
 
@@ -449,26 +417,6 @@ update msg model =
 
         GotKeyDown _ ->
             ( model, Cmd.none )
-
-
-stepDoubleRenderScoreDelta : Model -> Model
-stepDoubleRenderScoreDelta model =
-    case model.score of
-        Score a b (Just c) ->
-            { model | score = Score a b (Just c) }
-
-        _ ->
-            model
-
-
-stepDoubleRenderTiles : Model -> Model
-stepDoubleRenderTiles model =
-    case model.tiles of
-        ( RenderTransitionStart, a ) ->
-            { model | tiles = ( RenderTransitionEnd, a ) }
-
-        _ ->
-            model
 
 
 
@@ -509,9 +457,12 @@ updateGameFromMergedGrid model grid =
 
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove grid) model.seed
+
+        newTilesKey =
+            Tuple.first model.tiles + 1
     in
     { score = scoreAddDelta scoreDelta model.score
-    , tiles = ( RenderTransitionStart, updatedTiles ++ newTiles )
+    , tiles = ( newTilesKey, updatedTiles ++ newTiles )
     , seed = seed
     }
 
@@ -818,15 +769,15 @@ fontFamilyMonospace =
 viewTiles : Model -> Html Msg
 viewTiles game =
     let
-        ( doubleRender, tiles ) =
+        ( intKey, tiles ) =
             game.tiles
 
         key =
-            tiles |> Debug.toString
+            String.fromInt intKey
     in
     Html.Keyed.node "div"
         boardStyle
-        (List.map (viewTile doubleRender >> Tuple.pair key) tiles)
+        (List.map (viewTile >> Tuple.pair key) tiles)
 
 
 docs : Html.Html Msg
@@ -840,7 +791,7 @@ docs =
         model : Model
         model =
             { score = scoreZero
-            , tiles = ( RenderTransitionEnd, tiles )
+            , tiles = ( 0, tiles )
             , seed = Random.initialSeed 0
             }
     in
@@ -955,15 +906,13 @@ boardStyle =
     ]
 
 
-viewTile : DoubleRender -> Tile -> Html msg
-viewTile doubleRender ((Tile anim pos val) as tile) =
+viewTile : Tile -> Html msg
+viewTile ((Tile anim pos val) as tile) =
     div
-        (([ gridArea11
-          , displayGrid
-          , paddingForTileAndBoard
-          ]
-            ++ tileMovedAttrs doubleRender anim pos
-         )
+        ([ gridArea11
+         , displayGrid
+         , paddingForTileAndBoard
+         ]
             |> always
                 [ styles
                     [ "grid-area:1/1"
@@ -983,7 +932,7 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
              , valFontSize val
              , Html.Attributes.title <| Debug.toString tile
              ]
-                ++ tileAnimationAttrs doubleRender anim
+                ++ tileAnimationAttrs anim
             )
             [ text <| Val.toDisplayString val
             ]
@@ -1001,29 +950,6 @@ tileMoveAnimCssVars anim endPos =
             tileAnimStartPos anim |> Maybe.withDefault endPos
     in
     "--tile-move-start:" ++ posToTranslateParams startPos ++ ";--tile-move-end:" ++ posToTranslateParams endPos
-
-
-tileMovedAttrs : DoubleRender -> Anim -> Pos -> List (Attribute msg)
-tileMovedAttrs doubleRender anim endPos =
-    let
-        startPos =
-            tileAnimStartPos anim |> Maybe.withDefault endPos
-    in
-    case doubleRender of
-        RenderTransitionStart ->
-            [ posTransform startPos, style "transition" "none" ]
-
-        RenderTransitionEnd ->
-            [ posTransform endPos, style "transition" "transform 200ms 100ms" ]
-
-
-posTransform : Pos -> Attribute msg
-posTransform pos =
-    let
-        ( x, y ) =
-            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
-    in
-    styleTransforms [ styleTranslate2 x y ]
 
 
 posTransformAsStyleString pos =
@@ -1044,11 +970,6 @@ posToTranslateParams pos =
 
 pctFromInt i =
     String.fromInt i ++ "%"
-
-
-styleTransforms : List String -> Attribute msg
-styleTransforms list =
-    style "transform" (String.join " " list)
 
 
 styleTranslate2 : String -> String -> String
@@ -1088,42 +1009,23 @@ tileAnimStartPos anim =
             Just from
 
 
-tileAnimationAttrs : DoubleRender -> Anim -> List (Attribute msg)
-tileAnimationAttrs doubleRender anim =
-    case doubleRender of
-        RenderTransitionStart ->
-            case anim of
-                InitialEnter ->
-                    [ style "display" "none" ]
+tileAnimationAttrs : Anim -> List (Attribute msg)
+tileAnimationAttrs anim =
+    case anim of
+        InitialEnter ->
+            [ class "animAppear" ]
 
-                MergedExit _ ->
-                    []
+        MergedExit _ ->
+            []
 
-                MergedEnter ->
-                    [ style "display" "none" ]
+        MergedEnter ->
+            [ class "animDelayedPopIn" ]
 
-                NewDelayedEnter ->
-                    [ style "display" "none" ]
+        NewDelayedEnter ->
+            [ class "animDelayedAppear" ]
 
-                Moved _ ->
-                    []
-
-        RenderTransitionEnd ->
-            case anim of
-                InitialEnter ->
-                    [ class "animAppear" ]
-
-                MergedExit _ ->
-                    []
-
-                MergedEnter ->
-                    [ class "animDelayedPopIn" ]
-
-                NewDelayedEnter ->
-                    [ class "animDelayedAppear" ]
-
-                Moved _ ->
-                    []
+        Moved _ ->
+            []
 
 
 roundedBorder =
