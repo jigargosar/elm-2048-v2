@@ -587,13 +587,13 @@ view : Model -> Html Msg
 view model =
     div [ attribute "style" "padding:30px;--foo:bar" ]
         [ globalStyleNode
-        , viewGame model
         , viewTestKeyedNodeDeletion model.nodes
+        , viewGame model
         ]
 
 
 viewTestKeyedNodeDeletion nodes =
-    div [ attribute "style" "margin-top:20px;" ]
+    div [ attribute "style" "margin-bottom:20px;height:500px" ]
         [ h1 [] [ text "viewTestKeyedNodeDeletion" ]
         , btn SwapDeletion "SwapDelete"
         , Html.Keyed.node "div"
