@@ -818,7 +818,7 @@ displayInlineStack =
 viewTile : Tile -> Html msg
 viewTile ((Tile anim pos val) as tile) =
     div
-        [ attribute "Tuple.pair" (tileMoveAnimCssVars anim pos)
+        [ attribute "style" (tileMoveAnimCssVars anim pos)
         , paddingForTileAndBoard
         , displayGrid
         , class "animTileMove"
