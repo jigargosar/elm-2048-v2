@@ -499,7 +499,7 @@ isGameOver game =
 
 view : Model -> Html Msg
 view model =
-    div [ attribute "style" "padding:30px;--foo:bar" ]
+    div [ styles [ "padding:30px" ] ]
         [ viewGame model
         ]
 
@@ -551,9 +551,9 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
     div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
         , Html.Keyed.node "div"
-            [ displayGrid, positionRelative ]
+            [ displayStack, positionRelative ]
             [ withoutKey <|
-                div [ gridArea11, displayGrid, placeContentCenter ] [ text totalString ]
+                div [ displayGrid, placeContentCenter ] [ text totalString ]
             , ( scoreDeltaResetAnimationKey, maybeDelta |> viewMaybe viewScoreDelta )
             ]
         ]
@@ -633,8 +633,7 @@ viewMaybe fn mb =
 viewScoreDelta : Int -> Html msg
 viewScoreDelta scoreDelta =
     div
-        [ gridArea11
-        , positionAbsolute
+        [ positionAbsolute
         , style "top" "100%"
         , width100
         , fontSize "0.8em"
@@ -654,7 +653,7 @@ width100 =
 viewBoard : Model -> Html Msg
 viewBoard game =
     div
-        [ displayInlineGrid, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
+        [ displayInlineStack, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
         [ viewBackgroundTiles
         , viewTiles game
         , viewGameOver game
@@ -708,8 +707,7 @@ viewGameOver game =
     case isGameOver game of
         True ->
             div
-                [ gridArea11
-                , positionRelative
+                [ positionRelative
                 , backgroundColor <| colorGlobalA 0.85
                 , roundedBorder
                 , displayGrid
@@ -797,30 +795,29 @@ gridAreaFromPos pos =
 
 boardStyle =
     [ displayGrid
-    , gridArea11
+    , displayStack
     , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     , paddingForTileAndBoard
     , roundedBorder
     ]
 
 
+displayStack =
+    class "stack"
+
+
+displayInlineStack =
+    class "inlineStack"
+
+
 viewTile : Tile -> Html msg
 viewTile ((Tile anim pos val) as tile) =
     div
-        ([ gridArea11
-         , displayGrid
-         , paddingForTileAndBoard
-         ]
-            |> always
-                [ styles
-                    [ "grid-area:1/1"
-                    , "display:grid"
-                    , paddingForTileAndBoardAsStyleString
-                    , tileMoveAnimCssVars anim pos
-                    ]
-                , class "animTileMove"
-                ]
-        )
+        [ styles [ tileMoveAnimCssVars anim pos ]
+        , paddingForTileAndBoard
+        , displayGrid
+        , class "animTileMove"
+        ]
         [ div
             [ backgroundColor <| valColor val
             , roundedBorder
@@ -924,11 +921,7 @@ borderRadius =
 
 
 paddingForTileAndBoard =
-    padding <| "8px"
-
-
-paddingForTileAndBoardAsStyleString =
-    "padding:8px"
+    class "paddingForTileAndBoard"
 
 
 colorGlobal =
@@ -987,11 +980,7 @@ gap =
 
 
 displayGrid =
-    style "display" "grid"
-
-
-displayInlineGrid =
-    style "display" "inline-grid"
+    class "displayGrid"
 
 
 placeContentCenter =
@@ -1004,10 +993,6 @@ placeSelfCenter =
 
 placeItemsCenter =
     style "place-items" "center"
-
-
-gridArea11 =
-    style "grid-area" "1/1"
 
 
 

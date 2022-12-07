@@ -23,6 +23,27 @@ body {
     font-family: monospace;
 }
 
+.displayGrid {
+    display: grid;
+}
+
+.stack {
+    display: grid;
+}
+
+.inlineStack {
+    display: inline-grid;
+}
+
+.stack > *, .inlineStack > * {
+    grid-area: 1/1;
+}
+
+
+.paddingForTileAndBoard {
+    padding: 8px;
+}
+
 .animFadeUpScoreDelta {
     animation: fadeUpScoreDelta var(--durationVeryLong) both;
 }
