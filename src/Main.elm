@@ -5,7 +5,7 @@ import Browser.Events
 import Ease
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
-import Html.Attributes exposing (autofocus, class, style)
+import Html.Attributes exposing (attribute, autofocus, class, style)
 import Html.Events exposing (onClick)
 import Html.Lazy
 import Json.Decode as D exposing (Decoder)
@@ -612,7 +612,7 @@ isGameOver game =
 
 view : Model -> Html Msg
 view model =
-    div [ style "padding" "30px" ]
+    div [ attribute "style" "padding:30px;--foo:bar" ]
         [ globalStyleNode
         , viewGame model
         ]
