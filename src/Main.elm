@@ -604,7 +604,6 @@ globalStyleNode =
     --durationVeryLong: 1000ms;
     --durationShort: 100ms;
     --durationMedium: 200ms;
-
 }
 * {
     font-size: inherit;
@@ -671,6 +670,19 @@ body {
     }
     100%{
         transform: scale(1);
+    }
+}
+
+.animTileMove{
+    animation: tileMove var(--durationShort) both;
+}
+
+@keyframes tileMove{
+    0%{
+        transform: translate(var(--tile-move-start));
+    }
+    100%{
+        transform: translate(var(--tile-move-end));
     }
 }
         """
@@ -808,9 +820,13 @@ viewTiles game =
     let
         ( doubleRender, tiles ) =
             game.tiles
+
+        key =
+            tiles |> Debug.toString
     in
-    div boardStyle
-        (List.map (viewTile doubleRender) tiles)
+    Html.Keyed.node "div"
+        boardStyle
+        (List.map (viewTile doubleRender >> Tuple.pair key) tiles)
 
 
 docs : Html.Html Msg
@@ -942,11 +958,22 @@ boardStyle =
 viewTile : DoubleRender -> Tile -> Html msg
 viewTile doubleRender ((Tile anim pos val) as tile) =
     div
-        ([ gridArea11
-         , displayGrid
-         , paddingForTileAndBoard
-         ]
+        (([ gridArea11
+          , displayGrid
+          , paddingForTileAndBoard
+          ]
             ++ tileMovedAttrs doubleRender anim pos
+         )
+            |> always
+                [ styles
+                    [ "grid-area:1/1"
+                    , "display:grid"
+                    , paddingForTileAndBoardAsStyleString
+                    , posTransformAsStyleString pos
+                    , tileMoveAnimCssVars anim pos
+                    ]
+                , class "animTileMove"
+                ]
         )
         [ div
             ([ backgroundColor <| valColor val
@@ -961,6 +988,19 @@ viewTile doubleRender ((Tile anim pos val) as tile) =
             [ text <| Val.toDisplayString val
             ]
         ]
+
+
+styles list =
+    attribute "style" (String.join ";" list)
+
+
+tileMoveAnimCssVars : Anim -> Pos -> String
+tileMoveAnimCssVars anim endPos =
+    let
+        startPos =
+            tileAnimStartPos anim |> Maybe.withDefault endPos
+    in
+    "--tile-move-start:" ++ posToTranslateParams startPos ++ ";--tile-move-end:" ++ posToTranslateParams endPos
 
 
 tileMovedAttrs : DoubleRender -> Anim -> Pos -> List (Attribute msg)
@@ -984,6 +1024,22 @@ posTransform pos =
             pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
     in
     styleTransforms [ styleTranslate2 x y ]
+
+
+posTransformAsStyleString pos =
+    let
+        ( x, y ) =
+            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
+    in
+    "transform:" ++ styleTranslate2 x y
+
+
+posToTranslateParams pos =
+    let
+        ( x, y ) =
+            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
+    in
+    x ++ "," ++ y
 
 
 pctFromInt i =
@@ -1080,6 +1136,10 @@ borderRadius =
 
 paddingForTileAndBoard =
     padding <| "8px"
+
+
+paddingForTileAndBoardAsStyleString =
+    "padding:8px"
 
 
 colorGlobal =
