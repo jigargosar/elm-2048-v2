@@ -22,7 +22,7 @@ NEXT STEPS:
       As long as there is single deleted node, or alternates,
       keyed nodes are preserved, i.e. style transitions work.
 * [x] use css transitions/classes for animation? without elm library?
-* [ ] try removing css custom properties for move animation
+* [x] try removing css custom properties for move animation
 * [ ] mobile/touch swipe interface
 * [ ] group colors into record?
 * [ ] undo?
