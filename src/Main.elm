@@ -851,17 +851,14 @@ tileMoveAnim anim endPos =
     }
 
 
-joinTuple sep ( a, b ) =
-    a ++ sep ++ b
-
-
-joinIntTuple sep ( a, b ) =
-    String.fromInt a ++ sep ++ String.fromInt b
-
-
 posToAnimKey : Pos -> String
 posToAnimKey pos =
     pos |> Grid.posToInt |> joinIntTuple "_"
+
+
+joinIntTuple : String -> ( Int, Int ) -> String
+joinIntTuple sep ( a, b ) =
+    String.fromInt a ++ sep ++ String.fromInt b
 
 
 posToTranslateArgs : Pos -> String
@@ -888,11 +885,10 @@ cssRuleToString selector properties =
 cssPropertiesToString : List ( String, String ) -> String
 cssPropertiesToString list =
     let
-        propToString prop =
-            joinTuple ":" prop ++ ";"
+        propToString ( name, value ) =
+            name ++ ":" ++ value
     in
-    List.map propToString list
-        |> String.join ""
+    List.map propToString list |> String.join ";"
 
 
 valFontSize val =
