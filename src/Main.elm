@@ -834,16 +834,16 @@ tileMoveAnim anim endPos =
         startPos =
             tileAnimStartPos anim |> Maybe.withDefault endPos
 
-        className =
+        generatedClassName =
             tileMoveAnimCssPropsClassName startPos endPos
 
         styleNodeString =
-            cssRuleToString ("." ++ className)
+            cssRuleToString ("." ++ generatedClassName)
                 [ ( "--tile-move-start", posToTranslateArgs startPos )
                 , ( "--tile-move-end", posToTranslateArgs endPos )
                 ]
     in
-    { className = className
+    { className = "animTileMove " ++ generatedClassName
     , styleNode =
         Html.node "style"
             []
