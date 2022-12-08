@@ -828,8 +828,8 @@ viewTile (Tile anim pos val) =
         ]
 
 
-tileMoveAnimCssVars : Anim -> Pos -> List ( String, String )
-tileMoveAnimCssVars anim endPos =
+tileMoveAnimCssProperties : Anim -> Pos -> List ( String, String )
+tileMoveAnimCssProperties anim endPos =
     let
         startPos =
             tileAnimStartPos anim |> Maybe.withDefault endPos
@@ -839,21 +839,32 @@ tileMoveAnimCssVars anim endPos =
     ]
 
 
+cssRule : String -> List ( String, String ) -> String
+cssRule selector properties =
+    selector
+        ++ "{"
+        ++ cssPropertiesToString properties
+        ++ "}"
+
+
+cssPropertiesToString : List ( String, String ) -> String
+cssPropertiesToString list =
+    let
+        propToString ( a, b ) =
+            String.join ":" [ a, b ] ++ ";"
+    in
+    List.map propToString list
+        |> String.join ""
+
+
 tileMoveAnimCssPropStylesNode : Anim -> Pos -> Html msg
 tileMoveAnimCssPropStylesNode anim endPos =
     Html.node "style"
         []
         [ text <|
             Debug.log "Debug: " <|
-                ("."
-                    ++ tileMoveAnimCssPropClassName anim endPos
-                    ++ "{"
-                    ++ (tileMoveAnimCssVars anim endPos
-                            |> List.map (\( a, b ) -> String.join ":" [ a, b ])
-                            |> String.join ";"
-                       )
-                    ++ "}"
-                )
+                cssRule ("." ++ tileMoveAnimCssPropClassName anim endPos)
+                    (tileMoveAnimCssProperties anim endPos)
         ]
 
 
