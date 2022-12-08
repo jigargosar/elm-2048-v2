@@ -834,16 +834,13 @@ tileMoveAnim anim endPos =
         startPos =
             tileAnimStartPos anim |> Maybe.withDefault endPos
 
-        ( start, end ) =
-            ( Grid.posToInt startPos, Grid.posToInt endPos )
-
         className =
-            "tileMoveAnimCssProps_" ++ joinIntTuple "_" start ++ "_" ++ joinIntTuple "_" end
+            tileMoveAnimCssPropsClassName startPos endPos
 
         styleNodeString =
             cssRuleToString ("." ++ className)
-                [ ( "--tile-move-start", start |> mapJoinTuple (mul 100 >> pctFromInt) "," )
-                , ( "--tile-move-end", end |> mapJoinTuple (mul 100 >> pctFromInt) "," )
+                [ ( "--tile-move-start", posToTranslateArgs startPos )
+                , ( "--tile-move-end", posToTranslateArgs endPos )
                 ]
     in
     { className = className
@@ -852,6 +849,23 @@ tileMoveAnim anim endPos =
             []
             [ text styleNodeString ]
     }
+
+
+posToTranslateArgs : Pos -> String
+posToTranslateArgs pos =
+    pos |> Grid.posToInt |> mapJoinTuple (mul 100 >> pctFromInt) ","
+
+
+tileMoveAnimCssPropsClassName : Pos -> Pos -> String
+tileMoveAnimCssPropsClassName startPos endPos =
+    let
+        start =
+            startPos |> Grid.posToInt |> joinIntTuple "_"
+
+        end =
+            endPos |> Grid.posToInt |> joinIntTuple "_"
+    in
+    "tileMoveAnimCssProps_" ++ start ++ "_" ++ end
 
 
 joinIntTuple : String -> ( Int, Int ) -> String
