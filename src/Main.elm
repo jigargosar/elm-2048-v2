@@ -828,6 +828,26 @@ viewTile (Tile anim pos val) =
         ]
 
 
+tileMoveAnimCssPropStylesNode : Anim -> Pos -> Html msg
+tileMoveAnimCssPropStylesNode anim endPos =
+    Html.node "style"
+        []
+        [ text <|
+            Debug.log "Debug: " <|
+                cssRule ("." ++ tileMoveAnimCssPropClassName anim endPos)
+                    (tileMoveAnimCssProperties anim endPos)
+        ]
+
+
+tileMoveAnimCssPropClassName : Anim -> Pos -> String
+tileMoveAnimCssPropClassName anim endPos =
+    let
+        startPos =
+            tileAnimStartPos anim |> Maybe.withDefault endPos
+    in
+    "tileMoveAnimCssPropClassName_" ++ posToAnimKey startPos ++ "_" ++ posToAnimKey endPos
+
+
 tileMoveAnimCssProperties : Anim -> Pos -> List ( String, String )
 tileMoveAnimCssProperties anim endPos =
     let
@@ -855,26 +875,6 @@ cssPropertiesToString list =
     in
     List.map propToString list
         |> String.join ""
-
-
-tileMoveAnimCssPropStylesNode : Anim -> Pos -> Html msg
-tileMoveAnimCssPropStylesNode anim endPos =
-    Html.node "style"
-        []
-        [ text <|
-            Debug.log "Debug: " <|
-                cssRule ("." ++ tileMoveAnimCssPropClassName anim endPos)
-                    (tileMoveAnimCssProperties anim endPos)
-        ]
-
-
-tileMoveAnimCssPropClassName : Anim -> Pos -> String
-tileMoveAnimCssPropClassName anim endPos =
-    let
-        startPos =
-            tileAnimStartPos anim |> Maybe.withDefault endPos
-    in
-    "tileMoveAnimCssPropClassName_" ++ posToAnimKey startPos ++ "_" ++ posToAnimKey endPos
 
 
 posToAnimKey : Pos -> String
