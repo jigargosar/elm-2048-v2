@@ -872,10 +872,12 @@ joinIntTuple sep ( a, b ) =
     String.fromInt a ++ sep ++ String.fromInt b
 
 
+mapJoinTuple : (a -> appendable) -> appendable -> ( a, a ) -> appendable
 mapJoinTuple fn sep ( a, b ) =
     fn a ++ sep ++ fn b
 
 
+pctFromInt : Int -> String
 pctFromInt i =
     String.fromInt i ++ "%"
 
