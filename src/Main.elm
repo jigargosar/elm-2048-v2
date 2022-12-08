@@ -812,7 +812,6 @@ viewTile (Tile anim pos val) =
     div
         [ paddingForTileAndBoard
         , displayGrid
-        , class "animTileMove"
         , class tma.className
         ]
         [ tma.styleNode
