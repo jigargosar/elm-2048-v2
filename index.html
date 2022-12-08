@@ -1,3 +1,4 @@
+<script src="https://hammerjs.github.io/dist/hammer.js"></script>
 <link rel="stylesheet" href="./src/main.css">
 <div id="main"></div>
 
@@ -8,8 +9,10 @@
   // noinspection JSUnresolvedVariable
   const Main = Mod.Elm.Main
 
+  const mainNode = document.getElementById('main')
+  
   const app = Main.init({
-    node: document.getElementById('main'),
+    node: mainNode,
     flags: {
       now: Date.now(),
       state: sessionStorage.getItem('app-state'),
@@ -19,7 +22,13 @@
   app.ports['save'].subscribe((jsonString) => {
     sessionStorage.setItem('app-state', jsonString)
   })
-  
+
+  setTimeout(function () {
+    const hammer = new Hammer(document.getElementById('main2'), {domEvents: true})
+    hammer.get('swipe').set({direction: Hammer.DIRECTION_ALL})
+    // hammer.on('swipe', console.log)
+  },1000);
+
 </script>
 
 

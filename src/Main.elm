@@ -499,7 +499,20 @@ isGameOver game =
 
 view : Model -> Html Msg
 view model =
-    div [ css [ padding "30px" ] ]
+    div
+        [ css [ padding "30px" ]
+        , Html.Attributes.id "main2"
+        , Html.Events.custom "swipe" <|
+            D.succeed
+                { message = GotKeyDown "" -- "ArrowLeft"
+                , stopPropagation = True
+                , preventDefault = True
+                }
+        , Html.Events.on "swipeleft" <| D.succeed <| GotKeyDown "ArrowLeft"
+        , Html.Events.on "swiperight" <| D.succeed <| GotKeyDown "ArrowRight"
+        , Html.Events.on "swipeup" <| D.succeed <| GotKeyDown "ArrowUp"
+        , Html.Events.on "swipedown" <| D.succeed <| GotKeyDown "ArrowDown"
+        ]
         [ viewGame model
         ]
 
