@@ -957,7 +957,7 @@ roundedBorder =
 
 
 paddingForTileAndBoard =
-    class "paddingForTileAndBoard"
+    padding "8px"
 
 
 colorGlobal =
@@ -1016,7 +1016,7 @@ gap =
 
 
 displayGrid =
-    class "displayGrid"
+    style "display" "grid"
 
 
 placeContentCenter =

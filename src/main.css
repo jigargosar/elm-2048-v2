@@ -23,10 +23,6 @@ body {
     font-family: monospace;
 }
 
-.displayGrid {
-    display: grid;
-}
-
 .stack {
     display: grid;
 }
@@ -39,10 +35,6 @@ body {
     grid-area: 1/1;
 }
 
-
-.paddingForTileAndBoard {
-    padding: 8px;
-}
 
 .animFadeUpScoreDelta {
     animation: fadeUpScoreDelta var(--durationVeryLong) both;
