@@ -806,16 +806,16 @@ displayInlineStack =
 viewTile : Tile -> Html msg
 viewTile (Tile anim pos val) =
     let
-        _ =
-            tileMoveAnimCssPropStylesNode anim pos
+        tma =
+            tileMoveAnim anim pos
     in
     div
         [ paddingForTileAndBoard
         , displayGrid
         , class "animTileMove"
-        , class (tileMoveAnimCssPropClassName anim pos)
+        , class tma.className
         ]
-        [ tileMoveAnimCssPropStylesNode anim pos
+        [ tma.styleNode
         , div
             [ displayGrid
             , backgroundColor <| valColor val
@@ -828,39 +828,53 @@ viewTile (Tile anim pos val) =
         ]
 
 
-tileMoveAnimCssPropStylesNode : Anim -> Pos -> Html msg
-tileMoveAnimCssPropStylesNode anim endPos =
-    Html.node "style"
-        []
-        [ text <|
-            Debug.log "Debug: " <|
-                cssRule ("." ++ tileMoveAnimCssPropClassName anim endPos)
-                    (tileMoveAnimCssProperties anim endPos)
-        ]
-
-
-tileMoveAnimCssPropClassName : Anim -> Pos -> String
-tileMoveAnimCssPropClassName anim endPos =
+tileMoveAnim : Anim -> Pos -> { className : String, styleNode : Html msg }
+tileMoveAnim anim endPos =
     let
         startPos =
             tileAnimStartPos anim |> Maybe.withDefault endPos
+
+        className =
+            "tileMoveAnimCssProps_" ++ posToAnimKey startPos ++ "_" ++ posToAnimKey endPos
+
+        styleNodeString =
+            cssRuleToString ("." ++ className)
+                [ ( "--tile-move-start", posToTranslateArgs startPos )
+                , ( "--tile-move-end", posToTranslateArgs endPos )
+                ]
     in
-    "tileMoveAnimCssPropClassName_" ++ posToAnimKey startPos ++ "_" ++ posToAnimKey endPos
+    { className = className
+    , styleNode =
+        Html.node "style"
+            []
+            [ text styleNodeString ]
+    }
 
 
-tileMoveAnimCssProperties : Anim -> Pos -> List ( String, String )
-tileMoveAnimCssProperties anim endPos =
+posToAnimKey : Pos -> String
+posToAnimKey pos =
     let
-        startPos =
-            tileAnimStartPos anim |> Maybe.withDefault endPos
+        ( x, y ) =
+            pos |> Grid.posToInt |> mapBothWith String.fromInt
     in
-    [ ( "--tile-move-start", posToTranslateParams startPos )
-    , ( "--tile-move-end", posToTranslateParams endPos )
-    ]
+    x ++ "_" ++ y
 
 
-cssRule : String -> List ( String, String ) -> String
-cssRule selector properties =
+posToTranslateArgs : Pos -> String
+posToTranslateArgs pos =
+    let
+        ( x, y ) =
+            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
+    in
+    x ++ "," ++ y
+
+
+pctFromInt i =
+    String.fromInt i ++ "%"
+
+
+cssRuleToString : String -> List ( String, String ) -> String
+cssRuleToString selector properties =
     selector
         ++ "{"
         ++ cssPropertiesToString properties
@@ -875,27 +889,6 @@ cssPropertiesToString list =
     in
     List.map propToString list
         |> String.join ""
-
-
-posToAnimKey : Pos -> String
-posToAnimKey pos =
-    let
-        ( x, y ) =
-            pos |> Grid.posToInt |> mapBothWith String.fromInt
-    in
-    x ++ "_" ++ y
-
-
-posToTranslateParams pos =
-    let
-        ( x, y ) =
-            pos |> Grid.posToInt |> mapBothWith (mul 100 >> pctFromInt)
-    in
-    x ++ "," ++ y
-
-
-pctFromInt i =
-    String.fromInt i ++ "%"
 
 
 valFontSize val =
