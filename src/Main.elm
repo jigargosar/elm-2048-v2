@@ -868,8 +868,8 @@ tileMoveAnimCssPropsClassName startPos endPos =
 
 
 joinIntTuple : String -> ( Int, Int ) -> String
-joinIntTuple sep ( a, b ) =
-    String.fromInt a ++ sep ++ String.fromInt b
+joinIntTuple =
+    mapJoinTuple String.fromInt
 
 
 mapJoinTuple : (a -> appendable) -> appendable -> ( a, a ) -> appendable
