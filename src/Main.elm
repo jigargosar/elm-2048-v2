@@ -279,8 +279,14 @@ gridIsAnyMovePossible grid =
 type alias Model =
     { score : Score
     , tiles : List Tile
+    , swipe : Swipe
     , seed : Seed
     }
+
+
+type Swipe
+    = NotStarted
+    | Started PointerEvent
 
 
 type alias Flags =
@@ -303,6 +309,7 @@ init flags =
         Ok saved ->
             ( { score = saved.score
               , tiles = saved.tiles
+              , swipe = NotStarted
               , seed = initialSeed
               }
             , Cmd.none
@@ -319,6 +326,7 @@ init flags =
             in
             { score = scoreZero
             , tiles = tiles
+            , swipe = NotStarted
             , seed = seed
             }
                 |> saveState
@@ -338,6 +346,7 @@ newGame model =
     in
     { score = scoreReset model.score
     , tiles = newTiles
+    , swipe = NotStarted
     , seed = seed
     }
         |> saveState
@@ -404,6 +413,7 @@ savedDecoder =
 type Msg
     = GotKeyDown String
     | NewGameClicked
+    | GotPointerEvent PointerEvent
 
 
 subscriptions : Model -> Sub Msg
@@ -418,9 +428,100 @@ keyDecoder =
     D.field "key" D.string
 
 
+type alias PointerEvent =
+    { name : PointerEventName
+    , timeStamp : Float
+    , isPrimary : Bool
+    , screenPos : ( Float, Float )
+    }
+
+
+type PointerEventName
+    = PointerDown
+    | PointerUp
+    | PointerCancel
+
+
+pointerEventNameDecoder : Decoder PointerEventName
+pointerEventNameDecoder =
+    D.andThen
+        (\string ->
+            case pointerEventNameFromString string of
+                Nothing ->
+                    D.fail <| "Invalid pointer event name:" ++ string
+
+                Just name ->
+                    D.succeed name
+        )
+        D.string
+
+
+pointerEventNameFromString : String -> Maybe PointerEventName
+pointerEventNameFromString string =
+    case string of
+        "pointerdown" ->
+            Just PointerDown
+
+        "pointerup" ->
+            Just PointerUp
+
+        "pointercancel" ->
+            Just PointerCancel
+
+        _ ->
+            Nothing
+
+
+pointerEventDecoder : Decoder PointerEvent
+pointerEventDecoder =
+    D.map4 PointerEvent
+        (D.field "type" pointerEventNameDecoder)
+        (floatField "timeStamp")
+        (boolField "isPrimary")
+        screenPosDecoder
+
+
+screenPosDecoder : Decoder ( Float, Float )
+screenPosDecoder =
+    D.map2 Tuple.pair (floatField "screenX") (floatField "screenY")
+
+
+boolField name =
+    D.field name D.bool
+
+
+floatField name =
+    D.field name D.float
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        GotPointerEvent e ->
+            case ( e.name, model.swipe ) of
+                ( PointerDown, NotStarted ) ->
+                    ( { model | swipe = Started e }, Cmd.none )
+
+                ( PointerCancel, _ ) ->
+                    ( { model | swipe = NotStarted }, Cmd.none )
+
+                ( PointerUp, Started s ) ->
+                    let
+                        elapsed =
+                            abs (e.timeStamp - s.timeStamp)
+
+                        delta =
+                            map2 sub e.screenPos s.screenPos
+
+                        _ =
+                            ( elapsed |> round, delta |> mapBothWith round )
+                                |> Debug.log "Debug: "
+                    in
+                    ( { model | swipe = NotStarted }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         NewGameClicked ->
             newGame model
 
@@ -481,6 +582,7 @@ updateGameFromMergedGrid model grid =
     in
     { score = scoreAddDelta scoreDelta model.score
     , tiles = updatedTiles ++ newTiles
+    , swipe = NotStarted
     , seed = seed
     }
 
@@ -522,9 +624,25 @@ isGameOver game =
 
 view : Model -> Html Msg
 view model =
-    div [ padding "30px" ]
+    div
+        [ padding "30px"
+        , onPointerUp GotPointerEvent
+        , onPointerCancel GotPointerEvent
+        ]
         [ viewGame model
         ]
+
+
+onPointerUp tagger =
+    Html.Events.on "pointerup" (D.map tagger pointerEventDecoder)
+
+
+onPointerDown tagger =
+    Html.Events.on "pointerdown" (D.map tagger pointerEventDecoder)
+
+
+onPointerCancel tagger =
+    Html.Events.on "pointercancel" (D.map tagger pointerEventDecoder)
 
 
 viewGame : Model -> Html Msg
@@ -676,7 +794,13 @@ width100 =
 viewBoard : Model -> Html Msg
 viewBoard game =
     div
-        [ displayInlineStack, placeContentCenter, fontFamilyMonospace, fontSize "50px" ]
+        [ displayInlineStack
+        , placeContentCenter
+        , fontFamilyMonospace
+        , fontSize "50px"
+        , onPointerDown GotPointerEvent
+        , style "touch-action" "none"
+        ]
         [ viewBackgroundTiles
         , viewTiles game
         , viewGameOver game
@@ -706,6 +830,7 @@ docs =
         model =
             { score = scoreZero
             , tiles = tiles
+            , swipe = NotStarted
             , seed = Random.initialSeed 0
             }
     in
@@ -1053,11 +1178,19 @@ add =
     (+)
 
 
+mul : number -> number -> number
+mul =
+    (*)
+
+
+sub =
+    (-)
+
+
 mapBothWith : (a -> x) -> ( a, a ) -> ( x, x )
 mapBothWith fn =
     Tuple.mapBoth fn fn
 
 
-mul : number -> number -> number
-mul =
-    (*)
+map2 fn ( a, b ) ( aa, bb ) =
+    ( fn a aa, fn b bb )

@@ -15,10 +15,13 @@
             "elm/time": "1.0.0",
             "elm-community/easing-functions": "2.0.0",
             "elm-community/random-extra": "3.2.0",
+            "mpizenberg/elm-pointer-events": "4.0.2",
             "rtfeldman/elm-css": "18.0.0",
             "tesk9/palette": "3.0.1"
         },
         "indirect": {
+            "elm/bytes": "1.0.8",
+            "elm/file": "1.0.5",
             "elm/url": "1.0.0",
             "elm/virtual-dom": "1.0.3",
             "robinheghan/murmur3": "1.0.0",
@@ -29,8 +32,6 @@
         "direct": {
             "elm-explorations/test": "2.0.1"
         },
-        "indirect": {
-            "elm/bytes": "1.0.8"
-        }
+        "indirect": {}
     }
 }
