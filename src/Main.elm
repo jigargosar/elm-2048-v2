@@ -163,35 +163,6 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
             Just ( pos, tile )
 
 
-tileDomKey : Tile -> String
-tileDomKey (Tile anim pos _) =
-    String.join "_" [ animDomKey anim, posDomKey pos ]
-
-
-animDomKey : Anim -> String
-animDomKey anim =
-    case anim of
-        InitialEnter ->
-            "InitialEnter"
-
-        MergedExit pos ->
-            "MergedExit_" ++ posDomKey pos
-
-        MergedEnter ->
-            "MergedEnter"
-
-        NewDelayedEnter ->
-            "NewDelayedEnter"
-
-        Moved pos ->
-            "Moved_" ++ posDomKey pos
-
-
-posDomKey : Pos -> String
-posDomKey =
-    Grid.posToInt >> joinIntTuple "_"
-
-
 
 -- GRID
 
@@ -785,9 +756,13 @@ fontFamilyMonospace =
 
 viewTiles : Model -> Html Msg
 viewTiles game =
+    let
+        key =
+            Debug.toString game
+    in
     Html.Keyed.node "div"
         boardStyles
-        (List.map viewTile game.tiles)
+        (List.map (viewTile >> Tuple.pair key) game.tiles)
 
 
 docs : Html.Html Msg
@@ -916,14 +891,13 @@ displayInlineStack =
     class "inlineStack"
 
 
-viewTile : Tile -> ( String, Html msg )
-viewTile ((Tile anim pos val) as tile) =
+viewTile : Tile -> Html msg
+viewTile (Tile anim pos val) =
     let
         tma =
             tileMoveAnim anim pos
     in
-    ( tileDomKey tile
-    , div
+    div
         [ paddingForTileAndBoard
         , displayGrid
         , class tma.className
@@ -939,7 +913,6 @@ viewTile ((Tile anim pos val) as tile) =
             ]
             [ text <| Val.toDisplayString val ]
         ]
-    )
 
 
 tileMoveAnim : Anim -> Pos -> { className : String, styleNode : Html msg }
@@ -972,7 +945,11 @@ posToTranslateArgs pos =
 
 tileMoveAnimCssPropsClassName : Pos -> Pos -> String
 tileMoveAnimCssPropsClassName from to =
-    "tileMoveAnimCssProps_" ++ posDomKey from ++ "_" ++ posDomKey to
+    let
+        posToClassNameString =
+            Grid.posToInt >> joinIntTuple "_"
+    in
+    "tileMoveAnimCssProps_" ++ posToClassNameString from ++ "_" ++ posToClassNameString to
 
 
 joinIntTuple : String -> ( Int, Int ) -> String
