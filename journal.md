@@ -24,7 +24,8 @@ NEXT STEPS:
 * [x] use css transitions/classes for animation? without elm library?
 * [x] try removing css custom properties for move animation
 * [x] bug: delayedAppear anim sometimes don't work
-* [ ] mobile/touch swipe interface
+* [x] mobile/touch swipe interface
+* [ ] test swipe on real device
 * [ ] group colors into record?
 * [ ] undo?
 * [ ] header
