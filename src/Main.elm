@@ -464,20 +464,59 @@ updateWithPointerEvent e model =
 
         ( PointerUp, Started s ) ->
             let
-                elapsed =
-                    abs (e.timeStamp - s.timeStamp)
-
-                delta =
-                    map2 sub e.screenPos s.screenPos
-
                 _ =
-                    ( elapsed |> round, delta |> mapBothWith round )
-                        |> Debug.log "Debug: "
+                    swipeDirection e s
             in
             ( { model | swipe = NotStarted }, Cmd.none )
 
         _ ->
             ( model, Cmd.none )
+
+
+swipeDirection : PointerEvent -> PointerEvent -> Maybe Dir
+swipeDirection e s =
+    let
+        elapsed =
+            abs (e.timeStamp - s.timeStamp)
+
+        delta =
+            map2 sub e.screenPos s.screenPos
+
+        isElapsedShortEnoughForSwipe =
+            elapsed < 350
+
+        ( adx, ady ) =
+            delta |> mapBothWith abs
+
+        ( dx, dy ) =
+            delta
+
+        isDeltaLongEnoughForSwipe =
+            adx > 50 || ady > 50
+
+        maybeDirection =
+            if isElapsedShortEnoughForSwipe && isDeltaLongEnoughForSwipe then
+                if adx > ady then
+                    if dx > 0 then
+                        Just Right
+
+                    else
+                        Just Left
+
+                else if dy > 0 then
+                    Just Down
+
+                else
+                    Just Up
+
+            else
+                Nothing
+
+        _ =
+            ( maybeDirection, elapsed |> round, delta |> mapBothWith round )
+                |> Debug.log "Debug: "
+    in
+    maybeDirection
 
 
 
