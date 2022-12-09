@@ -428,72 +428,6 @@ keyDecoder =
     D.field "key" D.string
 
 
-type alias PointerEvent =
-    { name : PointerEventName
-    , timeStamp : Float
-    , isPrimary : Bool
-    , screenPos : ( Float, Float )
-    }
-
-
-type PointerEventName
-    = PointerDown
-    | PointerUp
-    | PointerCancel
-
-
-pointerEventNameDecoder : Decoder PointerEventName
-pointerEventNameDecoder =
-    D.andThen
-        (\string ->
-            case pointerEventNameFromString string of
-                Nothing ->
-                    D.fail <| "Invalid pointer event name:" ++ string
-
-                Just name ->
-                    D.succeed name
-        )
-        D.string
-
-
-pointerEventNameFromString : String -> Maybe PointerEventName
-pointerEventNameFromString string =
-    case string of
-        "pointerdown" ->
-            Just PointerDown
-
-        "pointerup" ->
-            Just PointerUp
-
-        "pointercancel" ->
-            Just PointerCancel
-
-        _ ->
-            Nothing
-
-
-pointerEventDecoder : Decoder PointerEvent
-pointerEventDecoder =
-    D.map4 PointerEvent
-        (D.field "type" pointerEventNameDecoder)
-        (floatField "timeStamp")
-        (boolField "isPrimary")
-        screenPosDecoder
-
-
-screenPosDecoder : Decoder ( Float, Float )
-screenPosDecoder =
-    D.map2 Tuple.pair (floatField "screenX") (floatField "screenY")
-
-
-boolField name =
-    D.field name D.bool
-
-
-floatField name =
-    D.field name D.float
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -631,18 +565,6 @@ view model =
         ]
         [ viewGame model
         ]
-
-
-onPointerUp tagger =
-    Html.Events.on "pointerup" (D.map tagger pointerEventDecoder)
-
-
-onPointerDown tagger =
-    Html.Events.on "pointerdown" (D.map tagger pointerEventDecoder)
-
-
-onPointerCancel tagger =
-    Html.Events.on "pointercancel" (D.map tagger pointerEventDecoder)
 
 
 viewGame : Model -> Html Msg
@@ -1167,6 +1089,88 @@ placeSelfCenter =
 
 placeItemsCenter =
     style "place-items" "center"
+
+
+
+-- POINTER EVENT
+
+
+onPointerUp tagger =
+    Html.Events.on "pointerup" (D.map tagger pointerEventDecoder)
+
+
+onPointerDown tagger =
+    Html.Events.on "pointerdown" (D.map tagger pointerEventDecoder)
+
+
+onPointerCancel tagger =
+    Html.Events.on "pointercancel" (D.map tagger pointerEventDecoder)
+
+
+type alias PointerEvent =
+    { name : PointerEventName
+    , timeStamp : Float
+    , isPrimary : Bool
+    , screenPos : ( Float, Float )
+    }
+
+
+type PointerEventName
+    = PointerDown
+    | PointerUp
+    | PointerCancel
+
+
+pointerEventNameDecoder : Decoder PointerEventName
+pointerEventNameDecoder =
+    D.andThen
+        (\string ->
+            case pointerEventNameFromString string of
+                Nothing ->
+                    D.fail <| "Invalid pointer event name:" ++ string
+
+                Just name ->
+                    D.succeed name
+        )
+        D.string
+
+
+pointerEventNameFromString : String -> Maybe PointerEventName
+pointerEventNameFromString string =
+    case string of
+        "pointerdown" ->
+            Just PointerDown
+
+        "pointerup" ->
+            Just PointerUp
+
+        "pointercancel" ->
+            Just PointerCancel
+
+        _ ->
+            Nothing
+
+
+pointerEventDecoder : Decoder PointerEvent
+pointerEventDecoder =
+    D.map4 PointerEvent
+        (D.field "type" pointerEventNameDecoder)
+        (floatField "timeStamp")
+        (boolField "isPrimary")
+        screenPosDecoder
+
+
+screenPosDecoder : Decoder ( Float, Float )
+screenPosDecoder =
+    D.map2 Tuple.pair (floatField "screenX") (floatField "screenY")
+
+
+boolField name =
+    D.field name D.bool
+
+
+floatField name =
+    D.field name D.float
 
 
 
