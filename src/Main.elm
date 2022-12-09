@@ -163,6 +163,35 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
             Just ( pos, tile )
 
 
+tileDomKey : Tile -> String
+tileDomKey (Tile anim pos _) =
+    String.join "_" [ animDomKey anim, posDomKey pos ]
+
+
+animDomKey : Anim -> String
+animDomKey anim =
+    case anim of
+        InitialEnter ->
+            "InitialEnter"
+
+        MergedExit pos ->
+            "MergedExit_" ++ posDomKey pos
+
+        MergedEnter ->
+            "MergedEnter"
+
+        NewDelayedEnter ->
+            "NewDelayedEnter"
+
+        Moved pos ->
+            "Moved_" ++ posDomKey pos
+
+
+posDomKey : Pos -> String
+posDomKey =
+    Grid.posToInt >> joinIntTuple "_"
+
+
 
 -- GRID
 
@@ -249,7 +278,7 @@ gridIsAnyMovePossible grid =
 
 type alias Model =
     { score : Score
-    , tiles : ( Int, List Tile )
+    , tiles : List Tile
     , seed : Seed
     }
 
@@ -273,7 +302,7 @@ init flags =
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
             ( { score = saved.score
-              , tiles = ( 0, saved.tiles )
+              , tiles = saved.tiles
               , seed = initialSeed
               }
             , Cmd.none
@@ -289,7 +318,7 @@ init flags =
                     Random.step randomInitialTiles initialSeed
             in
             { score = scoreZero
-            , tiles = ( 0, tiles )
+            , tiles = tiles
             , seed = seed
             }
                 |> saveState
@@ -306,12 +335,9 @@ newGame model =
     let
         ( newTiles, seed ) =
             Random.step randomInitialTiles model.seed
-
-        newTilesKey =
-            Tuple.first model.tiles + 1
     in
     { score = scoreReset model.score
-    , tiles = ( newTilesKey, newTiles )
+    , tiles = newTiles
     , seed = seed
     }
         |> saveState
@@ -363,7 +389,7 @@ type alias Saved =
 
 savedEncoder : Model -> Value
 savedEncoder model =
-    E.list identity [ scoreEncoder model.score, tilesEncoder (Tuple.second model.tiles) ]
+    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
 
 
 savedDecoder : Decoder Saved
@@ -439,7 +465,7 @@ saveState game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    tilesGrid (Tuple.second game.tiles)
+    tilesGrid game.tiles
         |> gridAttemptMove dir
         |> Maybe.map (updateGameFromMergedGrid game)
 
@@ -452,12 +478,9 @@ updateGameFromMergedGrid model grid =
 
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove grid) model.seed
-
-        newTilesKey =
-            Tuple.first model.tiles + 1
     in
     { score = scoreAddDelta scoreDelta model.score
-    , tiles = ( newTilesKey, updatedTiles ++ newTiles )
+    , tiles = updatedTiles ++ newTiles
     , seed = seed
     }
 
@@ -488,7 +511,7 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
 
 isGameOver : Model -> Bool
 isGameOver game =
-    tilesGrid (Tuple.second game.tiles)
+    tilesGrid game.tiles
         |> gridIsAnyMovePossible
         |> not
 
@@ -666,16 +689,9 @@ fontFamilyMonospace =
 
 viewTiles : Model -> Html Msg
 viewTiles game =
-    let
-        ( intKey, tiles ) =
-            game.tiles
-
-        key =
-            String.fromInt intKey
-    in
     Html.Keyed.node "div"
         boardStyles
-        (List.map (viewTile >> Tuple.pair key) tiles)
+        (List.map viewTile game.tiles)
 
 
 docs : Html.Html Msg
@@ -689,7 +705,7 @@ docs =
         model : Model
         model =
             { score = scoreZero
-            , tiles = ( 0, tiles )
+            , tiles = tiles
             , seed = Random.initialSeed 0
             }
     in
@@ -803,13 +819,14 @@ displayInlineStack =
     class "inlineStack"
 
 
-viewTile : Tile -> Html msg
-viewTile (Tile anim pos val) =
+viewTile : Tile -> ( String, Html msg )
+viewTile ((Tile anim pos val) as tile) =
     let
         tma =
             tileMoveAnim anim pos
     in
-    div
+    ( tileDomKey tile
+    , div
         [ paddingForTileAndBoard
         , displayGrid
         , class tma.className
@@ -825,21 +842,22 @@ viewTile (Tile anim pos val) =
             ]
             [ text <| Val.toDisplayString val ]
         ]
+    )
 
 
 tileMoveAnim : Anim -> Pos -> { className : String, styleNode : Html msg }
-tileMoveAnim anim endPos =
+tileMoveAnim anim to =
     let
-        startPos =
-            tileAnimStartPos anim |> Maybe.withDefault endPos
+        from =
+            tileAnimStartPos anim |> Maybe.withDefault to
 
         generatedClassName =
-            tileMoveAnimCssPropsClassName startPos endPos
+            tileMoveAnimCssPropsClassName from to
 
         styleNodeString =
             cssRuleToString ("." ++ generatedClassName)
-                [ ( "--tile-move-start", posToTranslateArgs startPos )
-                , ( "--tile-move-end", posToTranslateArgs endPos )
+                [ ( "--tile-move-from", posToTranslateArgs from )
+                , ( "--tile-move-to", posToTranslateArgs to )
                 ]
     in
     { className = "animTileMove " ++ generatedClassName
@@ -856,15 +874,8 @@ posToTranslateArgs pos =
 
 
 tileMoveAnimCssPropsClassName : Pos -> Pos -> String
-tileMoveAnimCssPropsClassName startPos endPos =
-    let
-        start =
-            startPos |> Grid.posToInt |> joinIntTuple "_"
-
-        end =
-            endPos |> Grid.posToInt |> joinIntTuple "_"
-    in
-    "tileMoveAnimCssProps_" ++ start ++ "_" ++ end
+tileMoveAnimCssPropsClassName from to =
+    "tileMoveAnimCssProps_" ++ posDomKey from ++ "_" ++ posDomKey to
 
 
 joinIntTuple : String -> ( Int, Int ) -> String

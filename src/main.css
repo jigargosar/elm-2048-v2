@@ -93,10 +93,10 @@ body {
 /*noinspection CssUnresolvedCustomProperty*/
 @keyframes tileMove {
     0% {
-        transform: translate(var(--tile-move-start));
+        transform: translate(var(--tile-move-from));
     }
     100% {
-        transform: translate(var(--tile-move-end));
+        transform: translate(var(--tile-move-to));
     }
 }
         
