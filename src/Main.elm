@@ -467,7 +467,12 @@ updateWithPointerEvent e model =
                 _ =
                     swipeDirection e s
             in
-            ( { model | swipe = NotStarted }, Cmd.none )
+            case swipeDirection e s of
+                Nothing ->
+                    ( { model | swipe = NotStarted }, Cmd.none )
+
+                Just direction ->
+                    move direction { model | swipe = NotStarted }
 
         _ ->
             ( model, Cmd.none )
@@ -483,7 +488,7 @@ swipeDirection e s =
             map2 sub e.screenPos s.screenPos
 
         isElapsedShortEnoughForSwipe =
-            elapsed < 350
+            elapsed < 500
 
         ( adx, ady ) =
             delta |> mapBothWith abs
@@ -492,7 +497,7 @@ swipeDirection e s =
             delta
 
         isDeltaLongEnoughForSwipe =
-            adx > 50 || ady > 50
+            adx > 30 || ady > 30
 
         maybeDirection =
             if isElapsedShortEnoughForSwipe && isDeltaLongEnoughForSwipe then
@@ -766,6 +771,7 @@ viewBoard game =
         , fontSize "50px"
         , onPointerDown GotPointerEvent
         , style "touch-action" "none"
+        , style "user-select" "none"
         ]
         [ viewBackgroundTiles
         , viewTiles game
