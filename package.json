@@ -1,7 +1,8 @@
 {
   "scripts": {
     "reactor": "elm reactor",
-    "start": "set PARCEL_ELM_NO_DEBUG=1 && parcel index.html --open"
+    "start": "parcel index.html --open",
+    "start:no-debug": "set PARCEL_ELM_NO_DEBUG=1 && parcel index.html --open"
   },
   "devDependencies": {
     "@parcel/transformer-elm": "^2.8.0",

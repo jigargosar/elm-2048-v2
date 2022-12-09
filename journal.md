@@ -23,6 +23,7 @@ NEXT STEPS:
       keyed nodes are preserved, i.e. style transitions work.
 * [x] use css transitions/classes for animation? without elm library?
 * [x] try removing css custom properties for move animation
+* [ ] bug: delayedAppear anim sometimes don't work
 * [ ] mobile/touch swipe interface
 * [ ] group colors into record?
 * [ ] undo?
