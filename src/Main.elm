@@ -247,9 +247,33 @@ gridIsAnyMovePossible grid =
 -- GAME
 
 
+type Tracked a
+    = Tracked Int a
+
+
+initTracked : a -> Tracked a
+initTracked a =
+    Tracked 1 a
+
+
+getTrackedValue : Tracked a -> a
+getTrackedValue (Tracked _ a) =
+    a
+
+
+updateTracked : (a -> a) -> Tracked a -> Tracked a
+updateTracked fn (Tracked i a) =
+    Tracked (i + 1) (fn a)
+
+
+getTrackedVDomResetKey : Tracked a -> String
+getTrackedVDomResetKey (Tracked i _) =
+    String.fromInt i
+
+
 type alias Model =
     { score : Score
-    , tiles : List Tile
+    , trackedTiles : Tracked (List Tile)
     , swipe : Swipe
     , seed : Seed
     }
@@ -279,7 +303,7 @@ init flags =
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
             ( { score = saved.score
-              , tiles = saved.tiles
+              , trackedTiles = initTracked saved.tiles
               , swipe = NotStarted
               , seed = initialSeed
               }
@@ -296,7 +320,7 @@ init flags =
                     Random.step randomInitialTiles initialSeed
             in
             { score = scoreZero
-            , tiles = tiles
+            , trackedTiles = initTracked tiles
             , swipe = NotStarted
             , seed = seed
             }
@@ -316,7 +340,7 @@ newGame model =
             Random.step randomInitialTiles model.seed
     in
     { score = scoreReset model.score
-    , tiles = newTiles
+    , trackedTiles = updateTracked (always newTiles) model.trackedTiles
     , swipe = NotStarted
     , seed = seed
     }
@@ -369,7 +393,7 @@ type alias Saved =
 
 savedEncoder : Model -> Value
 savedEncoder model =
-    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
+    E.list identity [ scoreEncoder model.score, tilesEncoder (getTrackedValue model.trackedTiles) ]
 
 
 savedDecoder : Decoder Saved
@@ -520,7 +544,7 @@ saveState game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    tilesGrid game.tiles
+    tilesGrid (getTrackedValue game.trackedTiles)
         |> gridAttemptMove dir
         |> Maybe.map (updateGameFromMergedGrid game)
 
@@ -535,7 +559,7 @@ updateGameFromMergedGrid model grid =
             Random.step (randomTilesAfterMove grid) model.seed
     in
     { score = scoreAddDelta scoreDelta model.score
-    , tiles = updatedTiles ++ newTiles
+    , trackedTiles = updateTracked (always (updatedTiles ++ newTiles)) model.trackedTiles
     , swipe = NotStarted
     , seed = seed
     }
@@ -567,7 +591,9 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
 
 isGameOver : Model -> Bool
 isGameOver game =
-    tilesGrid game.tiles
+    game.trackedTiles
+        |> getTrackedValue
+        |> tilesGrid
         |> gridIsAnyMovePossible
         |> not
 
@@ -758,11 +784,14 @@ viewTiles : Model -> Html Msg
 viewTiles game =
     let
         key =
-            Debug.toString game
+            getTrackedVDomResetKey game.trackedTiles
     in
     Html.Keyed.node "div"
         boardStyles
-        (List.map (viewTile >> Tuple.pair key) game.tiles)
+        (game.trackedTiles
+            |> getTrackedValue
+            |> List.map (viewTile >> Tuple.pair key)
+        )
 
 
 docs : Html.Html Msg
@@ -776,7 +805,7 @@ docs =
         model : Model
         model =
             { score = scoreZero
-            , tiles = tiles
+            , trackedTiles = initTracked tiles
             , swipe = NotStarted
             , seed = Random.initialSeed 0
             }
