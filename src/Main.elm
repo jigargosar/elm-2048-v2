@@ -432,29 +432,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotPointerEvent e ->
-            case ( e.name, model.swipe ) of
-                ( PointerDown, NotStarted ) ->
-                    ( { model | swipe = Started e }, Cmd.none )
-
-                ( PointerCancel, _ ) ->
-                    ( { model | swipe = NotStarted }, Cmd.none )
-
-                ( PointerUp, Started s ) ->
-                    let
-                        elapsed =
-                            abs (e.timeStamp - s.timeStamp)
-
-                        delta =
-                            map2 sub e.screenPos s.screenPos
-
-                        _ =
-                            ( elapsed |> round, delta |> mapBothWith round )
-                                |> Debug.log "Debug: "
-                    in
-                    ( { model | swipe = NotStarted }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            updateWithPointerEvent e model
 
         NewGameClicked ->
             newGame model
@@ -472,6 +450,33 @@ update msg model =
             move Down model
 
         GotKeyDown _ ->
+            ( model, Cmd.none )
+
+
+updateWithPointerEvent : PointerEvent -> Model -> ( Model, Cmd Msg )
+updateWithPointerEvent e model =
+    case ( e.name, model.swipe ) of
+        ( PointerDown, NotStarted ) ->
+            ( { model | swipe = Started e }, Cmd.none )
+
+        ( PointerCancel, _ ) ->
+            ( { model | swipe = NotStarted }, Cmd.none )
+
+        ( PointerUp, Started s ) ->
+            let
+                elapsed =
+                    abs (e.timeStamp - s.timeStamp)
+
+                delta =
+                    map2 sub e.screenPos s.screenPos
+
+                _ =
+                    ( elapsed |> round, delta |> mapBothWith round )
+                        |> Debug.log "Debug: "
+            in
+            ( { model | swipe = NotStarted }, Cmd.none )
+
+        _ ->
             ( model, Cmd.none )
 
 
