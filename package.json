@@ -3,7 +3,7 @@
     "reactor": "elm reactor",
     "start": "parcel index.html --open",
     "start:no-debug": "set PARCEL_ELM_NO_DEBUG=1 && parcel index.html --open",
-    "build:gh-pages": "parcel build --dist-dir docs --no-optimize --no-source-maps --no-content-hash index.html"
+    "build:gh-pages": "parcel build --dist-dir docs --no-optimize index.html"
   },
   "browserslist": ["defaults and supports es6-module and supports css-grid"],
   "devDependencies": {
