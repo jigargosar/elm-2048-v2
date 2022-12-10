@@ -458,10 +458,6 @@ updateWithPointerEvent e model =
             ( { model | swipe = NotStarted }, Cmd.none )
 
         ( PointerUp, Started s ) ->
-            let
-                _ =
-                    swipeDirection e s
-            in
             case swipeDirection e s of
                 Nothing ->
                     ( { model | swipe = NotStarted }, Cmd.none )
