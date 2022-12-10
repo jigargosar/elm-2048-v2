@@ -18,11 +18,14 @@ html {
     color: hsl(0deg 0% 90%)
 }
 
-body {
+html, body {
     height:100%;
     width: 100%;
     min-width: max-content;
     min-height: max-content;
+}
+
+body{
     font-size: 30px;
     font-family: monospace;
 }
