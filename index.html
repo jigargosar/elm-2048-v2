@@ -1,10 +1,15 @@
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-
-<style>
-    @import "./src/main.css";
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Elm 2048</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta name="description" content="A dark themed clone of 2048 game.
+     Built using the Elm programming language.">
+    <style>@import "./src/main.css";</style>
+</head>
+<body>
 <div id="main" style="height: 100%"></div>
-
 
 <script type="module">
   import Mod from './src/Main.elm'
@@ -24,15 +29,15 @@
     sessionStorage.setItem('app-state', jsonString)
   })
   app.ports['log'].subscribe((string) => {
-    console.log("From Elm:",string)
+    console.log('From Elm:', string)
   })
-  
+
 </script>
 
 
-<script type="module">
+<!--<script type="module">
 
-  /*import {html, LitElement} from 'lit-element'
+  import {html, LitElement} from 'lit-element'
 
 
   class IntersectionNotifier extends LitElement {
@@ -79,6 +84,10 @@
     'intersection-notifier',
     IntersectionNotifier,
   )
-*/
 
-</script>
+</script>-->
+
+</body>
+</html>
+
+
