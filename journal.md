@@ -30,7 +30,7 @@ NEXT STEPS:
 * [ ] undo?
 * [ ] header
 * [ ] footer
-
+* [ ] font scaling https://stackoverflow.com/questions/16056591/font-scaling-based-on-width-of-container
 
 
 
