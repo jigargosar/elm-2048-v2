@@ -604,8 +604,11 @@ isGameOver game =
 view : Model -> Html Msg
 view model =
     div
-        [ onPointerUp GotPointerEvent
+        [ onPointerDown GotPointerEvent
+        , onPointerUp GotPointerEvent
         , onPointerCancel GotPointerEvent
+        , style "user-select" "none"
+        , style "touch-action" "pinch-zoom"
         , style "min-height" "100%"
         , style "min-width" "100%"
         , displayGrid
@@ -771,9 +774,6 @@ viewBoard game =
         [ displayStack
         , fontFamilyMonospace
         , fontSize "50px"
-        , onPointerDown GotPointerEvent
-        , style "touch-action" "none"
-        , style "user-select" "none"
         ]
         [ viewBackgroundTiles
         , viewTiles game
