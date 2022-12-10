@@ -493,30 +493,23 @@ swipeDirection e s =
 
         isDeltaLongEnoughForSwipe =
             adx > 30 || ady > 30
-
-        maybeDirection =
-            if isElapsedShortEnoughForSwipe && isDeltaLongEnoughForSwipe then
-                if adx > ady then
-                    if dx > 0 then
-                        Just Right
-
-                    else
-                        Just Left
-
-                else if dy > 0 then
-                    Just Down
-
-                else
-                    Just Up
+    in
+    if isElapsedShortEnoughForSwipe && isDeltaLongEnoughForSwipe then
+        if adx > ady then
+            if dx > 0 then
+                Just Right
 
             else
-                Nothing
+                Just Left
 
-        _ =
-            ( maybeDirection, elapsed |> round, delta |> mapBothWith round )
-                |> Debug.log "Debug: "
-    in
-    maybeDirection
+        else if dy > 0 then
+            Just Down
+
+        else
+            Just Up
+
+    else
+        Nothing
 
 
 
