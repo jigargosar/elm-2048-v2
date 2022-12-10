@@ -23,6 +23,9 @@
   app.ports['save'].subscribe((jsonString) => {
     sessionStorage.setItem('app-state', jsonString)
   })
+  app.ports['log'].subscribe((string) => {
+    console.log("From Elm:",string)
+  })
   
 </script>
 

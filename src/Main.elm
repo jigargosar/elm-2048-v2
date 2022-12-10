@@ -18,6 +18,9 @@ import Val exposing (Val)
 port save : String -> Cmd msg
 
 
+port log : String -> Cmd msg
+
+
 main : Program Flags Model Msg
 main =
     Browser.element
@@ -312,9 +315,8 @@ init flags =
 
         Err err ->
             let
-                _ =
-                    Debug.log "Debug: Unable to load state. Initializing."
-                        (D.errorToString err)
+                errorString =
+                    "Unable to load state. Fresh init. Error:" ++ D.errorToString err
 
                 ( tiles, seed ) =
                     Random.step randomInitialTiles initialSeed
@@ -325,6 +327,12 @@ init flags =
             , seed = seed
             }
                 |> saveState
+                |> addCmd (log errorString)
+
+
+addCmd : Cmd msg -> ( a, Cmd msg ) -> ( a, Cmd msg )
+addCmd c1 =
+    Tuple.mapSecond (\c2 -> Cmd.batch [ c1, c2 ])
 
 
 decodeStringValue : Decoder a -> Value -> Result D.Error a
