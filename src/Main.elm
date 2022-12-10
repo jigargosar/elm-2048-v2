@@ -605,9 +605,15 @@ isGameOver game =
 view : Model -> Html Msg
 view model =
     div
-        [ padding "30px"
-        , onPointerUp GotPointerEvent
+        [ onPointerUp GotPointerEvent
         , onPointerCancel GotPointerEvent
+        , style "min-height" "100%"
+        , style "min-width" "100%"
+        , displayGrid
+
+        --, displayStack
+        --, placeContentCenter
+        , placeItemsCenter
         ]
         [ viewGame model
         ]
@@ -615,7 +621,12 @@ view model =
 
 viewGame : Model -> Html Msg
 viewGame game =
-    div [ displayInlineFlex, flexDirectionColumn, gap "20px" ]
+    div
+        [ displayFlex
+        , flexDirectionColumn
+        , gap "20px"
+        , style "width" "400px"
+        ]
         [ div
             [ displayFlex, gap "20px" ]
             [ viewNewGameButton
@@ -625,10 +636,6 @@ viewGame game =
             ]
         , viewBoard game
         ]
-
-
-displayInlineFlex =
-    style "display" "inline-flex"
 
 
 displayFlex =
@@ -762,8 +769,7 @@ width100 =
 viewBoard : Model -> Html Msg
 viewBoard game =
     div
-        [ displayInlineStack
-        , placeContentCenter
+        [ displayStack
         , fontFamilyMonospace
         , fontSize "50px"
         , onPointerDown GotPointerEvent
@@ -907,17 +913,18 @@ gridAreaFromPos pos =
 boardStyles =
     [ paddingForTileAndBoard
     , displayStack
-    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
+    , style "grid-template" "repeat(4, 1fr)/repeat(4, 1fr)"
+    , style "aspect-ratio" "1"
     , roundedBorder
     ]
 
 
+tileStyles =
+    [ paddingForTileAndBoard, style "aspect-ratio" "1" ]
+
+
 displayStack =
     class "stack"
-
-
-displayInlineStack =
-    class "inlineStack"
 
 
 viewTile : Tile -> Html msg
@@ -927,10 +934,12 @@ viewTile (Tile anim pos val) =
             tileMoveAnim anim pos
     in
     div
-        [ paddingForTileAndBoard
-        , displayGrid
-        , class tma.className
-        ]
+        ([ paddingForTileAndBoard
+         , displayGrid
+         , class tma.className
+         ]
+            ++ tileStyles
+        )
         [ tma.styleNode
         , div
             [ displayGrid
