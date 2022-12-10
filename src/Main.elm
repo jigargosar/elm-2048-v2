@@ -485,31 +485,33 @@ swipeDirection e s =
         isElapsedShortEnoughForSwipe =
             elapsed < 500
 
-        ( adx, ady ) =
-            delta |> mapBothWith abs
-
         ( dx, dy ) =
             delta
 
         isDeltaLongEnoughForSwipe =
-            adx > 30 || ady > 30
+            abs dx > 30 || abs dy > 30
     in
     if isElapsedShortEnoughForSwipe && isDeltaLongEnoughForSwipe then
-        if adx > ady then
-            if dx > 0 then
-                Just Right
-
-            else
-                Just Left
-
-        else if dy > 0 then
-            Just Down
-
-        else
-            Just Up
+        Just <| directionFromVector delta
 
     else
         Nothing
+
+
+directionFromVector : ( Float, Float ) -> Dir
+directionFromVector ( dx, dy ) =
+    if abs dx > abs dy then
+        if dx > 0 then
+            Right
+
+        else
+            Left
+
+    else if dy > 0 then
+        Down
+
+    else
+        Up
 
 
 
