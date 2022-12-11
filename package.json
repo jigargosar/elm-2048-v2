@@ -2,6 +2,7 @@
   "scripts": {
     "reactor": "elm reactor",
     "start": "parcel index.html --open",
+    "ngrok": "ngrok http 1234",
     "start:no-debug": "set PARCEL_ELM_NO_DEBUG=1 && parcel index.html --open",
     "build:gh-pages": "parcel build --dist-dir docs index.html"
   },
