@@ -677,7 +677,7 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
 
 
 viewScoreText t =
-    div [ style "display" "inline", fontSize "2rem" ] [ text t ]
+    div [ style "display" "inline", fontSize "1.6rem" ] [ text t ]
 
 
 withoutKey n =
