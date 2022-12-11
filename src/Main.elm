@@ -668,12 +668,16 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
     div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
         , Html.Keyed.node "div"
-            [ displayStack, positionRelative ]
+            [ positionRelative ]
             [ withoutKey <|
-                div [ displayGrid, placeContentCenter ] [ text totalString ]
+                div [] [ viewScoreText totalString ]
             , ( scoreDeltaResetAnimationKey, maybeDelta |> viewMaybe viewScoreDelta )
             ]
         ]
+
+
+viewScoreText t =
+    div [ style "display" "inline", fontSize "2rem" ] [ text t ]
 
 
 withoutKey n =
@@ -696,12 +700,14 @@ viewHiScore : Score -> Html msg
 viewHiScore (Score hi _ _) =
     div [ minWidth "6ch", textAlignCenter ]
         [ lbl "BEST"
-        , div [] [ text <| String.fromInt hi ]
+        , div []
+            [ viewScoreText <| String.fromInt hi
+            ]
         ]
 
 
 lbl s =
-    div [ fontSize "0.8rem", color <| colorDull ] [ text s ]
+    div [ color <| colorDull ] [ text s ]
 
 
 fontSize =
@@ -751,12 +757,12 @@ viewScoreDelta : Int -> Html msg
 viewScoreDelta scoreDelta =
     div
         [ positionAbsolute
-        , style "top" "100%"
+        , style "top" "0"
+        , style "left" "0"
         , width100
-        , fontSize "0.8em"
         , class "animFadeUpScoreDelta"
         ]
-        [ text "+", text <| String.fromInt scoreDelta ]
+        [ viewScoreText <| "+" ++ String.fromInt scoreDelta ]
 
 
 positionAbsolute =
