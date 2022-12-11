@@ -627,7 +627,6 @@ viewGame game =
         [ displayFlex
         , flexDirectionColumn
         , gap "20px"
-        , style "width" "400px"
         ]
         [ div
             [ displayFlex, gap "20px" ]
@@ -773,7 +772,6 @@ viewBoard game =
     div
         [ displayStack
         , fontFamilyMonospace
-        , fontSize "50px"
         ]
         [ viewBackgroundTiles
         , viewTiles game
@@ -912,7 +910,7 @@ gridAreaFromPos pos =
 boardStyles =
     [ paddingForTileAndBoard
     , displayStack
-    , style "grid-template" "repeat(4, 1fr)/repeat(4, 1fr)"
+    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     , style "aspect-ratio" "1"
     , roundedBorder
     ]
@@ -1028,10 +1026,10 @@ valFontSize val =
     in
     fontSize <|
         if len > 3 then
-            "0.6em"
+            "1.6rem"
 
         else
-            "1em"
+            "2rem"
 
 
 tileAnimStartPos : Anim -> Maybe Pos
