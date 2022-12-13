@@ -1127,8 +1127,12 @@ tileBgColor val =
     in
     case index of
         3 ->
-            backgroundColor <| tileBgColorFromIndex index
+            class "tile-3"
 
+        4 ->
+            class "tile-4"
+
+        --backgroundColor <| tileBgColorFromIndex index
         _ ->
             backgroundColor <| tileBgColorFromIndex index
 

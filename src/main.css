@@ -17,7 +17,7 @@ html {
 }
 
 html, body {
-    height:100%;
+    height: 100%;
     width: 100%;
     min-width: max-content;
     min-height: max-content;
@@ -35,6 +35,15 @@ html, body {
     grid-area: 1/1;
 }
 
+.tile-3 {
+    @apply bg-yellow-400;
+    @apply text-black;
+}
+
+.tile-4{
+    @apply bg-orange-500;
+    @apply text-black;
+}
 
 .animFadeUpScoreDelta {
     animation: fadeUpScoreDelta var(--durationVeryLong) both;
