@@ -6,11 +6,15 @@
     "start:no-debug": "set PARCEL_ELM_NO_DEBUG=1 && parcel index.html --open",
     "build:gh-pages": "parcel build --dist-dir docs index.html"
   },
-  "browserslist": ["defaults and supports es6-module and supports css-grid"],
+  "browserslist": [
+    "defaults and supports es6-module and supports css-grid"
+  ],
   "devDependencies": {
     "@parcel/transformer-elm": "^2.8.0",
     "elm-tooling": "^1.10.0",
-    "parcel": "^2.8.0"
+    "parcel": "^2.8.0",
+    "postcss": "^8.4.20",
+    "tailwindcss": "^3.2.4"
   },
   "dependencies": {
     "lit-element": "^3.2.2"
