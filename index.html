@@ -7,10 +7,10 @@
     <meta content="A dark themed clone of 2048 game.
      Built using the Elm programming language." name="description">
     <style>@import "./src/main.css";</style>
-<!--    <link rel="stylesheet" href="./src/main.css">-->
+    <!--    <link rel="stylesheet" href="./src/main.css">-->
 </head>
 <body class="bg-blue-500">
-<div id="main" style="height: 100%"></div>
+<div id="main"></div>
 
 <script type="module">
   import Mod from './src/Main.elm'
@@ -26,13 +26,10 @@
     },
   })
 
-  app.ports['save'].subscribe(
-    /**
-     * @param jsonString: string
-     */
-    (jsonString) => {
-      sessionStorage.setItem('app-state', jsonString)
-    })
+  app.ports['save'].subscribe((jsonString) => {
+    // noinspection JSCheckFunctionSignatures
+    sessionStorage.setItem('app-state', jsonString)
+  })
   app.ports['log'].subscribe((string) => {
     console.log('From Elm:', string)
   })
