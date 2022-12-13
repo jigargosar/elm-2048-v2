@@ -1144,19 +1144,19 @@ gap =
 
 
 displayGrid =
-    style "display" "grid"
+    class "grid"
 
 
 placeContentCenter =
-    style "place-content" "center"
+    class "place-content-center"
 
 
 placeSelfCenter =
-    style "place-self" "center"
+    class "place-self-center"
 
 
 placeItemsCenter =
-    style "place-items" "center"
+    class "place-items-center"
 
 
 

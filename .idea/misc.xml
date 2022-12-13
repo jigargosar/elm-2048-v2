@@ -10,7 +10,7 @@
     <option name="myRunOnReformat" value="true" />
     <option name="myFilesPattern" value="{**/*,*}.{js,ts,jsx,tsx,json,html,md}" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_19" project-jdk-name="16" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_19" default="true">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="ReaderModeSettings">
