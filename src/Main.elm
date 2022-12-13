@@ -1125,7 +1125,12 @@ tileBgColor val =
         index =
             Val.toIndex val
     in
-    backgroundColor <| tileBgColorFromIndex index
+    case index of
+        3 ->
+            backgroundColor <| tileBgColorFromIndex index
+
+        _ ->
+            backgroundColor <| tileBgColorFromIndex index
 
 
 tileBgColorFromIndex index =
