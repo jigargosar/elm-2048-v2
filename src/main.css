@@ -36,12 +36,22 @@ html, body {
 }
 
 .tile-3 {
-    @apply bg-yellow-400;
+    @apply bg-amber-400;
     @apply text-black;
 }
 
-.tile-4{
-    @apply bg-orange-500;
+.tile-4 {
+    @apply bg-orange-400;
+    @apply text-black;
+}
+
+.tile-5 {
+    @apply bg-red-400;
+    @apply text-black;
+}
+
+.tile-6 {
+    @apply bg-red-500;
     @apply text-black;
 }
 

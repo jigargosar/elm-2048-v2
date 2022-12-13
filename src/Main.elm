@@ -1132,6 +1132,12 @@ tileBgColor val =
         4 ->
             class "tile-4"
 
+        5 ->
+            class "tile-5"
+
+        6 ->
+            class "tile-6"
+
         --backgroundColor <| tileBgColorFromIndex index
         _ ->
             backgroundColor <| tileBgColorFromIndex index
