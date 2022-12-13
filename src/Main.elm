@@ -1126,6 +1126,12 @@ tileBgColor val =
             Val.toIndex val
     in
     case index of
+        1 ->
+            class "tile-1"
+
+        2 ->
+            class "tile-2"
+
         3 ->
             class "tile-3"
 

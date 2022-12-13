@@ -35,13 +35,21 @@ html, body {
     grid-area: 1/1;
 }
 
+.tile-1 {
+    @apply bg-stone-400;
+    @apply text-black;
+}
+.tile-2 {
+    @apply bg-slate-400;
+    @apply text-black;
+}
 .tile-3 {
-    @apply bg-amber-400;
+    @apply bg-amber-500;
     @apply text-black;
 }
 
 .tile-4 {
-    @apply bg-orange-400;
+    @apply bg-amber-600;
     @apply text-black;
 }
 
