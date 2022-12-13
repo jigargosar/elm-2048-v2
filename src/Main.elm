@@ -946,7 +946,7 @@ viewTile (Tile anim pos val) =
         [ tma.styleNode
         , div
             [ displayGrid
-            , backgroundColor <| valColor val
+            , tileBgColor val
             , roundedBorder
             , placeContentCenter
             , valFontSize val
@@ -1120,8 +1120,16 @@ colorMaxVal =
     hsl 0 0 0.1
 
 
-valColor val =
-    case Val.toIndex val of
+tileBgColor val =
+    let
+        index =
+            Val.toIndex val
+    in
+    backgroundColor <| tileBgColorFromIndex index
+
+
+tileBgColorFromIndex index =
+    case index of
         1 ->
             colorVal2
 
