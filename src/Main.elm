@@ -981,12 +981,31 @@ tileMoveAnimSnippet (Tile anim to _) =
         generatedClassName =
             tileMoveAnimCssPropsClassName from to
     in
-    ( generatedClassName ++ " " ++ "animTileMove"
+    ( generatedClassName
     , Css.Global.class generatedClassName
-        [ Css.property "--tile-move-from" (posToTranslateArgs from)
-        , Css.property "--tile-move-to" (posToTranslateArgs to)
+        [ Css.animationName
+            (Css.Animations.keyframes
+                [ ( 0, [ Css.Animations.transform [ posToTranslate from ] ] )
+                , ( 100, [ Css.Animations.transform [ posToTranslate to ] ] )
+                ]
+            )
+        , Css.property "animation-fill-mode" "both"
+        , Css.property "animation-duration" "var(--durationShort)"
         ]
     )
+
+
+posToTranslate : Pos -> Css.Transform {}
+posToTranslate pos =
+    let
+        ( x, y ) =
+            pos |> Grid.posToInt |> mapBothWith to100Pct
+    in
+    Css.translate2 x y
+
+
+to100Pct =
+    toFloat >> mul 100 >> Css.pct
 
 
 posToTranslateArgs : Pos -> String
