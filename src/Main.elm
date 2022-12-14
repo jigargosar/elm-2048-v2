@@ -1126,24 +1126,23 @@ tileBgColor val =
             Val.toIndex val
     in
     case index of
-        1 ->
-            class "tile-1"
-
-        2 ->
-            class "tile-2"
-
-        3 ->
-            class "tile-3"
-
-        4 ->
-            class "tile-4"
-
-        5 ->
-            class "tile-5"
-
-        6 ->
-            class "tile-6"
-
+        --1 ->
+        --    class "tile-1"
+        --
+        --2 ->
+        --    class "tile-2"
+        --
+        --3 ->
+        --    class "tile-3"
+        --
+        --4 ->
+        --    class "tile-4"
+        --
+        --5 ->
+        --    class "tile-5"
+        --
+        --6 ->
+        --    class "tile-6"
         _ ->
             backgroundColor <| tileBgColorFromIndex index
 
