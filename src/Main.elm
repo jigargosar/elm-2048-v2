@@ -1008,11 +1008,6 @@ to100Pct =
     toFloat >> mul 100 >> Css.pct
 
 
-posToTranslateArgs : Pos -> String
-posToTranslateArgs pos =
-    pos |> Grid.posToInt |> mapJoinTuple (mul 100 >> pctFromInt) ","
-
-
 tileMoveAnimCssPropsClassName : Pos -> Pos -> String
 tileMoveAnimCssPropsClassName from to =
     let
@@ -1030,11 +1025,6 @@ joinIntTuple =
 mapJoinTuple : (a -> appendable) -> appendable -> ( a, a ) -> appendable
 mapJoinTuple fn sep ( a, b ) =
     fn a ++ sep ++ fn b
-
-
-pctFromInt : Int -> String
-pctFromInt i =
-    String.fromInt i ++ "%"
 
 
 valFontSize val =
