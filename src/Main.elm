@@ -2,12 +2,16 @@ port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
+import Css
+import Css.Animations
+import Css.Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, style)
 import Html.Events exposing (onClick)
 import Html.Keyed
 import Html.Lazy
+import Html.Styled
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
 import Random exposing (Generator, Seed)
@@ -794,13 +798,30 @@ viewTiles game =
     let
         key =
             getTrackedVDomResetKey game.trackedTiles
+
+        tiles =
+            game.trackedTiles
+                |> getTrackedValue
+
+        ( snippets, tileViews ) =
+            tiles
+                |> List.map
+                    (\tile ->
+                        let
+                            ( className, snippet ) =
+                                tileMoveAnimSnippet tile
+                        in
+                        ( snippet, ( key, viewTile className tile ) )
+                    )
+                |> List.unzip
+
+        styleNode =
+            Html.Styled.toUnstyled
+                (Css.Global.global snippets)
     in
     Html.Keyed.node "div"
         boardStyles
-        (game.trackedTiles
-            |> getTrackedValue
-            |> List.map (viewTile >> Tuple.pair key)
-        )
+        (( "", styleNode ) :: tileViews)
 
 
 docs : Html.Html Msg
@@ -930,21 +951,16 @@ displayStack =
     class "stack"
 
 
-viewTile : Tile -> Html msg
-viewTile (Tile anim pos val) =
-    let
-        tma =
-            tileMoveAnim anim pos
-    in
+viewTile : String -> Tile -> Html msg
+viewTile moveAnimClassName (Tile anim _ val) =
     div
         ([ paddingForTileAndBoard
          , displayGrid
-         , class tma.className
+         , class moveAnimClassName
          ]
             ++ tileStyles
         )
-        [ tma.styleNode
-        , div
+        [ div
             [ displayGrid
             , tileBgColor val
             , roundedBorder
@@ -956,27 +972,21 @@ viewTile (Tile anim pos val) =
         ]
 
 
-tileMoveAnim : Anim -> Pos -> { className : String, styleNode : Html msg }
-tileMoveAnim anim to =
+tileMoveAnimSnippet : Tile -> ( String, Css.Global.Snippet )
+tileMoveAnimSnippet (Tile anim to _) =
     let
         from =
             tileAnimStartPos anim |> Maybe.withDefault to
 
         generatedClassName =
             tileMoveAnimCssPropsClassName from to
-
-        styleNodeString =
-            cssRuleToString ("." ++ generatedClassName)
-                [ ( "--tile-move-from", posToTranslateArgs from )
-                , ( "--tile-move-to", posToTranslateArgs to )
-                ]
     in
-    { className = "animTileMove " ++ generatedClassName
-    , styleNode =
-        Html.node "style"
-            []
-            [ text styleNodeString ]
-    }
+    ( generatedClassName ++ " " ++ "animTileMove"
+    , Css.Global.class generatedClassName
+        [ Css.property "--tile-move-from" (posToTranslateArgs from)
+        , Css.property "--tile-move-to" (posToTranslateArgs to)
+        ]
+    )
 
 
 posToTranslateArgs : Pos -> String
@@ -1006,23 +1016,6 @@ mapJoinTuple fn sep ( a, b ) =
 pctFromInt : Int -> String
 pctFromInt i =
     String.fromInt i ++ "%"
-
-
-cssRuleToString : String -> List ( String, String ) -> String
-cssRuleToString selector properties =
-    selector
-        ++ "{"
-        ++ cssPropertiesToString properties
-        ++ "}"
-
-
-cssPropertiesToString : List ( String, String ) -> String
-cssPropertiesToString list =
-    let
-        propToString ( name, value ) =
-            name ++ ":" ++ value
-    in
-    List.map propToString list |> String.join ";"
 
 
 valFontSize val =
