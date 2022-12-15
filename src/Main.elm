@@ -640,15 +640,14 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
         totalString =
             String.fromInt total
 
-        scoreDeltaResetAnimationKey =
+        resetAnimKey =
             totalString
     in
     div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
-        , Html.Keyed.node "div"
-            [ positionRelative ]
-            [ ( "", div [] [ viewScoreText totalString ] )
-            , ( scoreDeltaResetAnimationKey, maybeDelta |> viewMaybe viewScoreDelta )
+        , div [ positionRelative ]
+            [ div [] [ viewScoreText totalString ]
+            , viewKeyed resetAnimKey (maybeDelta |> viewMaybe viewScoreDelta)
             ]
         ]
 
