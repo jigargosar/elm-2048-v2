@@ -647,7 +647,7 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
         [ lbl "SCORE"
         , div [ positionRelative ]
             [ div [] [ viewScoreText totalString ]
-            , viewKeyed resetAnimKey (maybeDelta |> viewMaybe viewScoreDelta)
+            , singleKeyed resetAnimKey (maybeDelta |> viewMaybe viewScoreDelta)
             ]
         ]
 
@@ -774,11 +774,11 @@ viewTiles game =
         tileViews =
             List.map viewTile tiles
     in
-    viewKeyed key (div boardStyles tileViews)
+    singleKeyed key (div boardStyles tileViews)
 
 
-viewKeyed : String -> Html msg -> Html msg
-viewKeyed key node =
+singleKeyed : String -> Html msg -> Html msg
+singleKeyed key node =
     Html.Keyed.node "div" [ class "contents" ] [ ( key, node ) ]
 
 
