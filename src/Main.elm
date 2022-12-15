@@ -1070,10 +1070,6 @@ valColorList =
         |> List.map (\i -> i * -15 + 36 |> modBy 360 |> toFloat |> (\h -> hsl h 0.88 0.4))
 
 
-gap =
-    style "gap"
-
-
 displayGrid =
     class "grid"
 
