@@ -941,7 +941,7 @@ viewTile (Tile anim pos val) =
         , aspectSquare
         , class "animTileMove"
         , Html.Attributes.attribute "style"
-            (tileMoveAnimCssVars anim pos)
+            (tileMoveAnimStyleValue anim pos)
         ]
         [ div
             [ displayGrid
@@ -955,8 +955,8 @@ viewTile (Tile anim pos val) =
         ]
 
 
-tileMoveAnimCssVars : Anim -> Pos -> String
-tileMoveAnimCssVars anim to =
+tileMoveAnimStyleValue : Anim -> Pos -> String
+tileMoveAnimStyleValue anim to =
     let
         from =
             tileAnimStartPos anim |> Maybe.withDefault to
