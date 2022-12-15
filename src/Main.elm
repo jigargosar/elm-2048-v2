@@ -773,9 +773,11 @@ viewTiles game =
                 |> getTrackedValue
 
         tileViews =
-            List.map (\tile -> ( key, viewTile tile )) tiles
+            List.map viewTile tiles
     in
-    div [ class "contents" ] [ Html.Keyed.node "div" boardStyles tileViews ]
+    Html.Keyed.node "div"
+        [ class "contents" ]
+        [ ( key, div boardStyles tileViews ) ]
 
 
 docs : Html.Html Msg
@@ -889,7 +891,7 @@ boardStyles =
     [ paddingForTileAndBoard
     , aspectSquare
     , roundedBorder
-    , class "grid-area-1-1"
+    , class "area-1-1"
     , displayStack
     , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     ]
