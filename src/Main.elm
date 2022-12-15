@@ -65,11 +65,6 @@ scoreReset (Score hi _ _) =
     scoreInit hi 0
 
 
-atLeast : comparable -> comparable -> comparable
-atLeast =
-    max
-
-
 scoreZero : Score
 scoreZero =
     Score 0 0 Nothing
@@ -1243,3 +1238,8 @@ mapBothWith fn =
 
 map2 fn ( a, b ) ( aa, bb ) =
     ( fn a aa, fn b bb )
+
+
+atLeast : comparable -> comparable -> comparable
+atLeast =
+    max
