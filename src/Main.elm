@@ -777,6 +777,7 @@ viewTiles game =
     viewKeyed key (div boardStyles tileViews)
 
 
+viewKeyed : String -> Html msg -> Html msg
 viewKeyed key node =
     Html.Keyed.node "div" [ class "contents" ] [ ( key, node ) ]
 
