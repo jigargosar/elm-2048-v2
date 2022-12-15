@@ -607,9 +607,6 @@ view model =
         , style "min-height" "100%"
         , style "min-width" "100%"
         , displayGrid
-
-        --, displayStack
-        --, placeContentCenter
         , placeItemsCenter
         ]
         [ viewGame model
