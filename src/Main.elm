@@ -2,9 +2,6 @@ port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
-import Css
-import Css.Animations
-import Css.Global
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, style)
@@ -970,63 +967,13 @@ tileMoveAnimCssVars anim to =
         |> String.join ";"
 
 
-tileMoveAnimSnippet : Tile -> ( String, Css.Global.Snippet )
-tileMoveAnimSnippet (Tile anim to _) =
-    let
-        from =
-            tileAnimStartPos anim |> Maybe.withDefault to
-
-        generatedClassName =
-            tileMoveAnimCssPropsClassName from to
-    in
-    ( generatedClassName
-    , Css.Global.class generatedClassName
-        [ Css.animationName
-            (Css.Animations.keyframes
-                [ ( 0, [ Css.Animations.transform [ posToTranslate from ] ] )
-                , ( 100, [ Css.Animations.transform [ posToTranslate to ] ] )
-                ]
-            )
-        , Css.property "animation-fill-mode" "both"
-        , Css.property "animation-duration" "var(--durationShort)"
-        ]
-    )
-
-
-posToTranslate : Pos -> Css.Transform {}
-posToTranslate pos =
-    let
-        ( x, y ) =
-            pos |> Grid.posToInt |> mapBothWith to100Pct
-    in
-    Css.translate2 x y
-
-
 posToTranslateString : Pos -> String
 posToTranslateString pos =
-    pos |> Grid.posToInt |> mapJoinTuple to100PctString ","
+    pos |> Grid.posToInt |> mapJoinTuple to100Pct ","
 
 
-to100PctString i =
+to100Pct i =
     String.fromInt (i * 100) ++ "%"
-
-
-to100Pct =
-    toFloat >> mul 100 >> Css.pct
-
-
-tileMoveAnimCssPropsClassName : Pos -> Pos -> String
-tileMoveAnimCssPropsClassName from to =
-    let
-        posToClassNameString =
-            Grid.posToInt >> joinIntTuple "_"
-    in
-    "tileMoveAnimCssProps_" ++ posToClassNameString from ++ "_" ++ posToClassNameString to
-
-
-joinIntTuple : String -> ( Int, Int ) -> String
-joinIntTuple =
-    mapJoinTuple String.fromInt
 
 
 mapJoinTuple : (a -> appendable) -> appendable -> ( a, a ) -> appendable
@@ -1285,11 +1232,6 @@ floatField name =
 add : number -> number -> number
 add =
     (+)
-
-
-mul : number -> number -> number
-mul =
-    (*)
 
 
 sub =
