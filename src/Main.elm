@@ -960,16 +960,14 @@ tileMoveAnimCssVars anim to =
     let
         from =
             tileAnimStartPos anim |> Maybe.withDefault to
+
+        toCssPropValue pos =
+            pos |> Grid.posToInt |> mapJoinTuple to100Pct ","
     in
-    [ "--tile-move-from:" ++ posToTranslateString from
-    , "--tile-move-to:" ++ posToTranslateString to
+    [ "--tile-move-from:" ++ toCssPropValue from
+    , "--tile-move-to:" ++ toCssPropValue to
     ]
         |> String.join ";"
-
-
-posToTranslateString : Pos -> String
-posToTranslateString pos =
-    pos |> Grid.posToInt |> mapJoinTuple to100Pct ","
 
 
 to100Pct i =
