@@ -619,11 +619,10 @@ view model =
 viewGame : Model -> Html Msg
 viewGame game =
     div
-        [ class "flex flex-col"
-        , gap "20px"
+        [ class "flex flex-col gap-4"
         ]
         [ div
-            [ class "flex", gap "20px" ]
+            [ class "flex gap-4" ]
             [ viewNewGameButton
             , div [ class "grow" ] []
             , viewTotalScoreWithDelta game.score
@@ -812,15 +811,11 @@ viewGameOver game =
     case isGameOver game of
         True ->
             div
-                [ displayGrid
-                , positionRelative
+                [ class "grid gap-4 relative place-content-center place-items-center"
                 , backgroundColor <| colorGlobalA 0.85
                 , roundedBorder
-                , placeContentCenter
-                , placeItemsCenter
-                , gap "20px"
                 ]
-                [ div [] [ text "Game Over!" ]
+                [ div [ class "text-6xl" ] [ text "Game Over!" ]
                 , btn NewGameClicked "Try Again"
                 ]
 
