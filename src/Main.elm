@@ -749,7 +749,6 @@ viewBoard : Model -> Html Msg
 viewBoard game =
     div
         [ displayStack
-        , fontFamilyMonospace
         ]
         [ viewBackgroundTiles
         , viewTiles game
@@ -839,7 +838,6 @@ btnFocused msg string =
 
 buttonStyles =
     [ fontSize "1rem"
-    , fontFamilyMonospace
     , padding "0.5rem 0.8rem"
     , fontWeightNormal
     , backgroundColor <| colorGlobal
