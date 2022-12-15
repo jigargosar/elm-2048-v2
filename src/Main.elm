@@ -815,7 +815,7 @@ viewGameOver game =
                 , backgroundColor <| colorGlobalA 0.85
                 , roundedBorder
                 ]
-                [ div [ class "text-6xl" ] [ text "Game Over!" ]
+                [ div [ class "text-5xl" ] [ text "Game Over!" ]
                 , btn NewGameClicked "Try Again"
                 ]
 
