@@ -775,9 +775,11 @@ viewTiles game =
         tileViews =
             List.map viewTile tiles
     in
-    Html.Keyed.node "div"
-        [ class "contents" ]
-        [ ( key, div boardStyles tileViews ) ]
+    viewKeyed key (div boardStyles tileViews)
+
+
+viewKeyed key node =
+    Html.Keyed.node "div" [ class "contents" ] [ ( key, node ) ]
 
 
 docs : Html.Html Msg
