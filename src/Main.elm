@@ -775,7 +775,7 @@ viewTiles game =
         tileViews =
             List.map (\tile -> ( key, viewTile tile )) tiles
     in
-    Html.Keyed.node "div" boardStyles tileViews
+    div [ class "contents" ] [ Html.Keyed.node "div" boardStyles tileViews ]
 
 
 docs : Html.Html Msg
@@ -887,10 +887,11 @@ gridAreaFromPos pos =
 
 boardStyles =
     [ paddingForTileAndBoard
-    , displayStack
-    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     , aspectSquare
     , roundedBorder
+    , class "grid-area-1-1"
+    , displayStack
+    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     ]
 
 
