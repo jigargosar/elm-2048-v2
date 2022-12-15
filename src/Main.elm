@@ -11,7 +11,6 @@ import Html.Attributes exposing (autofocus, class, style)
 import Html.Events exposing (onClick)
 import Html.Keyed
 import Html.Lazy
-import Html.Styled
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
 import Random exposing (Generator, Seed)
@@ -803,21 +802,8 @@ viewTiles game =
             game.trackedTiles
                 |> getTrackedValue
 
-        ( snippets, tileViews ) =
-            tiles
-                |> List.map
-                    (\tile ->
-                        let
-                            ( className, snippet ) =
-                                tileMoveAnimSnippet tile
-                        in
-                        ( snippet, ( key, viewTile tile ) )
-                    )
-                |> List.unzip
-
-        styleNode =
-            Html.Styled.toUnstyled
-                (Css.Global.global snippets)
+        tileViews =
+            List.map (\tile -> ( key, viewTile tile )) tiles
     in
     Html.Keyed.node "div" boardStyles tileViews
 
