@@ -6,142 +6,108 @@
     <meta content="width=425, height=device-height" name="viewport"/>
     <meta content="A dark themed clone of 2048 game.
      Built using the Elm programming language." name="description">
-    <!--suppress CssUnusedSymbol -->
-    <style>
-        @tailwind base;
-        @tailwind components;
-        @tailwind utilities;
-
-
-        :root {
-            --durationVeryLong: 1000ms;
-            --durationShort: 100ms;
-            --durationMedium: 200ms;
-        }
-
-        html {
-            font-size: 20px;
-            font-family: monospace;
-            background-color: hsl(0deg 0% 13%);
-            color: hsl(0deg 0% 90%)
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            min-width: max-content;
-            min-height: max-content;
-        }
-
-        .stack {
-            display: grid;
-        }
-
-        .inlineStack {
-            display: inline-grid;
-        }
-
-        .stack > *, .inlineStack > * {
-            grid-area: 1/1;
-        }
-
-        .tile-1 {
-            @apply bg-stone-400;
-            @apply text-black;
-        }
-
-        .tile-2 {
-            @apply bg-slate-400;
-            @apply text-black;
-        }
-
-        .tile-3 {
-            @apply bg-amber-500;
-            @apply text-black;
-        }
-
-        .tile-4 {
-            @apply bg-amber-600;
-            @apply text-black;
-        }
-
-        .tile-5 {
-            @apply bg-red-400;
-            @apply text-black;
-        }
-
-        .tile-6 {
-            @apply bg-red-500;
-            @apply text-black;
-        }
-
-        .animFadeUpScoreDelta {
-            animation: fadeUpScoreDelta var(--durationVeryLong) both;
-        }
-
-        @keyframes fadeUpScoreDelta {
-            0% {
-                opacity: 1;
-                transform: translateY(100%);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(0);
-            }
-        }
-
-        .animAppear {
-            animation: appear var(--durationMedium) both;
-        }
-
-        .animDelayedAppear {
-            animation: appear var(--durationMedium) var(--durationShort) both;
-        }
-
-        @keyframes appear {
-            0% {
-                opacity: 0;
-                transform: scale(0);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .animDelayedPopIn {
-            animation: popIn var(--durationMedium) var(--durationShort) both;
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: scale(0);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .animTileMove {
-            animation: tileMove var(--durationShort) both;
-        }
-
-        /*noinspection CssUnresolvedCustomProperty*/
-        @keyframes tileMove {
-            0% {
-                transform: translate(var(--tile-move-from));
-            }
-            100% {
-                transform: translate(var(--tile-move-to));
-            }
-        }
-
-    </style>
 </head>
 <body>
+<!--suppress CssUnusedSymbol, HtmlUnknownTag -->
+<style>
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+
+
+    :root {
+        --durationVeryLong: 1000ms;
+        --durationShort: 100ms;
+        --durationMedium: 200ms;
+    }
+
+    html {
+        font-size: 20px;
+        font-family: monospace;
+        background-color: hsl(0deg 0% 13%);
+        color: hsl(0deg 0% 90%)
+    }
+
+    html, body {
+        height: 100%;
+        width: 100%;
+        min-width: max-content;
+        min-height: max-content;
+    }
+
+    .stack {
+        display: grid;
+    }
+
+    .stack > * {
+        grid-area: 1/1;
+    }
+
+    .animFadeUpScoreDelta {
+        animation: fadeUpScoreDelta var(--durationVeryLong) both;
+    }
+
+    @keyframes fadeUpScoreDelta {
+        0% {
+            opacity: 1;
+            transform: translateY(100%);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(0);
+        }
+    }
+
+    .animAppear {
+        animation: appear var(--durationMedium) both;
+    }
+
+    .animDelayedAppear {
+        animation: appear var(--durationMedium) var(--durationShort) both;
+    }
+
+    @keyframes appear {
+        0% {
+            opacity: 0;
+            transform: scale(0);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .animDelayedPopIn {
+        animation: popIn var(--durationMedium) var(--durationShort) both;
+    }
+
+    @keyframes popIn {
+        0% {
+            transform: scale(0);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .animTileMove {
+        animation: tileMove var(--durationShort) both;
+    }
+
+    /*noinspection CssUnresolvedCustomProperty*/
+    @keyframes tileMove {
+        0% {
+            transform: translate(var(--tile-move-from));
+        }
+        100% {
+            transform: translate(var(--tile-move-to));
+        }
+    }
+
+</style>
 <div class="" id="main"></div>
 
 <script type="module">
