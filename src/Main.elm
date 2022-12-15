@@ -619,31 +619,18 @@ view model =
 viewGame : Model -> Html Msg
 viewGame game =
     div
-        [ displayFlex
-        , flexDirectionColumn
+        [ class "flex flex-col"
         , gap "20px"
         ]
         [ div
-            [ displayFlex, gap "20px" ]
+            [ class "flex", gap "20px" ]
             [ viewNewGameButton
-            , div [ flexGrow1 ] []
+            , div [ class "grow" ] []
             , viewTotalScoreWithDelta game.score
             , viewHiScore game.score
             ]
         , viewBoard game
         ]
-
-
-displayFlex =
-    style "display" "flex"
-
-
-flexDirectionColumn =
-    style "flex-direction" "column"
-
-
-flexGrow1 =
-    style "flex-grow" "1"
 
 
 viewNewGameButton : Html Msg
