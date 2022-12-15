@@ -664,8 +664,7 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
         [ lbl "SCORE"
         , Html.Keyed.node "div"
             [ positionRelative ]
-            [ withoutKey <|
-                div [] [ viewScoreText totalString ]
+            [ ( "", div [] [ viewScoreText totalString ] )
             , ( scoreDeltaResetAnimationKey, maybeDelta |> viewMaybe viewScoreDelta )
             ]
         ]
@@ -673,10 +672,6 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
 
 viewScoreText t =
     div [ style "display" "inline", fontSize "1.6rem" ] [ text t ]
-
-
-withoutKey n =
-    ( "", n )
 
 
 minWidth =
