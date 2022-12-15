@@ -811,7 +811,7 @@ viewTiles game =
                             ( className, snippet ) =
                                 tileMoveAnimSnippet tile
                         in
-                        ( snippet, ( key, viewTile className tile ) )
+                        ( snippet, ( key, viewTile tile ) )
                     )
                 |> List.unzip
 
@@ -819,9 +819,7 @@ viewTiles game =
             Html.Styled.toUnstyled
                 (Css.Global.global snippets)
     in
-    Html.Keyed.node "div"
-        boardStyles
-        (( "", styleNode ) :: tileViews)
+    Html.Keyed.node "div" boardStyles tileViews
 
 
 docs : Html.Html Msg
@@ -952,13 +950,15 @@ displayStack =
     class "stack"
 
 
-viewTile : String -> Tile -> Html msg
-viewTile moveAnimClassName (Tile anim _ val) =
+viewTile : Tile -> Html msg
+viewTile (Tile anim pos val) =
     div
         [ displayGrid
         , paddingForTileAndBoard
         , aspectSquare
-        , class moveAnimClassName
+        , class "animTileMove"
+        , Html.Attributes.attribute "style"
+            (tileMoveAnimCssVars anim pos)
         ]
         [ div
             [ displayGrid
@@ -970,6 +970,18 @@ viewTile moveAnimClassName (Tile anim _ val) =
             ]
             [ text <| Val.toDisplayString val ]
         ]
+
+
+tileMoveAnimCssVars : Anim -> Pos -> String
+tileMoveAnimCssVars anim to =
+    let
+        from =
+            tileAnimStartPos anim |> Maybe.withDefault to
+    in
+    [ "--tile-move-from:" ++ posToTranslateString from
+    , "--tile-move-to:" ++ posToTranslateString to
+    ]
+        |> String.join ";"
 
 
 tileMoveAnimSnippet : Tile -> ( String, Css.Global.Snippet )
@@ -1002,6 +1014,15 @@ posToTranslate pos =
             pos |> Grid.posToInt |> mapBothWith to100Pct
     in
     Css.translate2 x y
+
+
+posToTranslateString : Pos -> String
+posToTranslateString pos =
+    pos |> Grid.posToInt |> mapJoinTuple to100PctString ","
+
+
+to100PctString i =
+    String.fromInt (i * 100) ++ "%"
 
 
 to100Pct =
