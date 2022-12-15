@@ -837,23 +837,12 @@ btnFocused msg string =
 
 
 buttonStyles =
-    [ fontSize "1rem"
-    , padding "0.5rem 0.8rem"
-    , fontWeightNormal
+    [ padding "0.5rem 0.8rem"
     , backgroundColor <| colorGlobal
-    , colorCurrentColor
     , border ("1px solid " ++ colorButtonBorder)
     , roundedBorder
     , placeSelfCenter
     ]
-
-
-fontWeightNormal =
-    style "font-weight" "normal"
-
-
-colorCurrentColor =
-    color "currentColor"
 
 
 border =
