@@ -920,6 +920,7 @@ viewBackgroundTile pos =
     div
         [ displayGrid
         , paddingForTileAndBoard
+        , aspectSquare
         , gridAreaFromPos pos
         ]
         [ div [ roundedBorder, backgroundColor <| colorBoard ] []
@@ -938,13 +939,13 @@ boardStyles =
     [ paddingForTileAndBoard
     , displayStack
     , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
-    , style "aspect-ratio" "1"
+    , aspectSquare
     , roundedBorder
     ]
 
 
-tileStyles =
-    [ paddingForTileAndBoard, style "aspect-ratio" "1" ]
+aspectSquare =
+    class "aspect-square"
 
 
 displayStack =
@@ -954,12 +955,11 @@ displayStack =
 viewTile : String -> Tile -> Html msg
 viewTile moveAnimClassName (Tile anim _ val) =
     div
-        ([ paddingForTileAndBoard
-         , displayGrid
-         , class moveAnimClassName
-         ]
-            ++ tileStyles
-        )
+        [ displayGrid
+        , paddingForTileAndBoard
+        , aspectSquare
+        , class moveAnimClassName
+        ]
         [ div
             [ displayGrid
             , tileBgColor val
@@ -1087,7 +1087,8 @@ roundedBorder =
 
 
 paddingForTileAndBoard =
-    padding "8px"
+    --padding "8px"
+    class "p-1.5"
 
 
 colorGlobal =
