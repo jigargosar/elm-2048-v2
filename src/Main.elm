@@ -756,10 +756,6 @@ viewBoard game =
         ]
 
 
-fontFamilyMonospace =
-    style "font-family" "monospace"
-
-
 viewTiles : Model -> Html Msg
 viewTiles game =
     let
