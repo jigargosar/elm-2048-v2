@@ -731,24 +731,6 @@ hsla h s l a =
         ++ ")"
 
 
-viewMaybe fn mb =
-    case mb of
-        Nothing ->
-            text ""
-
-        Just v ->
-            fn v
-
-
-viewScoreDelta : Int -> Html msg
-viewScoreDelta scoreDelta =
-    div
-        [ class "absolute inset-0 w-full"
-        , class "animFadeUpScoreDelta"
-        ]
-        [ viewScoreText <| "+" ++ String.fromInt scoreDelta ]
-
-
 viewBoard : Model -> Html Msg
 viewBoard game =
     div
