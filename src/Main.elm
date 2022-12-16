@@ -747,9 +747,7 @@ width100 =
 
 viewBoard : Model -> Html Msg
 viewBoard game =
-    div
-        [ displayStack
-        ]
+    div [ class "grid" ]
         [ viewBackgroundTiles
         , viewTiles game
         , viewGameOver game
