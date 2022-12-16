@@ -879,10 +879,6 @@ aspectSquare =
     class "aspect-square"
 
 
-displayStack =
-    class "stack"
-
-
 viewTile : Tile -> Html msg
 viewTile (Tile anim pos val) =
     div
