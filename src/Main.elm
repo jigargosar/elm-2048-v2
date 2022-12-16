@@ -843,7 +843,7 @@ btnFocused msg string =
 
 
 buttonStyles =
-    [ padding "0.5rem 0.8rem"
+    [ class "px-3 py-1"
     , backgroundColor <| colorGlobal
     , border ("1px solid " ++ colorButtonBorder)
     , roundedBorder
