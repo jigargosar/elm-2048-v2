@@ -70,6 +70,7 @@ toScore (Val i) =
 random : Generator Val
 random =
     pareto 1 2
+        --pareto 5 6
         --pareto 10 13
         |> Random.map Val
 

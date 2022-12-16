@@ -688,10 +688,6 @@ lbl s =
     div [ color <| colorDull ] [ text s ]
 
 
-fontSize =
-    style "font-size"
-
-
 color =
     style "color"
 
@@ -924,12 +920,13 @@ valFontSize val =
         len =
             String.length <| Val.toDisplayString <| val
     in
-    fontSize <|
-        if len > 3 then
-            "1.6rem"
+    if len > 3 then
+        --fontSize "1.6rem"
+        class "text-2xl"
 
-        else
-            "2rem"
+    else
+        --fontSize "2rem"
+        class "text-4xl"
 
 
 tileAnimStartPos : Anim -> Maybe Pos
