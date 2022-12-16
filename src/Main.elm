@@ -986,10 +986,6 @@ colorGlobal =
     colorGlobalA 1
 
 
-colorButtonBorder =
-    hsl 0 0 0.5
-
-
 colorGlobalA a =
     hsla 0 0 0.13 a
 
