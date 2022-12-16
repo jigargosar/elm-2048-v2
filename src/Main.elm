@@ -807,10 +807,6 @@ docs =
         ]
 
 
-padding =
-    style "padding"
-
-
 viewGameOver : Model -> Html Msg
 viewGameOver game =
     case isGameOver game of
