@@ -657,7 +657,9 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
 
 
 viewScoreText t =
-    div [ style "display" "inline", fontSize "1.6rem" ] [ text t ]
+    --div [ style "display" "inline", fontSize "1.6rem" ] [ text t ]
+    --span [ class "text-3xl" ] [ text t ]
+    span [ class "text-2xl" ] [ text t ]
 
 
 minWidth =
