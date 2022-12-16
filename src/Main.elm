@@ -876,8 +876,7 @@ boardStyles =
     [ paddingForTileAndBoard
     , aspectSquare
     , roundedBorder
-    , class "area-1-1"
-    , displayStack
+    , class "area-1-1 grid"
     , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
     ]
 
@@ -896,7 +895,7 @@ viewTile (Tile anim pos val) =
         [ displayGrid
         , paddingForTileAndBoard
         , aspectSquare
-        , class "animTileMove"
+        , class "area-1-1 animTileMove"
         , Html.Attributes.attribute "style"
             (tileMoveAnimStyleValue anim pos)
         ]
