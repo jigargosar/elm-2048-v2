@@ -803,7 +803,7 @@ viewGameOver game =
     case isGameOver game of
         True ->
             div
-                [ class "grid gap-4 relative place-content-center place-items-center"
+                [ class "area-1-1 grid gap-4 relative place-content-center place-items-center"
                 , backgroundColor <| colorGlobalA 0.85
                 , roundedBorder
                 ]
