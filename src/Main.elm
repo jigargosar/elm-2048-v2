@@ -242,7 +242,7 @@ gridIsAnyMovePossible grid =
 
 
 
--- GAME
+-- UPDATE TRACKER FOR V-DOM RESET
 
 
 type Tracked a
@@ -267,6 +267,10 @@ updateTracked fn (Tracked i a) =
 getTrackedVDomResetKey : Tracked a -> String
 getTrackedVDomResetKey (Tracked i _) =
     String.fromInt i
+
+
+
+-- GAME
 
 
 type alias Model =
@@ -747,23 +751,34 @@ width100 =
 
 viewBoard : Model -> Html Msg
 viewBoard game =
-    div [ class "grid" ]
+    div
+        [ paddingForTileAndBoard
+        , aspectSquare
+        , roundedBorder
+        , class "grid relative"
+        , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
+        , backgroundColor <| colorBoardGap
+        ]
         [ viewBackgroundTiles
-        , viewTiles game
+        , viewTiles game.trackedTiles
         , viewGameOver game
         ]
 
 
-viewTiles : Model -> Html Msg
-viewTiles game =
-    keyedSingleton
-        (getTrackedVDomResetKey game.trackedTiles)
-        (div boardStyles
-            (game.trackedTiles
+viewTiles : Tracked (List Tile) -> Html msg
+viewTiles trackedTiles =
+    keyedSingleton (getTrackedVDomResetKey trackedTiles)
+        (div [ class "contents" ]
+            (trackedTiles
                 |> getTrackedValue
                 |> List.map viewTile
             )
         )
+
+
+viewBackgroundTiles : Html msg
+viewBackgroundTiles =
+    div [ class "contents" ] (List.map viewBackgroundTile Grid.allPositions)
 
 
 keyedSingleton : String -> Html msg -> Html msg
@@ -787,7 +802,7 @@ docs =
             , seed = Random.initialSeed 0
             }
     in
-    div [ padding "30px" ]
+    div [ class "p-8" ]
         [ viewBoard model
         ]
 
@@ -801,7 +816,8 @@ viewGameOver game =
     case isGameOver game of
         True ->
             div
-                [ class "area-1-1 grid gap-4 relative place-content-center place-items-center"
+                [ class "absolute inset-0"
+                , class "grid gap-4 place-content-center place-items-center"
                 , backgroundColor <| colorGlobalA 0.85
                 , roundedBorder
                 ]
@@ -839,13 +855,6 @@ border =
     style "border"
 
 
-viewBackgroundTiles : Html msg
-viewBackgroundTiles =
-    div
-        (boardStyles ++ [ backgroundColor <| colorBoardGap ])
-        (Grid.allPositions |> List.map viewBackgroundTile)
-
-
 viewBackgroundTile : Pos -> Html msg
 viewBackgroundTile pos =
     div
@@ -866,15 +875,6 @@ gridAreaFromPos pos =
     style "grid-area" (row ++ "/" ++ col)
 
 
-boardStyles =
-    [ paddingForTileAndBoard
-    , aspectSquare
-    , roundedBorder
-    , class "area-1-1 grid"
-    , style "grid-template" "repeat(4, 100px)/repeat(4, 100px)"
-    ]
-
-
 aspectSquare =
     class "aspect-square"
 
@@ -885,7 +885,7 @@ viewTile (Tile anim pos val) =
         [ displayGrid
         , paddingForTileAndBoard
         , aspectSquare
-        , class "area-1-1 animTileMove"
+        , class "row-start-1 col-start-1 animTileMove"
         , Html.Attributes.attribute "style"
             (tileMoveAnimStyleValue anim pos)
         ]
@@ -981,7 +981,8 @@ noAttr =
 
 
 roundedBorder =
-    style "border-radius" "8px"
+    --style "border-radius" "8px"
+    class "rounded-md"
 
 
 paddingForTileAndBoard =
