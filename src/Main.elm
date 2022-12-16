@@ -758,18 +758,14 @@ viewBoard game =
 
 viewTiles : Model -> Html Msg
 viewTiles game =
-    let
-        key =
-            getTrackedVDomResetKey game.trackedTiles
-
-        tiles =
-            game.trackedTiles
+    keyedSingleton
+        (getTrackedVDomResetKey game.trackedTiles)
+        (div boardStyles
+            (game.trackedTiles
                 |> getTrackedValue
-
-        tileViews =
-            List.map viewTile tiles
-    in
-    keyedSingleton key (div boardStyles tileViews)
+                |> List.map viewTile
+            )
+        )
 
 
 keyedSingleton : String -> Html msg -> Html msg
