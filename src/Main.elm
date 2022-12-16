@@ -649,17 +649,34 @@ viewTotalScoreWithDelta (Score _ total maybeDelta) =
     in
     div [ minWidth "6ch", textAlignCenter ]
         [ lbl "SCORE"
-        , div [ positionRelative ]
-            [ div [] [ viewScoreText totalString ]
-            , keyedSingleton resetAnimKey (maybeDelta |> viewMaybe viewScoreDelta)
+        , div [ class "relative" ]
+            [ viewScoreText totalString
+            , keyedSingleton resetAnimKey (viewMaybeScoreDelta maybeDelta)
             ]
         ]
 
 
+viewMaybeScoreDelta : Maybe Int -> Html msg
+viewMaybeScoreDelta maybeDelta =
+    let
+        string =
+            case maybeDelta of
+                Nothing ->
+                    ""
+
+                Just i ->
+                    "+" ++ String.fromInt i
+    in
+    div
+        [ class "absolute inset-0 w-full"
+        , class "animFadeUpScoreDelta"
+        ]
+        [ viewScoreText string ]
+
+
 viewScoreText t =
     --div [ style "display" "inline", fontSize "1.6rem" ] [ text t ]
-    --span [ class "text-3xl" ] [ text t ]
-    span [ class "text-2xl" ] [ text t ]
+    div [ class "inline-block text-2xl" ] [ text t ]
 
 
 minWidth =
@@ -668,10 +685,6 @@ minWidth =
 
 textAlignCenter =
     style "text-align" "center"
-
-
-positionRelative =
-    style "position" "relative"
 
 
 viewHiScore : Score -> Html msg
@@ -730,21 +743,10 @@ viewMaybe fn mb =
 viewScoreDelta : Int -> Html msg
 viewScoreDelta scoreDelta =
     div
-        [ positionAbsolute
-        , style "top" "0"
-        , style "left" "0"
-        , width100
+        [ class "absolute inset-0 w-full"
         , class "animFadeUpScoreDelta"
         ]
         [ viewScoreText <| "+" ++ String.fromInt scoreDelta ]
-
-
-positionAbsolute =
-    style "position" "absolute"
-
-
-width100 =
-    style "width" "100%"
 
 
 viewBoard : Model -> Html Msg
