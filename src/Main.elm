@@ -840,15 +840,11 @@ btnFocused msg string =
 
 buttonStyles =
     [ class "px-3 py-1"
+    , class "border border-slate-500"
     , backgroundColor <| colorGlobal
-    , border ("1px solid " ++ colorButtonBorder)
     , roundedBorder
     , placeSelfCenter
     ]
-
-
-border =
-    style "border"
 
 
 viewBackgroundTile : Pos -> Html msg
