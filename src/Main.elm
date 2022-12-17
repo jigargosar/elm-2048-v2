@@ -730,8 +730,8 @@ viewBoard game =
         , aspectSquare
         , roundedBorder
         , class "grid relative"
-        , class "grid-cols-[repeat(4,100px)]"
-        , class "grid-rows-[repeat(4,100px)]"
+        , class "grid-cols-[repeat(4,5rem)]"
+        , class "grid-rows-[repeat(4,5rem)]"
         , backgroundColor <| colorBoardGap
         ]
         [ viewBackgroundTiles
