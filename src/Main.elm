@@ -606,12 +606,8 @@ view model =
         [ onPointerDown GotPointerEvent
         , onPointerUp GotPointerEvent
         , onPointerCancel GotPointerEvent
-        , style "user-select" "none"
-        , style "touch-action" "pinch-zoom"
-        , style "min-height" "100%"
-        , style "min-width" "100%"
-        , displayGrid
-        , placeItemsCenter
+        , class "h-full select-none touch-pinch-zoom"
+        , class "grid place-items-center"
         ]
         [ viewGame model
         ]
@@ -1019,10 +1015,6 @@ placeContentCenter =
 
 placeSelfCenter =
     class "place-self-center"
-
-
-placeItemsCenter =
-    class "place-items-center"
 
 
 
