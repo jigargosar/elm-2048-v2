@@ -698,15 +698,7 @@ viewHiScore (Score hi _ _) =
 
 
 lbl s =
-    div [ color <| colorDull ] [ text s ]
-
-
-color =
-    style "color"
-
-
-colorDull =
-    hsl 0 0 0.7
+    div [ class "text-slate-400" ] [ text s ]
 
 
 hsl h s l =
