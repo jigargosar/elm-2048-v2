@@ -716,7 +716,7 @@ viewBoard game =
         , class "grid relative"
         , class "grid-cols-[repeat(4,5rem)]"
         , class "grid-rows-[repeat(4,5rem)]"
-        , class "bg-neutral-900"
+        , bgBoard
         ]
         [ viewBackgroundTiles
         , viewTiles game.trackedTiles
@@ -733,11 +733,6 @@ viewTiles trackedTiles =
                 |> List.map viewTile
             )
         )
-
-
-viewBackgroundTiles : Html msg
-viewBackgroundTiles =
-    div [ class "contents" ] (List.map viewBackgroundTile Grid.allPositions)
 
 
 keyedSingleton : String -> Html msg -> Html msg
@@ -805,6 +800,12 @@ buttonStyles =
     ]
 
 
+viewBackgroundTiles : Html msg
+viewBackgroundTiles =
+    div [ class "contents" ]
+        (List.map viewBackgroundTile Grid.allPositions)
+
+
 viewBackgroundTile : Pos -> Html msg
 viewBackgroundTile pos =
     div
@@ -813,8 +814,16 @@ viewBackgroundTile pos =
         , aspectSquare
         , gridAreaFromPos pos
         ]
-        [ div [ roundedBorder, class "bg-slate-800" ] []
+        [ div [ roundedBorder, bgTile ] []
         ]
+
+
+bgBoard =
+    class "bg-slate-900"
+
+
+bgTile =
+    class "bg-slate-800"
 
 
 gridAreaFromPos pos =
