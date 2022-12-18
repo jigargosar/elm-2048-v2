@@ -671,7 +671,6 @@ viewMaybeScoreDelta maybeDelta =
 
 
 viewScoreText t =
-    --div [ style "display" "inline", fontSize "1.6rem" ] [ text t ]
     div [ class "inline-block text-2xl" ] [ text t ]
 
 
