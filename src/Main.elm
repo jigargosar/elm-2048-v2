@@ -309,6 +309,7 @@ init flags =
               , swipe = NotStarted
               , seed = initialSeed
               }
+                |> makeRandomMoves
             , Cmd.none
             )
 
@@ -706,18 +707,6 @@ hsl h s l =
         ++ "%)"
 
 
-hsla h s l a =
-    "hsl("
-        ++ String.fromFloat h
-        ++ "deg "
-        ++ String.fromFloat (s * 100)
-        ++ "% "
-        ++ String.fromFloat (l * 100)
-        ++ "%/"
-        ++ String.fromFloat a
-        ++ ")"
-
-
 viewBoard : Model -> Html Msg
 viewBoard game =
     div
@@ -784,7 +773,7 @@ viewGameOver game =
             div
                 [ class "absolute inset-0"
                 , class "grid gap-4 place-content-center place-items-center"
-                , backgroundColor <| colorGlobalA 0.85
+                , class "bg-dark1/[0.85]"
                 , roundedBorder
                 ]
                 [ div [ class "text-5xl" ] [ text "Game Over!" ]
@@ -810,8 +799,7 @@ btnFocused msg string =
 
 buttonStyles =
     [ class "px-3 py-1"
-    , class "border border-slate-600"
-    , backgroundColor <| colorGlobal
+    , class "border bg-dark1 border-slate-600"
     , roundedBorder
     , placeSelfCenter
     ]
@@ -951,14 +939,6 @@ roundedBorder =
 paddingForTileAndBoard =
     --padding "8px"
     class "p-1.5"
-
-
-colorGlobal =
-    colorGlobalA 1
-
-
-colorGlobalA a =
-    hsla 0 0 0.13 a
 
 
 colorBoard =
