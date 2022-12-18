@@ -958,7 +958,7 @@ bgcVal4 =
 
 
 bgcValMax =
-    class "bg-neutral-900"
+    class "bg-purple-800"
 
 
 tileBgColor val =
