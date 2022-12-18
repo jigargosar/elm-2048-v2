@@ -957,8 +957,8 @@ bgcVal4 =
     class "bg-slate-500"
 
 
-colorMaxVal =
-    hsl 0 0 0.1
+bgcValMax =
+    class "bg-neutral-900"
 
 
 tileBgColor val =
@@ -974,10 +974,16 @@ tileBgColor val =
             bgcVal4
 
         threePlus ->
-            valColorList
-                |> listGetAt (threePlus - 3)
-                |> Maybe.withDefault colorMaxVal
-                |> backgroundColor
+            case valColorFromIndex threePlus of
+                Nothing ->
+                    bgcValMax
+
+                Just c ->
+                    backgroundColor c
+
+
+valColorFromIndex i =
+    valColorList |> listGetAt (i - 3)
 
 
 listGetAt i =
