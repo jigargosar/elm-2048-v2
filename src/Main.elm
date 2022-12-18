@@ -976,12 +976,9 @@ tileBgColor val =
 
         threePlus ->
             valColorList
-                |> listGetAtOr colorMaxVal (threePlus - 3)
+                |> listGetAt (threePlus - 3)
+                |> Maybe.withDefault colorMaxVal
                 |> backgroundColor
-
-
-listGetAtOr default i =
-    listGetAt i >> Maybe.withDefault default
 
 
 listGetAt i =
