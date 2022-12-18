@@ -10,9 +10,9 @@
     "defaults and supports es6-module and supports css-grid"
   ],
   "devDependencies": {
-    "@parcel/transformer-elm": "^2.8.0",
+    "@parcel/transformer-elm": "^2.8.2",
     "elm-tooling": "^1.10.0",
-    "parcel": "^2.8.0",
+    "parcel": "^2.8.2",
     "postcss": "^8.4.20",
     "tailwindcss": "^3.2.4"
   },

@@ -773,7 +773,7 @@ viewGameOver game =
             div
                 [ class "absolute inset-0"
                 , class "grid gap-4 place-content-center place-items-center"
-                , class "bg-dark1/[0.85]"
+                , class "bg-slate-800/90"
                 , roundedBorder
                 ]
                 [ div [ class "text-5xl" ] [ text "Game Over!" ]
@@ -799,7 +799,7 @@ btnFocused msg string =
 
 buttonStyles =
     [ class "px-3 py-1"
-    , class "border bg-dark1 border-slate-600"
+    , class "border bg-slate-800 border-slate-600"
     , roundedBorder
     , placeSelfCenter
     ]
@@ -813,7 +813,7 @@ viewBackgroundTile pos =
         , aspectSquare
         , gridAreaFromPos pos
         ]
-        [ div [ roundedBorder, class "bg-dark1" ] []
+        [ div [ roundedBorder, class "bg-slate-800" ] []
         ]
 
 
