@@ -810,7 +810,7 @@ btnFocused msg string =
 
 buttonStyles =
     [ class "px-3 py-1"
-    , class "border border-slate-400"
+    , class "border border-slate-600"
     , backgroundColor <| colorGlobal
     , roundedBorder
     , placeSelfCenter
