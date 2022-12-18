@@ -950,12 +950,12 @@ bgTile =
     class "bg-slate-800"
 
 
-colorVal2 =
-    hsl 0 0 0.32
+bgVal2 =
+    class "bg-slate-600"
 
 
-colorVal4 =
-    hsl 0 0 0.47
+bgVal4 =
+    class "bg-slate-500"
 
 
 colorMaxVal =
@@ -969,21 +969,34 @@ tileBgColor val =
     in
     case index of
         1 ->
-            class "bg-slate-600"
+            bgVal2
 
         2 ->
-            class "bg-slate-500"
+            bgVal4
 
         threePlus ->
-            List.drop (threePlus - 3) valColorList
-                |> List.head
-                |> Maybe.withDefault colorMaxVal
+            valColorList
+                |> listGetAtOr colorMaxVal (threePlus - 3)
                 |> backgroundColor
+
+
+listGetAtOr default i =
+    listGetAt i >> Maybe.withDefault default
+
+
+listGetAt i =
+    List.drop i >> List.head
 
 
 valColorList =
     List.range 0 7
-        |> List.map (\i -> i * -15 + 36 |> modBy 360 |> toFloat |> (\h -> hsl h 0.88 0.4))
+        |> List.map
+            (\i ->
+                (i * -15 + 36)
+                    |> modBy 360
+                    |> toFloat
+                    |> (\h -> hsl h 0.88 0.4)
+            )
 
 
 displayGrid =
