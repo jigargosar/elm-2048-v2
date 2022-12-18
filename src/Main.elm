@@ -716,7 +716,7 @@ viewBoard game =
         , class "grid relative"
         , class "grid-cols-[repeat(4,5rem)]"
         , class "grid-rows-[repeat(4,5rem)]"
-        , backgroundColor <| colorBoardGap
+        , class "bg-neutral-900"
         ]
         [ viewBackgroundTiles
         , viewTiles game.trackedTiles
@@ -813,7 +813,7 @@ viewBackgroundTile pos =
         , aspectSquare
         , gridAreaFromPos pos
         ]
-        [ div [ roundedBorder, backgroundColor <| colorBoard ] []
+        [ div [ roundedBorder, class "bg-dark1" ] []
         ]
 
 
@@ -939,14 +939,6 @@ roundedBorder =
 paddingForTileAndBoard =
     --padding "8px"
     class "p-1.5"
-
-
-colorBoard =
-    hsl 0 0 0.17
-
-
-colorBoardGap =
-    hsl 0 0 0.22
 
 
 colorVal2 =
