@@ -818,14 +818,6 @@ viewBackgroundTile pos =
         ]
 
 
-bgBoard =
-    class "bg-slate-900"
-
-
-bgTile =
-    class "bg-slate-800"
-
-
 gridAreaFromPos pos =
     let
         ( col, row ) =
@@ -950,6 +942,14 @@ paddingForTileAndBoard =
     class "p-1.5"
 
 
+bgBoard =
+    class "bg-slate-900"
+
+
+bgTile =
+    class "bg-slate-800"
+
+
 colorVal2 =
     hsl 0 0 0.32
 
@@ -963,21 +963,22 @@ colorMaxVal =
 
 
 tileBgColor val =
-    backgroundColor (tileBgColorFromIndex (Val.toIndex val))
-
-
-tileBgColorFromIndex index =
+    let
+        index =
+            Val.toIndex val
+    in
     case index of
         1 ->
-            colorVal2
+            class "bg-slate-600"
 
         2 ->
-            colorVal4
+            class "bg-slate-500"
 
         threePlus ->
             List.drop (threePlus - 3) valColorList
                 |> List.head
                 |> Maybe.withDefault colorMaxVal
+                |> backgroundColor
 
 
 valColorList =
