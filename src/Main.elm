@@ -716,7 +716,7 @@ viewBoard game =
         , class "grid relative"
         , class "grid-cols-[repeat(4,5rem)]"
         , class "grid-rows-[repeat(4,5rem)]"
-        , bgBoard
+        , bgcBoard
         ]
         [ viewBackgroundTiles
         , viewTiles game.trackedTiles
@@ -794,9 +794,10 @@ btnFocused msg string =
 
 buttonStyles =
     [ class "px-3 py-1"
-    , class "border bg-slate-800 border-slate-600"
+    , class "bg-slate-800"
+    , class "border border-slate-600"
     , roundedBorder
-    , placeSelfCenter
+    , class "place-self-center"
     ]
 
 
@@ -809,12 +810,12 @@ viewBackgroundTiles =
 viewBackgroundTile : Pos -> Html msg
 viewBackgroundTile pos =
     div
-        [ displayGrid
+        [ class "grid"
         , paddingForTileAndBoard
         , aspectSquare
         , gridAreaFromPos pos
         ]
-        [ div [ roundedBorder, bgTile ] []
+        [ div [ roundedBorder, bgcTile ] []
         ]
 
 
@@ -833,20 +834,18 @@ aspectSquare =
 viewTile : Tile -> Html msg
 viewTile (Tile anim pos val) =
     div
-        [ displayGrid
-        , paddingForTileAndBoard
+        [ paddingForTileAndBoard
         , aspectSquare
-        , class "row-start-1 col-start-1 animTileMove"
+        , class "grid row-start-1 col-start-1 animTileMove"
         , Html.Attributes.attribute "style"
             (tileMoveAnimStyleValue anim pos)
         ]
         [ div
-            [ displayGrid
-            , tileBgColor val
+            [ tileBgColor val
             , roundedBorder
-            , placeContentCenter
             , valFontSize val
             , tileEnterAnimation anim
+            , class "grid place-content-center"
             ]
             [ text <| Val.toDisplayString val ]
         ]
@@ -942,19 +941,19 @@ paddingForTileAndBoard =
     class "p-1.5"
 
 
-bgBoard =
+bgcBoard =
     class "bg-slate-900"
 
 
-bgTile =
+bgcTile =
     class "bg-slate-800"
 
 
-bgVal2 =
+bgcVal2 =
     class "bg-slate-600"
 
 
-bgVal4 =
+bgcVal4 =
     class "bg-slate-500"
 
 
@@ -969,10 +968,10 @@ tileBgColor val =
     in
     case index of
         1 ->
-            bgVal2
+            bgcVal2
 
         2 ->
-            bgVal4
+            bgcVal4
 
         threePlus ->
             valColorList
@@ -994,18 +993,6 @@ valColorList =
                     |> toFloat
                     |> (\h -> hsl h 0.88 0.4)
             )
-
-
-displayGrid =
-    class "grid"
-
-
-placeContentCenter =
-    class "place-content-center"
-
-
-placeSelfCenter =
-    class "place-self-center"
 
 
 
