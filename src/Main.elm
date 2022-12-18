@@ -309,7 +309,7 @@ init flags =
               , swipe = NotStarted
               , seed = initialSeed
               }
-                |> makeRandomMoves
+              --|> makeRandomMoves
             , Cmd.none
             )
 
