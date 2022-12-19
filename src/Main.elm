@@ -985,6 +985,7 @@ tileBgColor val =
         2 ->
             bgcVal4
 
+        --10 -> bgcVal4
         threePlus ->
             case valColorFromIndex threePlus of
                 Nothing ->
