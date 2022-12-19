@@ -730,9 +730,21 @@ viewTiles trackedTiles =
         (div [ class "contents" ]
             (trackedTiles
                 |> getTrackedValue
+                |> always (firstNTiles 13)
                 |> List.map viewTile
             )
         )
+
+
+
+--noinspection ElmUnusedSymbol
+
+
+firstNTiles : Int -> List Tile
+firstNTiles n =
+    List.map2 (Tile InitialEnter)
+        Grid.allPositions
+        (Val.firstN n)
 
 
 keyedSingleton : String -> Html msg -> Html msg
