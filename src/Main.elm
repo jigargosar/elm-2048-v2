@@ -309,7 +309,7 @@ init flags =
               , swipe = NotStarted
               , seed = initialSeed
               }
-              --|> makeRandomMoves
+              --|> makeRandomMoves Debug.toString
             , Cmd.none
             )
 
@@ -522,8 +522,8 @@ directionFromVector ( dx, dy ) =
 --noinspection ElmUnusedSymbol
 
 
-makeRandomMoves : Model -> Model
-makeRandomMoves game =
+makeRandomMoves : x -> Model -> Model
+makeRandomMoves _ game =
     List.repeat 100 [ Left, Right, Up, Down ]
         |> List.concat
         |> List.foldl (\dir -> move dir >> Tuple.first) game
@@ -730,7 +730,7 @@ viewTiles trackedTiles =
         (div [ class "contents" ]
             (trackedTiles
                 |> getTrackedValue
-                |> always (firstNTiles 13)
+                |> always (firstNTiles Debug.toString 13)
                 |> List.map viewTile
             )
         )
@@ -740,8 +740,8 @@ viewTiles trackedTiles =
 --noinspection ElmUnusedSymbol
 
 
-firstNTiles : Int -> List Tile
-firstNTiles n =
+firstNTiles : x -> Int -> List Tile
+firstNTiles _ n =
     List.map2 (Tile InitialEnter)
         Grid.allPositions
         (Val.firstN n)
