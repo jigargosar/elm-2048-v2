@@ -15,6 +15,7 @@ module FourByFourGrid exposing
     , posDecoder
     , posEncoder
     , posToInt
+    , toRows
     )
 
 import Json.Decode as D exposing (Decoder)
@@ -192,6 +193,16 @@ updateRowAsReversedList fn =
 mapRows : (Row a -> Row b) -> Grid a -> Grid b
 mapRows fn (Grid rows) =
     Vector4.map fn rows |> Grid
+
+
+toRows : Grid a -> List (List ( Pos, Maybe a ))
+toRows (Grid rows) =
+    Vector4.toIndexedList rows
+        |> List.map
+            (\( y, r ) ->
+                Vector4.toIndexedList r
+                    |> List.map (\( x, a ) -> ( ( x, y ), a ))
+            )
 
 
 rowToReversedList : Row a -> List a

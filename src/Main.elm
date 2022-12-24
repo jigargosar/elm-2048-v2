@@ -2,6 +2,7 @@ port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
+import Dict
 import FourByFourGrid as Grid exposing (Grid, Pos)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, style)
@@ -543,9 +544,71 @@ saveState game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    tilesGrid (getTrackedValue game.trackedTiles)
-        |> gridAttemptMove dir
-        |> Maybe.map (updateGameFromMergedGrid game)
+    if dir == Left then
+        List.filterMap tileEntryInPlay (getTrackedValue game.trackedTiles)
+            |> tilesAttemptMoveLeft
+            |> Maybe.map (Grid.fromEntries >> updateGameFromMergedGrid game)
+
+    else
+        tilesGrid (getTrackedValue game.trackedTiles)
+            |> gridAttemptMove dir
+            |> Maybe.map (updateGameFromMergedGrid game)
+
+
+tilesAttemptMoveLeft : List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
+tilesAttemptMoveLeft entries =
+    let
+        stayedEntries : List ( Pos, Merged )
+        stayedEntries =
+            List.map (Tuple.mapSecond Stayed) entries
+
+        mergedEntries : List ( Pos, Merged )
+        mergedEntries =
+            entries
+                |> Grid.fromEntries
+                |> Grid.toRows
+                |> List.concatMap slideAndMergeLeft
+    in
+    if areEntriesEqual stayedEntries mergedEntries then
+        Nothing
+
+    else
+        Just mergedEntries
+
+
+areEntriesEqual : List ( Pos, a ) -> List ( Pos, a ) -> Bool
+areEntriesEqual a b =
+    let
+        toDict =
+            List.foldl (\( k, v ) -> Dict.insert (Grid.posToInt k) v) Dict.empty
+    in
+    toDict a == toDict b
+
+
+slideAndMergeLeft : List ( Pos, Maybe Tile ) -> List ( Pos, Merged )
+slideAndMergeLeft entries =
+    let
+        ( positions, mbTiles ) =
+            List.unzip entries
+
+        tiles =
+            List.filterMap identity mbTiles
+
+        step a acc =
+            case acc of
+                (Stayed b) :: rest ->
+                    if tileEqByVal a b then
+                        Merged a b :: rest
+
+                    else
+                        Stayed a :: acc
+
+                _ ->
+                    Stayed a :: acc
+    in
+    List.foldl step [] tiles
+        |> List.reverse
+        |> List.map2 Tuple.pair positions
 
 
 updateGameFromMergedGrid : Model -> Grid Merged -> Model
@@ -730,7 +793,7 @@ viewTiles trackedTiles =
         (div [ class "contents" ]
             (trackedTiles
                 |> getTrackedValue
-                |> always (firstNTiles Debug.toString 13)
+                --|> always (firstNTiles Debug.toString 13)
                 |> List.map viewTile
             )
         )
