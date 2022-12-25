@@ -101,8 +101,9 @@ indexDecoder =
 
 allPositions : List Pos
 allPositions =
-    indices
-        |> List.concatMap (\y -> indices |> List.map (\x -> ( x, y )))
+    List.concatMap
+        (\y -> List.map (\x -> ( x, y )) indices)
+        indices
 
 
 indices =
