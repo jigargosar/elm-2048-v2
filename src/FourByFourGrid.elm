@@ -15,10 +15,6 @@ import Json.Encode as E exposing (Value)
 import Vector4 exposing (Index(..), Vector4)
 
 
-type Grid a
-    = Grid (Rows a)
-
-
 type alias Rows a =
     Vector4 (Row a)
 
@@ -31,21 +27,19 @@ type alias Entry a =
     ( Pos, a )
 
 
-fromEntries : List (Entry a) -> Grid a
+fromEntries : List (Entry a) -> Rows a
 fromEntries =
     List.foldl insertEntry empty
 
 
-insertEntry : Entry a -> Grid a -> Grid a
-insertEntry ( ( x, y ), a ) (Grid rows) =
+insertEntry : Entry a -> Rows a -> Rows a
+insertEntry ( ( x, y ), a ) rows =
     Vector4.mapItem y (Vector4.mapItem x (always (Just a))) rows
-        |> Grid
 
 
-empty : Grid a
+empty : Rows a
 empty =
     Vector4.repeat (Vector4.repeat Nothing)
-        |> Grid
 
 
 type alias Index =
@@ -120,8 +114,8 @@ emptyPositions =
     fromEntries >> emptyPositionsHelp
 
 
-emptyPositionsHelp : Grid a -> List Pos
-emptyPositionsHelp (Grid rows) =
+emptyPositionsHelp : Rows a -> List Pos
+emptyPositionsHelp rows =
     Vector4.toIndexedList rows
         |> List.concatMap
             (\( y, row ) ->
@@ -149,8 +143,8 @@ toRows =
     fromEntries >> toRowsHelp
 
 
-toRowsHelp : Grid a -> List (List ( Pos, Maybe a ))
-toRowsHelp (Grid rows) =
+toRowsHelp : Rows a -> List (List ( Pos, Maybe a ))
+toRowsHelp rows =
     Vector4.toIndexedList rows
         |> List.map
             (\( y, r ) ->
@@ -164,8 +158,8 @@ toColumns =
     fromEntries >> toColumnsHelp
 
 
-toColumnsHelp : Grid a -> List (List ( Pos, Maybe a ))
-toColumnsHelp (Grid rows) =
+toColumnsHelp : Rows a -> List (List ( Pos, Maybe a ))
+toColumnsHelp rows =
     rows
         |> transpose
         |> Vector4.toIndexedList
