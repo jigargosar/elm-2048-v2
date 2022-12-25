@@ -12,38 +12,11 @@ module FourByFourGrid exposing
 
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
-import Vector4 exposing (Index(..), Vector4)
-
-
-type alias Rows a =
-    Vector4 (Row a)
-
-
-type alias Row a =
-    Vector4 (Maybe a)
+import Vector4 exposing (Index(..))
 
 
 type alias Entry a =
     ( Pos, a )
-
-
-fromEntries : List (Entry a) -> Rows a
-fromEntries =
-    List.foldl insertEntry empty
-
-
-insertEntry : Entry a -> Rows a -> Rows a
-insertEntry ( ( x, y ), a ) rows =
-    Vector4.mapItem y (Vector4.mapItem x (always (Just a))) rows
-
-
-empty : Rows a
-empty =
-    Vector4.repeat (Vector4.repeat Nothing)
-
-
-type alias Index =
-    Vector4.Index
 
 
 type alias Pos =
@@ -126,40 +99,48 @@ posToInt =
 
 toRows : List (Entry a) -> List (List ( Pos, Maybe a ))
 toRows =
-    fromEntries >> toRowsHelp
-
-
-toRowsHelp : Rows a -> List (List ( Pos, Maybe a ))
-toRowsHelp rows =
-    Vector4.toIndexedList rows
-        |> List.map
-            (\( y, r ) ->
-                Vector4.toIndexedList r
-                    |> List.map (\( x, a ) -> ( ( x, y ), a ))
-            )
+    groupEntries positionsRows
 
 
 toColumns : List (Entry a) -> List (List ( Pos, Maybe a ))
 toColumns =
-    fromEntries >> toColumnsHelp
+    groupEntries positionColumns
 
 
-toColumnsHelp : Rows a -> List (List ( Pos, Maybe a ))
-toColumnsHelp rows =
-    rows
-        |> transpose
-        |> Vector4.toIndexedList
-        |> List.map
-            (\( x, r ) ->
-                Vector4.toIndexedList r
-                    |> List.map (\( y, a ) -> ( ( x, y ), a ))
-            )
+positionsRows : List (List Pos)
+positionsRows =
+    List.map
+        (\y -> List.map (\x -> ( x, y )) indices)
+        indices
 
 
-transpose : Rows a -> Rows a
-transpose rows =
-    Vector4.map4 Vector4.from4
-        (Vector4.get Vector4.Index0 rows)
-        (Vector4.get Vector4.Index1 rows)
-        (Vector4.get Vector4.Index2 rows)
-        (Vector4.get Vector4.Index3 rows)
+positionColumns : List (List Pos)
+positionColumns =
+    positionsRows
+        |> List.map (List.map (\( x, y ) -> ( y, x )))
+
+
+groupEntries : List (List Pos) -> List ( Pos, a ) -> List (List ( Pos, Maybe a ))
+groupEntries positionLists entries =
+    let
+        valueAt : Pos -> Maybe a
+        valueAt pos =
+            findFirst (\entry -> pos == Tuple.first entry) entries
+                |> Maybe.map Tuple.second
+    in
+    positionLists
+        |> List.map (List.map (\pos -> ( pos, valueAt pos )))
+
+
+findFirst : (a -> Bool) -> List a -> Maybe a
+findFirst pred list =
+    case list of
+        [] ->
+            Nothing
+
+        h :: t ->
+            if pred h then
+                Just h
+
+            else
+                findFirst pred t
