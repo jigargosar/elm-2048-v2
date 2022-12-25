@@ -2,7 +2,7 @@ module FourByFourGrid exposing
     ( Entry
     , Pos
     , allPositions
-    , emptyPositions
+    , allPositionsExcept
     , posDecoder
     , posEncoder
     , posToInt
@@ -109,13 +109,8 @@ indices =
     Vector4.indices |> Vector4.toList
 
 
-emptyPositions : List (Entry a) -> List Pos
-emptyPositions =
-    List.map Tuple.first >> emptyPositionsHelp
-
-
-emptyPositionsHelp : List Pos -> List Pos
-emptyPositionsHelp positions =
+allPositionsExcept : List Pos -> List Pos
+allPositionsExcept positions =
     let
         notMember pos =
             List.member pos positions |> not

@@ -571,7 +571,7 @@ updateGameFromMergedEntries model mergedEntries =
             scoreAndTilesFromMergedEntries mergedEntries
 
         emptyPositions =
-            Grid.emptyPositions mergedEntries
+            Grid.allPositionsExcept (List.map Tuple.first mergedEntries)
 
         ( newTiles, seed ) =
             Random.step (randomTilesAfterMove emptyPositions) model.seed
