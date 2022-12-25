@@ -1,6 +1,5 @@
 module FourByFourGrid exposing
     ( Entry
-    , Grid
     , Pos
     , allPositions
     , emptyPositions

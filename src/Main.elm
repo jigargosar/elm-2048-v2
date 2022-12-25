@@ -3,7 +3,7 @@ port module Main exposing (docs, main)
 import Browser
 import Browser.Events
 import Dict
-import FourByFourGrid as Grid exposing (Grid, Pos)
+import FourByFourGrid as Grid exposing (Pos)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, style)
 import Html.Events exposing (onClick)
