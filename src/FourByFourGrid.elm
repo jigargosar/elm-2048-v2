@@ -111,26 +111,16 @@ indices =
 
 emptyPositions : List (Entry a) -> List Pos
 emptyPositions =
-    fromEntries >> emptyPositionsHelp
+    List.map Tuple.first >> emptyPositionsHelp
 
 
-emptyPositionsHelp : Rows a -> List Pos
-emptyPositionsHelp rows =
-    Vector4.toIndexedList rows
-        |> List.concatMap
-            (\( y, row ) ->
-                row
-                    |> Vector4.toIndexedList
-                    |> List.filterMap
-                        (\( x, mba ) ->
-                            case mba of
-                                Just _ ->
-                                    Nothing
-
-                                Nothing ->
-                                    Just ( x, y )
-                        )
-            )
+emptyPositionsHelp : List Pos -> List Pos
+emptyPositionsHelp positions =
+    let
+        notMember pos =
+            List.member pos positions |> not
+    in
+    List.filter notMember allPositions
 
 
 posToInt : Pos -> ( Int, Int )
