@@ -96,6 +96,18 @@ scoreAddDeltaHelp scoreDelta (Score hi total _) =
 -- TILE
 
 
+type Dir
+    = Left
+    | Right
+    | Up
+    | Down
+
+
+type Merged
+    = Merged Tile Tile
+    | Stayed Tile
+
+
 type Anim
     = InitialEnter
     | MergedExit Pos
@@ -160,86 +172,6 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
 
         Moved _ ->
             Just ( pos, tile )
-
-
-
--- GRID
-
-
-type Dir
-    = Left
-    | Right
-    | Up
-    | Down
-
-
-type Merged
-    = Merged Tile Tile
-    | Stayed Tile
-
-
-gridAttemptMove : Dir -> Grid Tile -> Maybe (Grid Merged)
-gridAttemptMove dir grid =
-    let
-        mergedGrid =
-            slideAndMergeInDir dir grid
-
-        unmergedGrid =
-            Grid.map Stayed grid
-    in
-    if mergedGrid == unmergedGrid then
-        Nothing
-
-    else
-        Just mergedGrid
-
-
-slideAndMergeInDir : Dir -> Grid Tile -> Grid Merged
-slideAndMergeInDir dir =
-    case dir of
-        Left ->
-            Grid.mapEachRowAsList mergeLeft
-
-        Right ->
-            Grid.mapEachRowAsReversedList mergeLeft
-
-        Up ->
-            Grid.mapEachColumnAsList mergeLeft
-
-        Down ->
-            Grid.mapEachColumnAsReversedList mergeLeft
-
-
-mergeLeft : List Tile -> List Merged
-mergeLeft =
-    let
-        step a acc =
-            case acc of
-                (Stayed b) :: rest ->
-                    if tileEqByVal a b then
-                        Merged a b :: rest
-
-                    else
-                        Stayed a :: acc
-
-                _ ->
-                    Stayed a :: acc
-    in
-    List.foldl step [] >> List.reverse
-
-
-gridIsAnyMovePossible : Grid Tile -> Bool
-gridIsAnyMovePossible grid =
-    if Grid.isFull grid then
-        let
-            isMovePossible dir =
-                gridAttemptMove dir grid /= Nothing
-        in
-        [ Up, Down, Left, Right ]
-            |> List.any isMovePossible
-
-    else
-        True
 
 
 
@@ -377,11 +309,6 @@ randomTake : Int -> List a -> Generator (List a)
 randomTake n list =
     Random.List.choices n list
         |> Random.map Tuple.first
-
-
-tilesGrid : List Tile -> Grid Tile
-tilesGrid =
-    List.filterMap tileEntryInPlay >> Grid.fromEntries
 
 
 tilesEncoder : List Tile -> Value
@@ -544,19 +471,18 @@ saveState game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    if dir == Left then
-        List.filterMap tileEntryInPlay (getTrackedValue game.trackedTiles)
-            |> tilesAttemptMoveLeft
-            |> Maybe.map (Grid.fromEntries >> updateGameFromMergedGrid game)
-
-    else
-        tilesGrid (getTrackedValue game.trackedTiles)
-            |> gridAttemptMove dir
-            |> Maybe.map (updateGameFromMergedGrid game)
+    tileEntriesInPlay game.trackedTiles
+        |> tilesAttemptMove dir
+        |> Maybe.map (Grid.fromEntries >> updateGameFromMergedGrid game)
 
 
-tilesAttemptMoveLeft : List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
-tilesAttemptMoveLeft entries =
+tileEntriesInPlay : Tracked (List Tile) -> List ( Pos, Tile )
+tileEntriesInPlay trackedTiles =
+    List.filterMap tileEntryInPlay (getTrackedValue trackedTiles)
+
+
+tilesAttemptMove : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
+tilesAttemptMove dir entries =
     let
         stayedEntries : List ( Pos, Merged )
         stayedEntries =
@@ -564,16 +490,49 @@ tilesAttemptMoveLeft entries =
 
         mergedEntries : List ( Pos, Merged )
         mergedEntries =
-            entries
-                |> Grid.fromEntries
-                |> Grid.toRows
-                |> List.concatMap slideAndMergeLeft
+            tilesSlideAndMergeInDir dir entries
     in
     if areEntriesEqual stayedEntries mergedEntries then
         Nothing
 
     else
         Just mergedEntries
+
+
+tilesIsAnyMovePossible : List ( Pos, Tile ) -> Bool
+tilesIsAnyMovePossible entries =
+    let
+        isMovePossible dir =
+            tilesAttemptMove dir entries /= Nothing
+    in
+    [ Up, Down, Left, Right ]
+        |> List.any isMovePossible
+
+
+tilesSlideAndMergeInDir : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
+tilesSlideAndMergeInDir dir entries =
+    case dir of
+        Left ->
+            entries
+                |> Grid.toRows
+                |> List.concatMap slideAndMergeLeft
+
+        Right ->
+            entries
+                |> Grid.toRows
+                |> List.map List.reverse
+                |> List.concatMap slideAndMergeLeft
+
+        Up ->
+            entries
+                |> Grid.toColumns
+                |> List.concatMap slideAndMergeLeft
+
+        Down ->
+            entries
+                |> Grid.toColumns
+                |> List.map List.reverse
+                |> List.concatMap slideAndMergeLeft
 
 
 areEntriesEqual : List ( Pos, a ) -> List ( Pos, a ) -> Bool
@@ -654,9 +613,8 @@ updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
 isGameOver : Model -> Bool
 isGameOver game =
     game.trackedTiles
-        |> getTrackedValue
-        |> tilesGrid
-        |> gridIsAnyMovePossible
+        |> tileEntriesInPlay
+        |> tilesIsAnyMovePossible
         |> not
 
 
