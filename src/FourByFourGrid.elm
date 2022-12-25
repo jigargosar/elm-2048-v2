@@ -23,55 +23,6 @@ type alias Pos =
     ( Index, Index )
 
 
-posEncoder : Pos -> Value
-posEncoder ( a, b ) =
-    E.list identity [ indexEncoder a, indexEncoder b ]
-
-
-posDecoder : Decoder Pos
-posDecoder =
-    D.map2 Tuple.pair (D.index 0 indexDecoder) (D.index 1 indexDecoder)
-
-
-indexEncoder : Index -> Value
-indexEncoder index =
-    case index of
-        Index0 ->
-            E.string "Index0"
-
-        Index1 ->
-            E.string "Index1"
-
-        Index2 ->
-            E.string "Index2"
-
-        Index3 ->
-            E.string "Index3"
-
-
-indexDecoder : Decoder Index
-indexDecoder =
-    let
-        get id =
-            case id of
-                "Index0" ->
-                    D.succeed Index0
-
-                "Index1" ->
-                    D.succeed Index1
-
-                "Index2" ->
-                    D.succeed Index2
-
-                "Index3" ->
-                    D.succeed Index3
-
-                _ ->
-                    D.fail ("unknown value for Index: " ++ id)
-    in
-    D.string |> D.andThen get
-
-
 allPositions : List Pos
 allPositions =
     List.concatMap
@@ -79,6 +30,7 @@ allPositions =
         indices
 
 
+indices : List Index
 indices =
     Vector4.indices |> Vector4.toList
 
@@ -144,3 +96,52 @@ findFirst pred list =
 
             else
                 findFirst pred t
+
+
+posEncoder : Pos -> Value
+posEncoder ( a, b ) =
+    E.list identity [ indexEncoder a, indexEncoder b ]
+
+
+posDecoder : Decoder Pos
+posDecoder =
+    D.map2 Tuple.pair (D.index 0 indexDecoder) (D.index 1 indexDecoder)
+
+
+indexEncoder : Index -> Value
+indexEncoder index =
+    case index of
+        Index0 ->
+            E.string "Index0"
+
+        Index1 ->
+            E.string "Index1"
+
+        Index2 ->
+            E.string "Index2"
+
+        Index3 ->
+            E.string "Index3"
+
+
+indexDecoder : Decoder Index
+indexDecoder =
+    let
+        get id =
+            case id of
+                "Index0" ->
+                    D.succeed Index0
+
+                "Index1" ->
+                    D.succeed Index1
+
+                "Index2" ->
+                    D.succeed Index2
+
+                "Index3" ->
+                    D.succeed Index3
+
+                _ ->
+                    D.fail ("unknown value for Index: " ++ id)
+    in
+    D.string |> D.andThen get
