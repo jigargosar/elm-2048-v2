@@ -99,7 +99,7 @@ posToInt =
 
 toRows : List (Entry a) -> List (List ( Pos, Maybe a ))
 toRows =
-    groupEntries positionsRows
+    groupEntries positionRows
 
 
 toColumns : List (Entry a) -> List (List ( Pos, Maybe a ))
@@ -107,8 +107,8 @@ toColumns =
     groupEntries positionColumns
 
 
-positionsRows : List (List Pos)
-positionsRows =
+positionRows : List (List Pos)
+positionRows =
     List.map
         (\y -> List.map (\x -> ( x, y )) indices)
         indices
@@ -116,7 +116,7 @@ positionsRows =
 
 positionColumns : List (List Pos)
 positionColumns =
-    positionsRows
+    positionRows
         |> List.map (List.map (\( x, y ) -> ( y, x )))
 
 
