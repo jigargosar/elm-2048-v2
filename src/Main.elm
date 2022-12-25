@@ -491,8 +491,11 @@ tilesAttemptMove dir entries =
         mergedEntries : List ( Pos, Merged )
         mergedEntries =
             tilesSlideAndMergeInDir dir entries
+
+        toDict =
+            List.foldl (\( k, v ) -> Dict.insert (Grid.posToInt k) v) Dict.empty
     in
-    if areEntriesEqual stayedEntries mergedEntries then
+    if toDict stayedEntries == toDict mergedEntries then
         Nothing
 
     else
@@ -533,15 +536,6 @@ tilesSlideAndMergeInDir dir entries =
                 |> Grid.toColumns
                 |> List.map List.reverse
                 |> List.concatMap slideAndMergeLeft
-
-
-areEntriesEqual : List ( Pos, a ) -> List ( Pos, a ) -> Bool
-areEntriesEqual a b =
-    let
-        toDict =
-            List.foldl (\( k, v ) -> Dict.insert (Grid.posToInt k) v) Dict.empty
-    in
-    toDict a == toDict b
 
 
 slideAndMergeLeft : List ( Pos, Maybe Tile ) -> List ( Pos, Merged )
