@@ -293,9 +293,9 @@ randomInitialTiles =
     randomTiles 2 InitialEnter Grid.allPositions
 
 
-randomTilesAfterMove : Grid a -> Generator (List Tile)
-randomTilesAfterMove grid =
-    randomTiles 1 NewDelayedEnter (Grid.emptyPositions grid)
+randomTilesAfterMove : List Pos -> Generator (List Tile)
+randomTilesAfterMove =
+    randomTiles 1 NewDelayedEnter
 
 
 randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
@@ -473,7 +473,7 @@ attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
     tileEntriesInPlay game.trackedTiles
         |> tilesAttemptMove dir
-        |> Maybe.map (Grid.fromEntries >> updateGameFromMergedGrid game)
+        |> Maybe.map (updateGameFromMergedEntries game)
 
 
 tileEntriesInPlay : Tracked (List Tile) -> List ( Pos, Tile )
@@ -564,14 +564,17 @@ slideAndMergeLeft entries =
         |> List.map2 Tuple.pair positions
 
 
-updateGameFromMergedGrid : Model -> Grid Merged -> Model
-updateGameFromMergedGrid model grid =
+updateGameFromMergedEntries : Model -> List ( Pos, Merged ) -> Model
+updateGameFromMergedEntries model mergedEntries =
     let
         ( scoreDelta, updatedTiles ) =
-            updateTiles grid
+            scoreAndTilesFromMergedEntries mergedEntries
+
+        emptyPositions =
+            Grid.emptyPositions mergedEntries
 
         ( newTiles, seed ) =
-            Random.step (randomTilesAfterMove grid) model.seed
+            Random.step (randomTilesAfterMove emptyPositions) model.seed
     in
     { score = scoreAddDelta scoreDelta model.score
     , trackedTiles = updateTracked (always (updatedTiles ++ newTiles)) model.trackedTiles
@@ -580,28 +583,27 @@ updateGameFromMergedGrid model grid =
     }
 
 
-updateTiles : Grid Merged -> ( Int, List Tile )
-updateTiles =
-    Grid.foldl updateTilesHelp ( 0, [] )
+scoreAndTilesFromMergedEntries : List ( Pos, Merged ) -> ( Int, List Tile )
+scoreAndTilesFromMergedEntries =
+    let
+        step ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
+            case merged of
+                Merged tile1 tile2 ->
+                    let
+                        mergedVal =
+                            tileNextVal tile1
+                    in
+                    ( Val.toScore mergedVal + scoreDeltaAcc
+                    , tileUpdate pos MergedExit tile1
+                        :: tileUpdate pos MergedExit tile2
+                        :: tileInit MergedEnter pos mergedVal
+                        :: tilesAcc
+                    )
 
-
-updateTilesHelp : ( Pos, Merged ) -> ( Int, List Tile ) -> ( Int, List Tile )
-updateTilesHelp ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
-    case merged of
-        Merged tile1 tile2 ->
-            let
-                mergedVal =
-                    tileNextVal tile1
-            in
-            ( Val.toScore mergedVal + scoreDeltaAcc
-            , tileUpdate pos MergedExit tile1
-                :: tileUpdate pos MergedExit tile2
-                :: tileInit MergedEnter pos mergedVal
-                :: tilesAcc
-            )
-
-        Stayed tile ->
-            ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
+                Stayed tile ->
+                    ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
+    in
+    List.foldl step ( 0, [] )
 
 
 isGameOver : Model -> Bool

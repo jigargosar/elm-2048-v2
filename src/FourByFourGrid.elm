@@ -4,8 +4,6 @@ module FourByFourGrid exposing
     , Pos
     , allPositions
     , emptyPositions
-    , foldl
-    , fromEntries
     , posDecoder
     , posEncoder
     , posToInt
@@ -47,13 +45,8 @@ insertEntry ( ( x, y ), a ) (Grid rows) =
 
 empty : Grid a
 empty =
-    Vector4.repeat emptyRow
+    Vector4.repeat (Vector4.repeat Nothing)
         |> Grid
-
-
-emptyRow : Row a
-emptyRow =
-    Vector4.repeat Nothing
 
 
 type alias Index =
@@ -123,8 +116,13 @@ indices =
     Vector4.indices |> Vector4.toList
 
 
-emptyPositions : Grid a -> List Pos
-emptyPositions (Grid rows) =
+emptyPositions : List (Entry a) -> List Pos
+emptyPositions =
+    fromEntries >> emptyPositionsHelp
+
+
+emptyPositionsHelp : Grid a -> List Pos
+emptyPositionsHelp (Grid rows) =
     Vector4.toIndexedList rows
         |> List.concatMap
             (\( y, row ) ->
@@ -186,22 +184,3 @@ transpose rows =
         (Vector4.get Vector4.Index1 rows)
         (Vector4.get Vector4.Index2 rows)
         (Vector4.get Vector4.Index3 rows)
-
-
-toEntries : Grid a -> List (Entry a)
-toEntries (Grid rows) =
-    Vector4.toIndexedList rows
-        |> List.concatMap
-            (\( y, row ) ->
-                row
-                    |> Vector4.toIndexedList
-                    |> List.filterMap
-                        (\( x, mba ) ->
-                            mba |> Maybe.map (\a -> ( ( x, y ), a ))
-                        )
-            )
-
-
-foldl : (Entry a -> b -> b) -> b -> Grid a -> b
-foldl fn acc =
-    toEntries >> List.foldl fn acc
