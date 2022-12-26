@@ -507,46 +507,23 @@ attemptSlideAndMerge dir entries =
 
 
 slideAndMerge : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
-slideAndMerge dir entries =
+slideAndMerge dir =
     case dir of
         Left ->
-            entries
-                |> Grid.toRows
-                |> List.concatMap slideLeftAndMergeRow
+            Grid.slideAndMapRow mergeRow
 
         Right ->
-            entries
-                |> Grid.toRows
-                |> List.map List.reverse
-                |> List.concatMap slideLeftAndMergeRow
+            Grid.slideAndMapReversedRow mergeRow
 
         Up ->
-            entries
-                |> Grid.toColumns
-                |> List.concatMap slideLeftAndMergeRow
+            Grid.slideAndMapColumn mergeRow
 
         Down ->
-            entries
-                |> Grid.toColumns
-                |> List.map List.reverse
-                |> List.concatMap slideLeftAndMergeRow
+            Grid.slideAndMapReversedColumn mergeRow
 
 
-slideLeftAndMergeRow : List ( Pos, Maybe Tile ) -> List ( Pos, Merged )
-slideLeftAndMergeRow entries =
-    let
-        ( positions, mbTiles ) =
-            List.unzip entries
-
-        tiles =
-            List.filterMap identity mbTiles
-    in
-    slideLeftAndMergeRowHelp tiles
-        |> List.map2 Tuple.pair positions
-
-
-slideLeftAndMergeRowHelp : List Tile -> List Merged
-slideLeftAndMergeRowHelp tiles =
+mergeRow : List Tile -> List Merged
+mergeRow tiles =
     let
         mergeWithPrev tile acc =
             case acc of

@@ -6,6 +6,10 @@ module FourByFourGrid exposing
     , posDecoder
     , posEncoder
     , posToInt
+    , slideAndMapColumn
+    , slideAndMapReversedColumn
+    , slideAndMapReversedRow
+    , slideAndMapRow
     , toColumns
     , toRows
     )
@@ -47,6 +51,37 @@ allPositionsExcept positions =
 posToInt : Pos -> ( Int, Int )
 posToInt =
     Tuple.mapBoth Vector4.indexToInt Vector4.indexToInt
+
+
+slideAndMapRow : (List a -> List b) -> List (Entry a) -> List (Entry b)
+slideAndMapRow fn =
+    toRows >> List.concatMap (slideAndMap fn)
+
+
+slideAndMapReversedRow : (List a -> List b) -> List (Entry a) -> List (Entry b)
+slideAndMapReversedRow fn =
+    toRows >> List.concatMap (List.reverse >> slideAndMap fn)
+
+
+slideAndMapColumn : (List a -> List b) -> List (Entry a) -> List (Entry b)
+slideAndMapColumn fn =
+    toColumns >> List.concatMap (slideAndMap fn)
+
+
+slideAndMapReversedColumn : (List a -> List b) -> List (Entry a) -> List (Entry b)
+slideAndMapReversedColumn fn =
+    toColumns >> List.concatMap (List.reverse >> slideAndMap fn)
+
+
+slideAndMap : (List a -> List b) -> List ( Pos, Maybe a ) -> List (Entry b)
+slideAndMap fn list =
+    let
+        ( positions, values ) =
+            List.unzip list
+                |> Tuple.mapSecond (List.filterMap identity)
+    in
+    fn values
+        |> List.map2 Tuple.pair positions
 
 
 toRows : List (Entry a) -> List (List ( Pos, Maybe a ))
