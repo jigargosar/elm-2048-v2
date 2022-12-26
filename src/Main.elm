@@ -259,7 +259,7 @@ init flags =
             , swipe = NotStarted
             , seed = seed
             }
-                |> saveState
+                |> withSave
                 |> addCmd (log errorString)
 
 
@@ -285,7 +285,7 @@ newGame model =
     , swipe = NotStarted
     , seed = seed
     }
-        |> saveState
+        |> withSave
 
 
 randomInitialTiles : Generator (List Tile)
@@ -460,19 +460,19 @@ makeRandomMoves _ game =
 move : Dir -> Model -> ( Model, Cmd Msg )
 move dir model =
     attemptMove dir model
-        |> Maybe.map saveState
+        |> Maybe.map withSave
         |> Maybe.withDefault ( model, Cmd.none )
 
 
-saveState : Model -> ( Model, Cmd msg )
-saveState game =
+withSave : Model -> ( Model, Cmd msg )
+withSave game =
     ( game, save <| E.encode 0 (savedEncoder game) )
 
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
     tileEntriesInPlay game.trackedTiles
-        |> tilesAttemptMove dir
+        |> tilesSlideAndMergeInDir dir
         |> Maybe.map (updateGameFromMergedEntries game)
 
 
@@ -481,8 +481,8 @@ tileEntriesInPlay trackedTiles =
     List.filterMap tileEntryInPlay (getTrackedValue trackedTiles)
 
 
-tilesAttemptMove : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
-tilesAttemptMove dir entries =
+tilesSlideAndMergeInDir : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
+tilesSlideAndMergeInDir dir entries =
     let
         stayedEntries : List ( Pos, Merged )
         stayedEntries =
@@ -490,7 +490,7 @@ tilesAttemptMove dir entries =
 
         mergedEntries : List ( Pos, Merged )
         mergedEntries =
-            tilesSlideAndMergeInDir dir entries
+            tilesSlideAndMergeInDirHelp dir entries
 
         toDict =
             List.foldl (\( k, v ) -> Dict.insert (Grid.posToInt k) v) Dict.empty
@@ -506,40 +506,40 @@ tilesIsAnyMovePossible : List ( Pos, Tile ) -> Bool
 tilesIsAnyMovePossible entries =
     let
         isMovePossible dir =
-            tilesAttemptMove dir entries /= Nothing
+            tilesSlideAndMergeInDir dir entries /= Nothing
     in
     [ Up, Down, Left, Right ]
         |> List.any isMovePossible
 
 
-tilesSlideAndMergeInDir : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
-tilesSlideAndMergeInDir dir entries =
+tilesSlideAndMergeInDirHelp : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
+tilesSlideAndMergeInDirHelp dir entries =
     case dir of
         Left ->
             entries
                 |> Grid.toRows
-                |> List.concatMap slideAndMergeLeft
+                |> List.concatMap slideLeftAndMergeRow
 
         Right ->
             entries
                 |> Grid.toRows
                 |> List.map List.reverse
-                |> List.concatMap slideAndMergeLeft
+                |> List.concatMap slideLeftAndMergeRow
 
         Up ->
             entries
                 |> Grid.toColumns
-                |> List.concatMap slideAndMergeLeft
+                |> List.concatMap slideLeftAndMergeRow
 
         Down ->
             entries
                 |> Grid.toColumns
                 |> List.map List.reverse
-                |> List.concatMap slideAndMergeLeft
+                |> List.concatMap slideLeftAndMergeRow
 
 
-slideAndMergeLeft : List ( Pos, Maybe Tile ) -> List ( Pos, Merged )
-slideAndMergeLeft entries =
+slideLeftAndMergeRow : List ( Pos, Maybe Tile ) -> List ( Pos, Merged )
+slideLeftAndMergeRow entries =
     let
         ( positions, mbTiles ) =
             List.unzip entries
