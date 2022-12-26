@@ -3,7 +3,7 @@ module Val exposing
     , decoder
     , encoder
     , firstN
-    , next
+    , merge
     , random
     , toDisplayString
     , toIndex
@@ -52,9 +52,13 @@ decoder =
         D.int
 
 
-next : Val -> Val
-next (Val i) =
-    Val (i + 1)
+merge : Val -> Val -> Maybe Val
+merge (Val v1) (Val v2) =
+    if v1 == v2 then
+        Just (Val (v1 + 1))
+
+    else
+        Nothing
 
 
 toDisplayString : Val -> String

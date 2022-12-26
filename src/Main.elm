@@ -104,7 +104,7 @@ type Dir
 
 
 type Merged
-    = Merged Tile Tile
+    = Merged Val Tile Tile
     | Stayed Tile
 
 
@@ -145,14 +145,18 @@ tileUpdate pos animFn (Tile _ oldPos val) =
     Tile (animFn oldPos) pos val
 
 
-tileEqByVal : Tile -> Tile -> Bool
-tileEqByVal (Tile _ _ v1) (Tile _ _ v2) =
-    v1 == v2
+tileMergeVal : Tile -> Tile -> Maybe Val
+tileMergeVal (Tile _ _ v1) (Tile _ _ v2) =
+    Val.merge v1 v2
 
 
-tileNextVal : Tile -> Val
-tileNextVal (Tile _ _ val) =
-    Val.next val
+tileMerge : Tile -> Tile -> Maybe Merged
+tileMerge t1 t2 =
+    tileMergeVal t1 t2
+        |> Maybe.map
+            (\mergedVal ->
+                Merged mergedVal t1 t2
+            )
 
 
 tileEntryInPlay : Tile -> Maybe ( Pos, Tile )
@@ -547,17 +551,18 @@ slideLeftAndMergeRow entries =
         tiles =
             List.filterMap identity mbTiles
 
-        step a acc =
+        mergeWithPrev tile acc =
             case acc of
-                (Stayed b) :: rest ->
-                    if tileEqByVal a b then
-                        Merged a b :: rest
-
-                    else
-                        Stayed a :: acc
+                (Stayed prevTile) :: rest ->
+                    tileMerge tile prevTile
+                        |> Maybe.map (\merged -> merged :: rest)
 
                 _ ->
-                    Stayed a :: acc
+                    Nothing
+
+        step tile acc =
+            mergeWithPrev tile acc
+                |> Maybe.withDefault (Stayed tile :: acc)
     in
     List.foldl step [] tiles
         |> List.reverse
@@ -588,15 +593,11 @@ scoreAndTilesFromMergedEntries =
     let
         step ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             case merged of
-                Merged tile1 tile2 ->
-                    let
-                        mergedVal =
-                            tileNextVal tile1
-                    in
-                    ( Val.toScore mergedVal + scoreDeltaAcc
+                Merged val tile1 tile2 ->
+                    ( Val.toScore val + scoreDeltaAcc
                     , tileUpdate pos MergedExit tile1
                         :: tileUpdate pos MergedExit tile2
-                        :: tileInit MergedEnter pos mergedVal
+                        :: tileInit MergedEnter pos val
                         :: tilesAcc
                     )
 
