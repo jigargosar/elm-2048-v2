@@ -563,39 +563,33 @@ updateGameFromMergedEntries model mergedEntries =
 
 scoreAndTilesFromMergedEntries : List ( Pos, Merged ) -> ( Int, List Tile )
 scoreAndTilesFromMergedEntries =
-    let
-        step ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
+    List.foldl
+        (\( pos, merged ) ( score, tiles ) ->
             case merged of
                 Merged val t1 t2 ->
-                    ( Val.toScore val + scoreDeltaAcc
+                    ( Val.toScore val + score
                     , tileUpdate pos MergedExit t1
                         :: tileUpdate pos MergedExit t2
                         :: tileInit MergedEnter pos val
-                        :: tilesAcc
+                        :: tiles
                     )
 
                 Stayed tile ->
-                    ( scoreDeltaAcc, tileUpdate pos Moved tile :: tilesAcc )
-    in
-    List.foldl step ( 0, [] )
+                    ( score, tileUpdate pos Moved tile :: tiles )
+        )
+        ( 0, [] )
 
 
 isGameOver : Model -> Bool
 isGameOver game =
     let
-        isAnyMovePossible : List ( Pos, Tile ) -> Bool
-        isAnyMovePossible entries =
-            let
-                isMovePossible dir =
-                    attemptSlideAndMerge dir entries /= Nothing
-            in
-            [ Up, Down, Left, Right ]
-                |> List.any isMovePossible
+        entries =
+            tileEntriesInPlay game.trackedTiles
+
+        notOk dir =
+            attemptSlideAndMerge dir entries == Nothing
     in
-    game.trackedTiles
-        |> tileEntriesInPlay
-        |> isAnyMovePossible
-        |> not
+    List.all notOk [ Up, Down, Left, Right ]
 
 
 
