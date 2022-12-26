@@ -506,8 +506,8 @@ slideAndMerge dir entries =
         Just mergedEntries
 
 
-tilesIsAnyMovePossible : List ( Pos, Tile ) -> Bool
-tilesIsAnyMovePossible entries =
+isAnyMovePossible : List ( Pos, Tile ) -> Bool
+isAnyMovePossible entries =
     let
         isMovePossible dir =
             slideAndMerge dir entries /= Nothing
@@ -617,7 +617,7 @@ isGameOver : Model -> Bool
 isGameOver game =
     game.trackedTiles
         |> tileEntriesInPlay
-        |> tilesIsAnyMovePossible
+        |> isAnyMovePossible
         |> not
 
 
