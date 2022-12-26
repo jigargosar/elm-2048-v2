@@ -476,7 +476,7 @@ withSave game =
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
     tileEntriesInPlay game.trackedTiles
-        |> slideAndMerge dir
+        |> attemptSlideAndMerge dir
         |> Maybe.map (updateGameFromMergedEntries game)
 
 
@@ -485,8 +485,8 @@ tileEntriesInPlay trackedTiles =
     List.filterMap tileEntryInPlay (getTrackedValue trackedTiles)
 
 
-slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
-slideAndMerge dir entries =
+attemptSlideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
+attemptSlideAndMerge dir entries =
     let
         stayedEntries : List ( Pos, Merged )
         stayedEntries =
@@ -494,7 +494,7 @@ slideAndMerge dir entries =
 
         mergedEntries : List ( Pos, Merged )
         mergedEntries =
-            slideAndMergeHelp dir entries
+            slideAndMerge dir entries
 
         toDict =
             List.foldl (\( k, v ) -> Dict.insert (Grid.posToInt k) v) Dict.empty
@@ -506,8 +506,8 @@ slideAndMerge dir entries =
         Just mergedEntries
 
 
-slideAndMergeHelp : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
-slideAndMergeHelp dir entries =
+slideAndMerge : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
+slideAndMerge dir entries =
     case dir of
         Left ->
             entries
@@ -610,7 +610,7 @@ isGameOver game =
         isAnyMovePossible entries =
             let
                 isMovePossible dir =
-                    slideAndMerge dir entries /= Nothing
+                    attemptSlideAndMerge dir entries /= Nothing
             in
             [ Up, Down, Left, Right ]
                 |> List.any isMovePossible
