@@ -125,6 +125,17 @@ tileInit anim pos val =
     Tile anim pos val
 
 
+tileDomResetKey : Tile -> String
+tileDomResetKey (Tile _ p v) =
+    let
+        ( x, y ) =
+            Grid.posToInt p
+    in
+    [ x, y, Val.toScore v ]
+        |> List.map String.fromInt
+        |> String.join ","
+
+
 tileEncoder : Tile -> Value
 tileEncoder (Tile _ p v) =
     E.list identity
@@ -179,40 +190,12 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
 
 
 
--- UPDATE TRACKER FOR V-DOM RESET
-
-
-type Tracked a
-    = Tracked Int a
-
-
-initTracked : a -> Tracked a
-initTracked a =
-    Tracked 1 a
-
-
-getTrackedValue : Tracked a -> a
-getTrackedValue (Tracked _ a) =
-    a
-
-
-updateTracked : (a -> a) -> Tracked a -> Tracked a
-updateTracked fn (Tracked i a) =
-    Tracked (i + 1) (fn a)
-
-
-getTrackedVDomResetKey : Tracked a -> String
-getTrackedVDomResetKey (Tracked i _) =
-    String.fromInt i
-
-
-
 -- GAME
 
 
 type alias Model =
     { score : Score
-    , trackedTiles : Tracked (List Tile)
+    , tiles : List Tile
     , swipe : Swipe
     , seed : Seed
     }
@@ -242,7 +225,7 @@ init flags =
     case decodeStringValue savedDecoder flags.state of
         Ok saved ->
             ( { score = saved.score
-              , trackedTiles = initTracked saved.tiles
+              , tiles = saved.tiles
               , swipe = NotStarted
               , seed = initialSeed
               }
@@ -259,7 +242,7 @@ init flags =
                     Random.step randomInitialTiles initialSeed
             in
             { score = scoreZero
-            , trackedTiles = initTracked tiles
+            , tiles = tiles
             , swipe = NotStarted
             , seed = seed
             }
@@ -285,7 +268,7 @@ newGame model =
             Random.step randomInitialTiles model.seed
     in
     { score = scoreReset model.score
-    , trackedTiles = updateTracked (always newTiles) model.trackedTiles
+    , tiles = newTiles
     , swipe = NotStarted
     , seed = seed
     }
@@ -333,7 +316,7 @@ type alias Saved =
 
 savedEncoder : Model -> Value
 savedEncoder model =
-    E.list identity [ scoreEncoder model.score, tilesEncoder (getTrackedValue model.trackedTiles) ]
+    E.list identity [ scoreEncoder model.score, tilesEncoder model.tiles ]
 
 
 savedDecoder : Decoder Saved
@@ -475,14 +458,14 @@ withSave game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    tileEntriesInPlay game.trackedTiles
+    tileEntriesInPlay game.tiles
         |> attemptSlideAndMerge dir
         |> Maybe.map (updateGameFromMergedEntries game)
 
 
-tileEntriesInPlay : Tracked (List Tile) -> List ( Pos, Tile )
-tileEntriesInPlay trackedTiles =
-    List.filterMap tileEntryInPlay (getTrackedValue trackedTiles)
+tileEntriesInPlay : List Tile -> List ( Pos, Tile )
+tileEntriesInPlay =
+    List.filterMap tileEntryInPlay
 
 
 attemptSlideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
@@ -555,7 +538,7 @@ updateGameFromMergedEntries model mergedEntries =
             Random.step (randomTilesAfterMove emptyPositions) model.seed
     in
     { score = scoreAddDelta scoreDelta model.score
-    , trackedTiles = updateTracked (always (updatedTiles ++ newTiles)) model.trackedTiles
+    , tiles = updatedTiles ++ newTiles
     , swipe = NotStarted
     , seed = seed
     }
@@ -584,7 +567,7 @@ isGameOver : Model -> Bool
 isGameOver game =
     let
         entries =
-            tileEntriesInPlay game.trackedTiles
+            tileEntriesInPlay game.tiles
 
         notOk dir =
             attemptSlideAndMerge dir entries == Nothing
@@ -714,17 +697,20 @@ viewBoard game =
         , bgcBoard
         ]
         [ viewBackgroundTiles
-        , viewTiles game.trackedTiles
+        , viewTiles game.tiles
         , viewGameOver game
         ]
 
 
-viewTiles : Tracked (List Tile) -> Html msg
-viewTiles trackedTiles =
-    keyedSingleton (getTrackedVDomResetKey trackedTiles)
+viewTiles : List Tile -> Html msg
+viewTiles tiles =
+    let
+        domResetKey =
+            tiles |> List.map tileDomResetKey |> String.join ","
+    in
+    keyedSingleton domResetKey
         (div [ class "contents" ]
-            (trackedTiles
-                |> getTrackedValue
+            (tiles
                 --|> always (firstNTiles Debug.toString 13)
                 |> List.map viewTile
             )
@@ -758,7 +744,7 @@ docs =
         model : Model
         model =
             { score = scoreZero
-            , trackedTiles = initTracked tiles
+            , tiles = tiles
             , swipe = NotStarted
             , seed = Random.initialSeed 0
             }
