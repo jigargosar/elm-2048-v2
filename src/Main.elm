@@ -476,7 +476,7 @@ withSave game =
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
     tileEntriesInPlay game.trackedTiles
-        |> tilesSlideAndMergeInDir dir
+        |> slideAndMerge dir
         |> Maybe.map (updateGameFromMergedEntries game)
 
 
@@ -485,8 +485,8 @@ tileEntriesInPlay trackedTiles =
     List.filterMap tileEntryInPlay (getTrackedValue trackedTiles)
 
 
-tilesSlideAndMergeInDir : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
-tilesSlideAndMergeInDir dir entries =
+slideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
+slideAndMerge dir entries =
     let
         stayedEntries : List ( Pos, Merged )
         stayedEntries =
@@ -494,7 +494,7 @@ tilesSlideAndMergeInDir dir entries =
 
         mergedEntries : List ( Pos, Merged )
         mergedEntries =
-            tilesSlideAndMergeInDirHelp dir entries
+            slideAndMergeHelp dir entries
 
         toDict =
             List.foldl (\( k, v ) -> Dict.insert (Grid.posToInt k) v) Dict.empty
@@ -510,14 +510,14 @@ tilesIsAnyMovePossible : List ( Pos, Tile ) -> Bool
 tilesIsAnyMovePossible entries =
     let
         isMovePossible dir =
-            tilesSlideAndMergeInDir dir entries /= Nothing
+            slideAndMerge dir entries /= Nothing
     in
     [ Up, Down, Left, Right ]
         |> List.any isMovePossible
 
 
-tilesSlideAndMergeInDirHelp : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
-tilesSlideAndMergeInDirHelp dir entries =
+slideAndMergeHelp : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
+slideAndMergeHelp dir entries =
     case dir of
         Left ->
             entries
@@ -550,7 +550,14 @@ slideLeftAndMergeRow entries =
 
         tiles =
             List.filterMap identity mbTiles
+    in
+    slideLeftAndMergeRowHelp tiles
+        |> List.map2 Tuple.pair positions
 
+
+slideLeftAndMergeRowHelp : List Tile -> List Merged
+slideLeftAndMergeRowHelp tiles =
+    let
         mergeWithPrev tile acc =
             case acc of
                 (Stayed prevTile) :: rest ->
@@ -566,7 +573,6 @@ slideLeftAndMergeRow entries =
     in
     List.foldl step [] tiles
         |> List.reverse
-        |> List.map2 Tuple.pair positions
 
 
 updateGameFromMergedEntries : Model -> List ( Pos, Merged ) -> Model
