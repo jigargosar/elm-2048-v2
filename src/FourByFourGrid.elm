@@ -10,8 +10,6 @@ module FourByFourGrid exposing
     , slideAndMapReversedColumn
     , slideAndMapReversedRow
     , slideAndMapRow
-    , toColumns
-    , toRows
     )
 
 import Json.Decode as D exposing (Decoder)
