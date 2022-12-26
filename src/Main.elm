@@ -566,10 +566,10 @@ scoreAndTilesFromMergedEntries =
     let
         step ( pos, merged ) ( scoreDeltaAcc, tilesAcc ) =
             case merged of
-                Merged val tile1 tile2 ->
+                Merged val t1 t2 ->
                     ( Val.toScore val + scoreDeltaAcc
-                    , tileUpdate pos MergedExit tile1
-                        :: tileUpdate pos MergedExit tile2
+                    , tileUpdate pos MergedExit t1
+                        :: tileUpdate pos MergedExit t2
                         :: tileInit MergedEnter pos val
                         :: tilesAcc
                     )
