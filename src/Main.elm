@@ -506,16 +506,6 @@ slideAndMerge dir entries =
         Just mergedEntries
 
 
-isAnyMovePossible : List ( Pos, Tile ) -> Bool
-isAnyMovePossible entries =
-    let
-        isMovePossible dir =
-            slideAndMerge dir entries /= Nothing
-    in
-    [ Up, Down, Left, Right ]
-        |> List.any isMovePossible
-
-
 slideAndMergeHelp : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
 slideAndMergeHelp dir entries =
     case dir of
@@ -615,6 +605,16 @@ scoreAndTilesFromMergedEntries =
 
 isGameOver : Model -> Bool
 isGameOver game =
+    let
+        isAnyMovePossible : List ( Pos, Tile ) -> Bool
+        isAnyMovePossible entries =
+            let
+                isMovePossible dir =
+                    slideAndMerge dir entries /= Nothing
+            in
+            [ Up, Down, Left, Right ]
+                |> List.any isMovePossible
+    in
     game.trackedTiles
         |> tileEntriesInPlay
         |> isAnyMovePossible
