@@ -2,7 +2,7 @@ port module Main exposing (docs, main)
 
 import Browser
 import Browser.Events
-import Dict
+import Dict exposing (Dict)
 import FourByFourGrid as Grid exposing (Pos)
 import Html exposing (..)
 import Html.Attributes exposing (autofocus, class, style)
@@ -104,29 +104,18 @@ type Dir
 
 
 type Merged
-    = Merged Val Tile Tile
-    | Stayed Tile
+    = Merged Pos Pos Val Val
+    | Stayed Pos Val
 
 
 type Anim
     = InitialEnter
-    | MergedExit Pos
     | MergedEnter
     | NewDelayedEnter
     | Moved Pos
 
 
-type Tile
-    = Tile Anim Pos Val
-
-
-tileInit : Anim -> Pos -> Val -> Tile
-tileInit anim pos val =
-    Tile anim pos val
-
-
-tileDomResetKey : Tile -> String
-tileDomResetKey (Tile _ p v) =
+tileDomResetKey ( p, _, v ) =
     let
         ( x, y ) =
             Grid.posToInt p
@@ -136,57 +125,17 @@ tileDomResetKey (Tile _ p v) =
         |> String.join ","
 
 
-tileEncoder : Tile -> Value
-tileEncoder (Tile _ p v) =
+tileEncoder ( p, _, v ) =
     E.list identity
         [ Grid.posEncoder p
         , Val.encoder v
         ]
 
 
-tileDecoder : Decoder Tile
 tileDecoder =
-    D.map2 (Tile InitialEnter)
+    D.map2 (\p v -> ( p, InitialEnter, v ))
         (D.index 0 Grid.posDecoder)
         (D.index 1 Val.decoder)
-
-
-tileUpdate : Pos -> (Pos -> Anim) -> Tile -> Tile
-tileUpdate pos animFn (Tile _ oldPos val) =
-    Tile (animFn oldPos) pos val
-
-
-tileMergeVal : Tile -> Tile -> Maybe Val
-tileMergeVal (Tile _ _ v1) (Tile _ _ v2) =
-    Val.merge v1 v2
-
-
-tileMerge : Tile -> Tile -> Maybe Merged
-tileMerge t1 t2 =
-    tileMergeVal t1 t2
-        |> Maybe.map
-            (\mergedVal ->
-                Merged mergedVal t1 t2
-            )
-
-
-tileEntryInPlay : Tile -> Maybe ( Pos, Tile )
-tileEntryInPlay ((Tile anim pos _) as tile) =
-    case anim of
-        InitialEnter ->
-            Just ( pos, tile )
-
-        MergedExit _ ->
-            Nothing
-
-        MergedEnter ->
-            Just ( pos, tile )
-
-        NewDelayedEnter ->
-            Just ( pos, tile )
-
-        Moved _ ->
-            Just ( pos, tile )
 
 
 
@@ -195,7 +144,8 @@ tileEntryInPlay ((Tile anim pos _) as tile) =
 
 type alias Model =
     { score : Score
-    , tiles : List Tile
+    , tiles : List ( Pos, Anim, Val )
+    , exits : List ( Pos, Pos, Val )
     , swipe : Swipe
     , seed : Seed
     }
@@ -226,6 +176,7 @@ init flags =
         Just (Ok saved) ->
             ( { score = saved.score
               , tiles = saved.tiles
+              , exits = []
               , swipe = NotStarted
               , seed = initialSeed
               }
@@ -240,6 +191,7 @@ init flags =
             in
             ( { score = scoreZero
               , tiles = []
+              , exits = []
               , swipe = NotStarted
               , seed = initialSeed
               }
@@ -253,6 +205,7 @@ init flags =
             in
             { score = scoreZero
             , tiles = tiles
+            , exits = []
             , swipe = NotStarted
             , seed = seed
             }
@@ -273,25 +226,23 @@ newGame model =
     in
     { score = scoreReset model.score
     , tiles = newTiles
+    , exits = []
     , swipe = NotStarted
     , seed = seed
     }
         |> withSave
 
 
-randomInitialTiles : Generator (List Tile)
 randomInitialTiles =
     randomTiles 2 InitialEnter Grid.allPositions
 
 
-randomTilesAfterMove : List Pos -> Generator (List Tile)
 randomTilesAfterMove =
     randomTiles 1 NewDelayedEnter
 
 
-randomTiles : Int -> Anim -> List Pos -> Generator (List Tile)
 randomTiles n anim emptyPositions =
-    Random.map2 (List.map2 (tileInit anim))
+    Random.map2 (List.map2 (\p v -> ( p, anim, v )))
         (randomTake n emptyPositions)
         (Random.list n Val.random)
 
@@ -302,19 +253,17 @@ randomTake n list =
         |> Random.map Tuple.first
 
 
-tilesEncoder : List Tile -> Value
 tilesEncoder tiles =
     E.list tileEncoder tiles
 
 
-tilesDecoder : Decoder (List Tile)
 tilesDecoder =
     D.list tileDecoder
 
 
 type alias Saved =
     { score : Score
-    , tiles : List Tile
+    , tiles : List ( Pos, Anim, Val )
     }
 
 
@@ -462,22 +411,22 @@ withSave game =
 
 attemptMove : Dir -> Model -> Maybe Model
 attemptMove dir game =
-    tileEntriesInPlay game.tiles
+    game
+        |> tileEntriesInPlay
         |> attemptSlideAndMerge dir
         |> Maybe.map (updateGameFromMergedEntries game)
 
 
-tileEntriesInPlay : List Tile -> List ( Pos, Tile )
-tileEntriesInPlay =
-    List.filterMap tileEntryInPlay
+tileEntriesInPlay game =
+    List.map (\( p, _, v ) -> ( p, v )) game.tiles
 
 
-attemptSlideAndMerge : Dir -> List ( Pos, Tile ) -> Maybe (List ( Pos, Merged ))
+attemptSlideAndMerge : Dir -> List ( Pos, Val ) -> Maybe (List ( Pos, Merged ))
 attemptSlideAndMerge dir entries =
     let
         stayedEntries : List ( Pos, Merged )
         stayedEntries =
-            List.map (Tuple.mapSecond Stayed) entries
+            List.map (\( p, v ) -> ( p, Stayed p v )) entries
 
         mergedEntries : List ( Pos, Merged )
         mergedEntries =
@@ -493,7 +442,7 @@ attemptSlideAndMerge dir entries =
         Just mergedEntries
 
 
-slideAndMerge : Dir -> List ( Pos, Tile ) -> List ( Pos, Merged )
+slideAndMerge : Dir -> List ( Pos, Val ) -> List ( Pos, Merged )
 slideAndMerge dir =
     case dir of
         Left ->
@@ -509,21 +458,21 @@ slideAndMerge dir =
             Grid.slideAndMapReversedColumn mergeRow
 
 
-mergeRow : List Tile -> List Merged
+mergeRow : List ( Pos, Val ) -> List Merged
 mergeRow tiles =
     let
-        mergeWithPrev tile acc =
+        mergeWithPrev pos val acc =
             case acc of
-                (Stayed prevTile) :: rest ->
-                    tileMerge tile prevTile
-                        |> Maybe.map (\merged -> merged :: rest)
+                (Stayed prevPos prevVal) :: rest ->
+                    Val.merge prevVal val
+                        |> Maybe.map (\merged -> Merged pos prevPos val merged :: rest)
 
                 _ ->
                     Nothing
 
-        step tile acc =
-            mergeWithPrev tile acc
-                |> Maybe.withDefault (Stayed tile :: acc)
+        step ( pos, val ) acc =
+            mergeWithPrev pos val acc
+                |> Maybe.withDefault (Stayed pos val :: acc)
     in
     List.foldl step [] tiles
         |> List.reverse
@@ -532,46 +481,50 @@ mergeRow tiles =
 updateGameFromMergedEntries : Model -> List ( Pos, Merged ) -> Model
 updateGameFromMergedEntries model mergedEntries =
     let
-        ( scoreDelta, updatedTiles ) =
+        ( scoreDelta, mergedTiles, exits ) =
             scoreAndTilesFromMergedEntries mergedEntries
 
         emptyPositions =
             Grid.allPositionsExcept (List.map Tuple.first mergedEntries)
 
-        ( newTiles, seed ) =
+        ( generatedTiles, seed ) =
             Random.step (randomTilesAfterMove emptyPositions) model.seed
     in
     { score = scoreAddDelta scoreDelta model.score
-    , tiles = updatedTiles ++ newTiles
+    , tiles = mergedTiles ++ generatedTiles
+    , exits = exits
     , swipe = NotStarted
     , seed = seed
     }
 
 
-scoreAndTilesFromMergedEntries : List ( Pos, Merged ) -> ( Int, List Tile )
+scoreAndTilesFromMergedEntries :
+    List ( Pos, Merged )
+    -> ( Int, List ( Pos, Anim, Val ), List ( Pos, Pos, Val ) )
 scoreAndTilesFromMergedEntries =
     List.foldl
-        (\( pos, merged ) ( score, tiles ) ->
+        (\( pos, merged ) ( score, tiles, exits ) ->
             case merged of
-                Merged val t1 t2 ->
-                    ( Val.toScore val + score
-                    , tileUpdate pos MergedExit t1
-                        :: tileUpdate pos MergedExit t2
-                        :: tileInit MergedEnter pos val
-                        :: tiles
+                Merged p1 p2 oldVal mergedVal ->
+                    ( Val.toScore mergedVal + score
+                    , ( pos, MergedEnter, mergedVal ) :: tiles
+                    , ( p1, p2, oldVal ) :: exits
                     )
 
-                Stayed tile ->
-                    ( score, tileUpdate pos Moved tile :: tiles )
+                Stayed oldPos val ->
+                    ( score
+                    , ( pos, Moved oldPos, val ) :: tiles
+                    , exits
+                    )
         )
-        ( 0, [] )
+        ( 0, [], [] )
 
 
 isGameOver : Model -> Bool
 isGameOver game =
     let
         entries =
-            tileEntriesInPlay game.tiles
+            tileEntriesInPlay game
 
         notOk dir =
             attemptSlideAndMerge dir entries == Nothing
@@ -701,22 +654,25 @@ viewBoard game =
         , bgcBoard
         ]
         [ viewBackgroundTiles
-        , viewTiles game.tiles
+        , viewTiles2 game
         , viewGameOver game
         ]
 
 
-viewTiles : List Tile -> Html msg
-viewTiles tiles =
+viewTiles2 : Model -> Html msg
+viewTiles2 model =
     let
         domResetKey =
-            tiles |> List.map tileDomResetKey |> String.join ","
+            model.tiles |> List.map tileDomResetKey |> String.join ","
     in
     keyedSingleton domResetKey
         (div [ class "contents" ]
-            (tiles
-                --|> always (firstNTiles Debug.toString 13)
-                |> List.map viewTile
+            ((model.exits
+                |> List.map viewExits
+             )
+                ++ (model.tiles
+                        |> List.map viewTile2
+                   )
             )
         )
 
@@ -725,9 +681,8 @@ viewTiles tiles =
 --noinspection ElmUnusedSymbol
 
 
-firstNTiles : x -> Int -> List Tile
 firstNTiles _ n =
-    List.map2 (Tile InitialEnter)
+    List.map2 (\p v -> ( p, InitialEnter, v ))
         Grid.allPositions
         (Val.firstN n)
 
@@ -741,7 +696,7 @@ docs : Html.Html Msg
 docs =
     let
         tiles =
-            List.map2 (Tile InitialEnter)
+            List.map2 (\p v -> ( p, InitialEnter, v ))
                 Grid.allPositions
                 (Val.firstN 12)
 
@@ -749,6 +704,7 @@ docs =
         model =
             { score = scoreZero
             , tiles = tiles
+            , exits = []
             , swipe = NotStarted
             , seed = Random.initialSeed 0
             }
@@ -828,8 +784,27 @@ aspectSquare =
     class "aspect-square"
 
 
-viewTile : Tile -> Html msg
-viewTile (Tile anim pos val) =
+viewExits : ( Pos, Pos, Val ) -> Html msg
+viewExits ( from, to, val ) =
+    div
+        [ paddingForTileAndBoard
+        , aspectSquare
+        , class "grid row-start-1 col-start-1 animTileMove"
+        , Html.Attributes.attribute "style"
+            (tileMoveFromToAnimStyleValue from to)
+        ]
+        [ div
+            [ tileBgColor val
+            , roundedBorder
+            , valFontSize val
+            , class "grid place-content-center"
+            ]
+            [ text <| Val.toDisplayString val ]
+        ]
+
+
+viewTile2 : ( Pos, Anim, Val ) -> Html msg
+viewTile2 ( pos, anim, val ) =
     div
         [ paddingForTileAndBoard
         , aspectSquare
@@ -853,7 +828,13 @@ tileMoveAnimStyleValue anim to =
     let
         from =
             tileAnimStartPos anim |> Maybe.withDefault to
+    in
+    tileMoveFromToAnimStyleValue from to
 
+
+tileMoveFromToAnimStyleValue : Pos -> Pos -> String
+tileMoveFromToAnimStyleValue from to =
+    let
         toCssPropValue pos =
             pos |> Grid.posToInt |> mapJoinTuple to100Pct ","
     in
@@ -892,9 +873,6 @@ tileAnimStartPos anim =
         InitialEnter ->
             Nothing
 
-        MergedExit from ->
-            Just from
-
         MergedEnter ->
             Nothing
 
@@ -910,9 +888,6 @@ tileEnterAnimation anim =
     case anim of
         InitialEnter ->
             class "animAppear"
-
-        MergedExit _ ->
-            noAttr
 
         MergedEnter ->
             class "animDelayedPopIn"
