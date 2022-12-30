@@ -208,7 +208,7 @@ type Swipe
 
 type alias Flags =
     { now : Int
-    , state : Value
+    , state : Maybe String
     }
 
 
@@ -222,22 +222,32 @@ init flags =
         initialSeed =
             Random.initialSeed flags.now
     in
-    case decodeStringValue savedDecoder flags.state of
-        Ok saved ->
+    case flags.state |> Maybe.map (D.decodeString savedDecoder) of
+        Just (Ok saved) ->
             ( { score = saved.score
               , tiles = saved.tiles
               , swipe = NotStarted
               , seed = initialSeed
               }
               --|> makeRandomMoves Debug.toString
-            , Cmd.none
+            , log "Load Success"
             )
 
-        Err err ->
+        Just (Err err) ->
             let
                 errorString =
                     "Unable to load state. Fresh init. Error:" ++ D.errorToString err
+            in
+            ( { score = scoreZero
+              , tiles = []
+              , swipe = NotStarted
+              , seed = initialSeed
+              }
+            , log errorString
+            )
 
+        Nothing ->
+            let
                 ( tiles, seed ) =
                     Random.step randomInitialTiles initialSeed
             in
@@ -247,18 +257,12 @@ init flags =
             , seed = seed
             }
                 |> withSave
-                |> addCmd (log errorString)
+                |> addCmd (log "First time init success.")
 
 
 addCmd : Cmd msg -> ( a, Cmd msg ) -> ( a, Cmd msg )
 addCmd c1 =
     Tuple.mapSecond (\c2 -> Cmd.batch [ c1, c2 ])
-
-
-decodeStringValue : Decoder a -> Value -> Result D.Error a
-decodeStringValue decoder value =
-    D.decodeValue D.string value
-        |> Result.andThen (D.decodeString decoder)
 
 
 newGame : Model -> ( Model, Cmd msg )
